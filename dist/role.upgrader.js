@@ -1,14 +1,12 @@
 module.exports = {
-    run: function(creep, room){
+    run : function(creep, room){
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity){
             creep.memory.harvesting = false;
             creep.say("upgrade")
-
         }
         else if (!creep.memory.harvesting && creep.carry.energy === 0){
             creep.memory.harvesting = true;
             creep.say("harvest")
-
         }
 
         if (creep.memory.harvesting){
@@ -21,7 +19,6 @@ module.exports = {
         } else {
             if (creep.upgradeController(room.controller) === ERR_NOT_IN_RANGE){
                 creep.moveTo(room.controller, {visualizePathStyle: {stroke: '#a4ff4c'}})
-
             }
         }             
     }

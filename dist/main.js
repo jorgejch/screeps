@@ -17,16 +17,25 @@ const hr = require('HR');
 const garbageCollector = require('GarbageCollector');
 const spawner = require('Spawner');
 const hq_room = Game.rooms.W71S75;
+const roomsToExploit = [Game.rooms["W71S76"]];
 
 module.exports.loop = function () {
-    // Clean memory from dead creeps.
-    garbageCollector.run();
-    // Find hostiles
-    const hostiles = Game.rooms["W71S75"].find(FIND_HOSTILE_CREEPS);
+    // print available rooms
+    Object.keys(Game.rooms).forEach(function (room) {
+        console.log(`Room ${room} is available`)
+    });
+
+    // look for hostiles in hq
+    const hostiles = hq_room.find(FIND_HOSTILE_CREEPS);
+
+    // clean memory from dead creeps.
+    garbageCollector.clearDeadScreepsFromMemory();
+    // update creeps roles counts
+    hr.updateNumOfCreepsByRoles();
     // organize creeps
-    hr.run(hostiles.length);
+    hr.setRoles(hostiles.length);
     // spawn creeps
-    spawner.run(Game.spawns['Spawn1']);
+    spawner.spawn(Game.spawns['Spawn1']);
 
     // attack with towers in case of attack
     if (hostiles.length) {
@@ -44,11 +53,26 @@ module.exports.loop = function () {
 
         switch (creep.memory.role) {
             case "harvester": {
-                harvesterRole.run(creep, hq_room);
+                harvesterRole.assign_subrole(creep);
+
+                if (creep.memory.subrole === "commuter"){
+                    harvesterRole.run(creep,roomsToExploit[0], hq_room);
+                }
+                else {
+                    harvesterRole.run(creep, hq_room, hq_room);
+                }
                 break;
             }
             case "builder": {
-                builderRole.run(creep, hq_room);
+                builderRole.assign_subrole(creep);
+
+                if (creep.memory.subrole === "expat") {
+                    builderRole.run(creep, roomsToExploit[0], roomsToExploit[0]);
+                }
+                else{
+                    builderRole.run(creep, hq_room, hq_room)
+                }
+
                 break;
             }
             case "upgrader": {
@@ -60,7 +84,8 @@ module.exports.loop = function () {
                 break;
             }
             case 'repairman': {
-                repairmanRole.run(creep, hq_room);
+                repairmanRole.assign_subrole(creep);
+                repairmanRole.run(creep, hq_room, hq_room);
                 break;
             }
         }
