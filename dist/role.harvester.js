@@ -1,16 +1,29 @@
-module.exports = {
-    run: function(creep, room){
+let harvesterRole;
+module.exports = harvesterRole = {
+    assign_subrole: function (creep) {
+    if (_.filter(Memory.harvesters, {memory: {subrole: "commuter"}}).length <= 4
+        && _.filter(Memory.harvesters, {memory: {subrole: "local"}}).length > 2){
+        creep.memory.subrole = "commuter";
+        console.log(`${creep.name} assigned to commute.`)
+    }
+},
+    run: function(creep, roomSource, roomTarget){
         if (creep.carry.energy < creep.carryCapacity){
-            const sources = room.find(FIND_SOURCES);
+            const sources = roomSource.find(FIND_SOURCES);
 
             if (creep.harvest(sources[0]) === ERR_NOT_IN_RANGE){
-                creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#dcb5ff'}});
+                creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#ddff27'}});
+            }
+            else {
+                console.log(`${creep.name} is unable to harvest source because of ${creep.harvest(sources[0])}`)
             }
         } else {
-            const targets = room.find(FIND_STRUCTURES, {
-                filter: (structure) =>
-                    (structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN)
-                    && (structure.energy < structure.energyCapacity)
+            const targets = roomTarget.find(FIND_STRUCTURES, {
+                filter: (structure) => (
+                    structure.structureType === STRUCTURE_EXTENSION
+                    || structure.structureType === STRUCTURE_SPAWN
+                    || structure.structureType === STRUCTURE_TOWER
+                ) && (structure.energy < structure.energyCapacity)
             });
 
             if (targets.length){

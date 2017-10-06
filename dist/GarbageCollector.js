@@ -1,5 +1,5 @@
 module.exports = {
-    run : function(){
+    clearDeadScreepsFromMemory : function(){
         let i;
         for(i in Memory.creeps) {
             if(!Game.creeps[i]) {
