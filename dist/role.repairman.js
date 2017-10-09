@@ -1,6 +1,8 @@
+const rolesUtils = require("RolesUtils");
+
 let repairmanRole;
 module.exports = repairmanRole = {
-    assign_subrole: function (creep) {
+    assignSubrole: function (creep) {
         if (_.filter(Memory.repairmans, {memory: {subrole: "all"}}).length > 1) {
             if (_.filter(Memory.repairmans, {memory: {subrole: "defense"}}).length < 1) {
                 creep.memory.subrole = "defense"
@@ -23,11 +25,7 @@ module.exports = repairmanRole = {
         }
 
         if (creep.memory.harvesting) {
-            const sources = roomSource.find(FIND_SOURCES);
-            if (creep.harvest(sources[0]) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#49d1ff'}});   // com traço
-            }
-
+            rolesUtils.harvestSource(creep, roomSource, 1,'#251cff')
         } else {
             let target;
             // obtain possible targets based on subroles
@@ -52,11 +50,14 @@ module.exports = repairmanRole = {
                 target = roomTarget.find(FIND_STRUCTURES,
                     {
                         filter: (structure) => (structure.hits < structure.hitsMax) &&
-                            (structure.structureType !== STRUCTURE_RAMPART
-                                && structure.structureType !== STRUCTURE_ROAD)
+                            (structure.structureType !== STRUCTURE_ROAD)
                             && (structure.hits < 100000)
                     });
             }
+
+            target = target.sort(function (a, b) {
+                return a.hits - b.hits
+            });
 
             // execute action on target
             if (target.length) {

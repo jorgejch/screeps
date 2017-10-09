@@ -1,3 +1,5 @@
+const roleUtils = require("RolesUtils");
+
 module.exports = {
     run : function(creep, room){
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity){
@@ -10,15 +12,10 @@ module.exports = {
         }
 
         if (creep.memory.harvesting){
-            const sources = room.find(FIND_SOURCES);
-
-            if (creep.harvest(sources[1]) === ERR_NOT_IN_RANGE){                     // vai pra source 2
-                creep.moveTo(sources[1], {visualizePathStyle: {stroke: '#ffefd2'}});
-            }
-
+            roleUtils.harvestSource(creep, room, 1, '#ffe900');
         } else {
             if (creep.upgradeController(room.controller) === ERR_NOT_IN_RANGE){
-                creep.moveTo(room.controller, {visualizePathStyle: {stroke: '#a4ff4c'}})
+                creep.moveTo(room.controller, {visualizePathStyle: {stroke: '#ffe900' }})
             }
         }             
     }
