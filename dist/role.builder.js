@@ -1,5 +1,8 @@
+const rolesUtils = require("RolesUtils");
+const generalUtils = require("GeneralUtils");
+
 module.exports = {
-    assign_subrole: function (creep) {
+    assignSubrole: function (creep) {
         if (_.filter(Memory.builders, {memory: {subrole: "expat"}}).length <= 1
             && _.filter(Memory.builders, {memory: {subrole: "expat"}}).length > 1) {
             creep.memory.subrole = "expat";
@@ -17,18 +20,15 @@ module.exports = {
         }
 
         if (creep.memory.harvesting) {
-            const sources = roomSource.find(FIND_SOURCES);
-
-            if (creep.harvest(sources[1]) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[1], {visualizePathStyle: {stroke: '#ff95d6'}});
-            }
+            rolesUtils.harvestSource(creep, roomSource, 999, '#ff2125')
         }
         else {
-            const targets = roomTarget.find(FIND_CONSTRUCTION_SITES);
+            // closer targets should be prioritized
+            const targets = generalUtils.sortByPathCost(creep, roomTarget.find(FIND_CONSTRUCTION_SITES));
 
             if (targets.length) {
                 if (creep.build(targets[0]) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#57ffd8'}});
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ff2125'}});
                 }
             }
             else {
