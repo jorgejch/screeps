@@ -4,9 +4,6 @@
     -   autoescale creeps based on energy availability
 */
 
-// to remove
-Memory.minSpawn1Energy = 150;
-
 /* roles */
 const harvesterRole = require('role.harvester');
 const upgraderRole = require('role.upgrader');
@@ -19,33 +16,17 @@ const hr = require('HR');
 const garbageCollector = require('GarbageCollector');
 const spawner = require('Spawner');
 const hq_room = Game.rooms.W71S75;
-const roomsToExploitFlags = {/*target*/W71S75 : [Game.flags.W71S76, Game.flags.W71S74]};
+const roomsToExploitFlags = {/*target*/W71S75: [Game.flags.W71S76, Game.flags.W71S74]};
 
 module.exports.loop = function () {
-    // print available rooms info;
-    Object.keys(Game.rooms).forEach(function (roomName) {
-        console.log(`Room ${roomName} is available and has:
-            - energy storage capacity of ${generalUtils.calcutaleRoomTotalEnergyCapacity(Game.rooms[roomName])}`)
-    });
-
-    // default to room flag if room to exploit is not visible not visible
-    if (roomsToExploitFlags[0] !== undefined){
-        roomsToExploitFlags[0] = Game.flags.W71S76;
-    }
-
-    // look for hostiles in hq
-    const hostiles = hq_room.find(FIND_HOSTILE_CREEPS);
-
     // clean memory from dead creeps.
     garbageCollector.clearDeadScreepsFromMemory();
     // update creeps roles counts
     hr.updateNumOfCreepsByRoles();
-    // organize creeps
-    hr.setRoles(hostiles.length);
-    // spawn creeps
-    spawner.spawn(Game.spawns['Spawn1']);
+    // look for hostiles in hq
+    const hostiles = hq_room.find(FIND_HOSTILE_CREEPS);
 
-    if (hostiles.length) {  // attack with towers in case of attack
+    if (hostiles.length) {
         Memory.war = true;
         const username = hostiles[0].owner.username;
         Game.notify(`User ${username} spotted in room W71S75`);
@@ -61,8 +42,10 @@ module.exports.loop = function () {
             {filter: (structure) => (structure.structureType === STRUCTURE_TOWER)});
         towers.forEach(function (tower) {
             const targets = hq_room.find(FIND_STRUCTURES,
-                {filter: (structure) => (structure.hits < structure.hitsMax)
-                    && (structure.hitsMax - structure.hits > 100)});
+                {
+                    filter: (structure) => (structure.hits < structure.hitsMax)
+                        && (structure.hitsMax - structure.hits > 100)
+                });
             const toRepair = targets.sort(function (a, b) {
                 return a.hits - b.hits
             })[0];
@@ -70,18 +53,24 @@ module.exports.loop = function () {
         });
     }
 
+    generalUtils.print_stats(Memory.war ? "war" : "peace");
+    hr.setRoles(hostiles.length);
+    spawner.spawn(Game.spawns['Spawn1']);
+
+    // default to room flag if room to exploit is not visible not visible
+    if (roomsToExploitFlags[0] !== undefined) {
+        roomsToExploitFlags[0] = Game.flags.W71S76;
+    }
+
     Object.keys(Game.creeps).forEach(function (key) {
         const creep = Game.creeps[key];
 
         switch (creep.memory.role) {
             case "harvester": {
-                harvesterRole.assignSubrole(creep);
-
                 if (creep.memory.subrole === "commuter") {
-                    const targetRoomName = Object.keys(roomsToExploitFlags)[0];
                     const sourceRoom = Game.rooms["W71S76"];
                     if (sourceRoom === undefined) {
-                        harvesterRole.run(creep, roomsToExploitFlags[targetRoomName][0], Game.rooms[targetRoomName], true);
+                        harvesterRole.run(creep, roomsToExploitFlags[hq_room.name][0], hq_room, true);
                     } else {
                         harvesterRole.run(creep, sourceRoom, hq_room);
                     }
@@ -104,7 +93,17 @@ module.exports.loop = function () {
                 break;
             }
             case "upgrader": {
-                upgraderRole.run(creep, hq_room);
+                const sourceRoom = Game.rooms["W71S74"];
+                if (creep.memory.subrole === "commuter") {
+                    if (sourceRoom === undefined) {
+                        upgraderRole.run(creep, roomsToExploitFlags[hq_room.name][1], hq_room, 99, true);
+                    } else {
+                        upgraderRole.run(creep, sourceRoom, hq_room);
+                    }
+                }
+                else {
+                    upgraderRole.run(creep, hq_room, hq_room);
+                }
                 break;
             }
             case "guard": {

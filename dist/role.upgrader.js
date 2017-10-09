@@ -1,7 +1,7 @@
 const roleUtils = require("RolesUtils");
 
 module.exports = {
-    run : function(creep, room){
+    run : function(creep, roomSource, roomTarget, preferredSource = 1, goToFlag = false){
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity){
             creep.memory.harvesting = false;
             creep.say("upgrade")
@@ -12,10 +12,16 @@ module.exports = {
         }
 
         if (creep.memory.harvesting){
-            roleUtils.harvestSource(creep, room, 1, '#ffe900');
+            if (goToFlag === true) {
+                const r = creep.moveTo(roomSource, {visualizePathStyle: {stroke: '#ffe900'}});
+                console.log(`${creep.name} moveTo to room flag. Code: ${r}`)
+            }
+            else {
+                roleUtils.harvestSource(creep, roomSource, preferredSource, '#ffe900');
+            }
         } else {
-            if (creep.upgradeController(room.controller) === ERR_NOT_IN_RANGE){
-                creep.moveTo(room.controller, {visualizePathStyle: {stroke: '#ffe900' }})
+            if (creep.upgradeController(roomTarget.controller) === ERR_NOT_IN_RANGE){
+                creep.moveTo(roomTarget.controller, {visualizePathStyle: {stroke: '#ffe900' }})
             }
         }             
     }
