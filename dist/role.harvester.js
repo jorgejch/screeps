@@ -3,8 +3,6 @@ const generalUtils = require("GeneralUtils");
 
 let harvesterRole;
 module.exports = harvesterRole = {
-    assignSubrole: function (creep) {
-    },
     run: function (creep, roomSource, roomTarget, goToFlag = false) {
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity) {
             creep.memory.harvesting = false;
@@ -30,8 +28,6 @@ module.exports = harvesterRole = {
                     filter: (structure) => structure.structureType === STRUCTURE_EXTENSION
                         && structure.energy < structure.energyCapacity
                 });
-
-            console.log(`Room ${roomTarget.name} has ${incompleteExtensions.length} incomplete extensions`);
 
             /*
                 all local harvesters should be present and all extensions filled

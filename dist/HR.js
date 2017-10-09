@@ -9,6 +9,7 @@ module.exports = hr = {
             Memory.numCommuterHarvesters = 3;
             Memory.numBuilders = 0;
             Memory.numUpgraders = 4;
+            Memory.numCommuterUpgraders = 4;
             Memory.numRepairmans = 0;
 
             if (Memory.builders.length > Memory.numBuilders) {
@@ -39,6 +40,8 @@ module.exports = hr = {
             Memory.numCommuterHarvesters = 0;
             Memory.numBuilders = 0;
             Memory.numUpgraders = 1;
+            Memory.numCommuterUpgraders = 0;
+            Memory.numBuilders = 0;
             Memory.numRepairmans = 2;
         },
     },
@@ -48,17 +51,15 @@ module.exports = hr = {
         Memory.harvesters = _.filter(Game.creeps, {memory: {role: 'harvester', subrole:'local'}});
         Memory.commuterHarvesters = _.filter(Game.creeps, {memory: {role: 'harvester', subrole: 'commuter'}});
         Memory.upgraders = _.filter(Game.creeps, {memory: {role: 'upgrader'}});
+        Memory.commuterUpgraders = _.filter(Game.creeps, {memory: {role: 'upgrader', subrole: 'commuter'}});
         Memory.repairmans = _.filter(Game.creeps, {memory: {role: 'repairman'}});
     },
     setRoles: function (num_hostiles) {
-
         if (num_hostiles) {
             hr.personelConfigurations.war(num_hostiles);
-            print_stats("war");
         }
         else {
             hr.personelConfigurations.peace();
-            print_stats("peace");
         }
     }
 };
