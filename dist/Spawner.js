@@ -1,7 +1,7 @@
 module.exports = {
     spawn: function (spawn) {
         let name;
-        if (Memory.harvesters.length >= Memory.numHarvesters && spawn.energy === 300) {
+        if (Memory.harvesters.length >= Memory.numHarvesters && spawn.energy >= 100) {
             if (Memory.guards.length < Memory.numGuards) {
                 name = 'Guard' + Game.time;
                 return_code = spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, TOUGH, ATTACK, ATTACK, ATTACK],
@@ -9,37 +9,37 @@ module.exports = {
                 console.log("Fazendo guard: " + return_code);
                 return;
             }
-            else if (Memory.upgraders.length < Memory.numUpgraders) {
-                name = 'BigUpgrader' + Game.time;
+            else if (Memory.commuterHarvesters.length < Memory.numCommuterHarvesters){
+                name = 'BigCommuterHarvester' + Game.time;
                 return_code = spawn.spawnCreep(
-                    [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK,
-                        WORK, WORK, WORK, WORK],
+                    [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+                        CARRY, CARRY, CARRY, CARRY, WORK, WORK],
                     name,
-                    {memory: {role: "upgrader", subrole: "local"}}
+                    {memory: {role: "harvester", subrole: "commuter"}}
                 );
-                console.log("Fazendo upgrader: " + return_code);
-                return;
+                console.log("Fazendo BigCommuterHarvester: " + return_code);
             }
             else if (Memory.commuterUpgraders.length < Memory.numCommuterUpgraders) {
                 name = 'BigCommuterUpgrader' + Game.time;
                 return_code = spawn.spawnCreep(
                     [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
-                        CARRY, CARRY, CARRY, CARRY, WORK, WORK],
+                        CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK],
                     name,
                     {memory: {role: "upgrader", subrole: "commuter"}}
                 );
                 console.log("Fazendo big commuter upgrader: " + return_code);
                 return;
             }
-            else if (Memory.commuterHarvesters.length < Memory.numCommuterHarvesters){
-                name = 'BigCommuterHarvester' + Game.time;
+            else if (Memory.upgraders.length < Memory.numUpgraders) {
+                name = 'BigUpgrader' + Game.time;
                 return_code = spawn.spawnCreep(
-                    [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
-                        CARRY, CARRY, CARRY, CARRY, WORK, WORK],
+                    [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK,
+                        WORK, WORK, WORK, WORK, WORK],
                     name,
-                    {memory: {role: "harvester", subrole: "commuter"}}
+                    {memory: {role: "upgrader", subrole: "local"}}
                 );
-                console.log("Fazendo BigCommuterHarvester: " + return_code);
+                console.log("Fazendo upgrader: " + return_code);
+                return;
             }
             else if (Memory.repairmans.length < Memory.numRepairmans) {
                 name = 'BigRepairman' + Game.time;

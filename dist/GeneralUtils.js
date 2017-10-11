@@ -15,8 +15,34 @@ module.exports = generalUtils = {
         Object.keys(Game.rooms).forEach(function (roomName) {
             const room = Game.rooms[roomName];
             console.log(`Room ${roomName} is available and has:
-            - ${room.energyAvailable} available energy
-            - ${room.energyCapacityAvailable} total energy storage capacity`)
+            - Energy ${room.energyAvailable}/${room.energyCapacityAvailable}  stored/capacity`)
         });
     },
+    updateStoredStructures: function (room) {
+        console.log("Updating stored structures");
+        Memory.incompleteExtensions[room.name] = room.find(FIND_STRUCTURES,
+            {
+                filter: (structure) => structure.structureType === STRUCTURE_EXTENSION
+                    && structure.energy < structure.energyCapacity
+            }
+        );
+        Memory.incompleteSpawns[room.name] = room.find(FIND_STRUCTURES,
+            {
+                filter: (structure) => structure.structureType === STRUCTURE_SPAWN
+                    && structure.energy < structure.energyCapacity
+            }
+        );
+        Memory.emptyTowers[room.name] = room.find(FIND_STRUCTURES,
+            {
+                filter: (structure) => structure.structureType === STRUCTURE_TOWER && structure.energy === 0
+            }
+        );
+        Memory.incompleteTowers[room.name] = room.find(FIND_STRUCTURES,
+            {
+                filter: (structure) => structure.structureType === STRUCTURE_TOWER
+                    && structure.energy < structure.energyCapacity
+            }
+        );
+        Memory.constructionSites[room.name] = room.find(FIND_CONSTRUCTION_SITES);
+    }
 };

@@ -9,7 +9,7 @@ module.exports = {
             console.log(`${creep.name} assigned to expat.`)
         }
     },
-    run: function (creep, roomSource, roomTarget ) {
+    run: function (creep, roomSource, roomTarget) {
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity) {
             creep.memory.harvesting = false;
             creep.say("build")
@@ -23,12 +23,28 @@ module.exports = {
             rolesUtils.harvestSource(creep, roomSource, 999, '#ff2125')
         }
         else {
+            let targets;
+            let chargeTower = false;    // if there are no construction sites builder should charge incomplete towers
+            const sites = Memory.constructionSites[roomTarget.name];
+
+            if (sites.length) {
+                targets = sites;
+            } else {
+                targets = Memory.incompleteTowers[roomTarget.name];
+                chargeTower = true;
+            }
             // closer targets should be prioritized
-            const targets = generalUtils.sortByPathCost(creep, roomTarget.find(FIND_CONSTRUCTION_SITES));
+            targets = generalUtils.sortByPathCost(creep, targets);
 
             if (targets.length) {
-                if (creep.build(targets[0]) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ff2125'}});
+                if (!chargeTower) {
+                    if (creep.build(targets[0]) === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ff2125'}});
+                    }
+                }else {
+                    if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ff2125'}});
+                    }
                 }
             }
             else {

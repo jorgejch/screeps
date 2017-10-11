@@ -25,6 +25,8 @@ module.exports.loop = function () {
     hr.updateNumOfCreepsByRoles();
     // look for hostiles in hq
     const hostiles = hq_room.find(FIND_HOSTILE_CREEPS);
+    // update stored structures of interest
+    generalUtils.updateStoredStructures(hq_room);
 
     if (hostiles.length) {
         Memory.war = true;
@@ -62,11 +64,13 @@ module.exports.loop = function () {
         roomsToExploitFlags[0] = Game.flags.W71S76;
     }
 
+
+    Memory.sources = {}; // reset sources obj to recount them
     Object.keys(Game.creeps).forEach(function (key) {
         const creep = Game.creeps[key];
 
         switch (creep.memory.role) {
-            case "harvester": {
+            case "harvester":
                 if (creep.memory.subrole === "commuter") {
                     const sourceRoom = Game.rooms["W71S76"];
                     if (sourceRoom === undefined) {
@@ -79,8 +83,7 @@ module.exports.loop = function () {
                     harvesterRole.run(creep, hq_room, hq_room);
                 }
                 break;
-            }
-            case "builder": {
+            case "builder":
                 builderRole.assignSubrole(creep);
 
                 if (creep.memory.subrole === "expat") {
@@ -91,30 +94,26 @@ module.exports.loop = function () {
                 }
 
                 break;
-            }
-            case "upgrader": {
+            case "upgrader":
                 const sourceRoom = Game.rooms["W71S74"];
                 if (creep.memory.subrole === "commuter") {
                     if (sourceRoom === undefined) {
                         upgraderRole.run(creep, roomsToExploitFlags[hq_room.name][1], hq_room, 99, true);
                     } else {
-                        upgraderRole.run(creep, sourceRoom, hq_room);
+                        upgraderRole.run(creep, sourceRoom, hq_room, 99);
                     }
                 }
                 else {
-                    upgraderRole.run(creep, hq_room, hq_room);
+                    upgraderRole.run(creep, hq_room, hq_room, 99);
                 }
                 break;
-            }
-            case "guard": {
+            case "guard":
                 guardRole.run(creep, hq_room);
                 break;
-            }
-            case 'repairman': {
+            case 'repairman':
                 repairmanRole.assignSubrole(creep);
                 repairmanRole.run(creep, hq_room, hq_room);
                 break;
-            }
         }
     })
 };
