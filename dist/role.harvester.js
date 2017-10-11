@@ -18,43 +18,27 @@ module.exports = harvesterRole = {
                 const r = creep.moveTo(roomSource, {visualizePathStyle: {stroke: "#17ff06"}});
                 console.log(`${creep.name} moveTo to room flag. Code: ${r}`)
             } else {
-                rolesUtils.harvestSource(creep,roomSource, 0, "#17ff06");
+                rolesUtils.harvestSource(creep, roomSource, 99, "#17ff06");
             }
 
         } else {
-            let targets;
-            const incompleteExtensions = roomTarget.find(FIND_STRUCTURES,
-                {
-                    filter: (structure) => structure.structureType === STRUCTURE_EXTENSION
-                        && structure.energy < structure.energyCapacity
-                });
-
             /*
                 all local harvesters should be present and all extensions filled
                 to allow also charging towers at peace time
              */
-            if (Memory.harvesters.length < Memory.numHarvesters || incompleteExtensions.length !== 0) {
-                targets = roomTarget.find(FIND_STRUCTURES, {
-                    filter: (structure) => (
-                        structure.structureType === STRUCTURE_EXTENSION
-                        || structure.structureType === STRUCTURE_SPAWN
-                    ) && (structure.energy < structure.energyCapacity)
-                });
+            let targets;
+            if (Memory.incompleteExtensions[roomTarget.name].length !== 0
+                || Memory.incompleteSpawns[roomTarget.name].length !== 0) {
 
+                if (!Memory.war || Memory.emptyTowers[roomTarget.name].length === 0) {
+                    targets = Memory.incompleteExtensions[roomTarget.name].concat(Memory.incompleteSpawns[roomTarget.name]);
+                }
+                else {
+                    targets = Memory.emptyTowers[roomTarget.name];
+                }
             }
-            else if (Memory.war === true && roomTarget.find(FIND_STRUCTURES, {filter: (structure) => structure.hits === 0}).length)  {
-                targets = roomTarget.find(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType === STRUCTURE_SPAWN
-                        || structure.structureType === STRUCTURE_TOWER
-                    ) && (structure.energy < structure.energyCapacity)
-                });
-            }
-            else {
-                targets = roomTarget.find(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType === STRUCTURE_SPAWN
-                        || structure.structureType === STRUCTURE_TOWER
-                    ) && (structure.energy < structure.energyCapacity)
-                });
+            else  {
+                targets = Memory.incompleteTowers[roomTarget.name];
             }
 
             // closer targets should be prioritized
