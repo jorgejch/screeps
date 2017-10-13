@@ -27,22 +27,28 @@ module.exports = harvesterRole = {
                 to allow also charging towers at peace time
              */
             let targets;
-            if (Memory.incompleteExtensions[roomTarget.name].length !== 0
-                || Memory.incompleteSpawns[roomTarget.name].length !== 0) {
+            switch (Object.keys(creep.carry)[0]) {
+                case RESOURCE_ENERGY:
+                    if (Memory.incompleteExtensions[roomTarget.name].length !== 0
+                        || Memory.incompleteSpawns[roomTarget.name].length !== 0) {
 
-                if (!Memory.war || Memory.emptyTowers[roomTarget.name].length === 0) {
-                    targets = Memory.incompleteExtensions[roomTarget.name].concat(Memory.incompleteSpawns[roomTarget.name]);
-                }
-                else {
-                    targets = Memory.emptyTowers[roomTarget.name];
-                }
+                        if (!Memory.war || Memory.emptyTowers[roomTarget.name].length === 0) {
+                            targets = Memory.incompleteExtensions[roomTarget.name]
+                                .concat(Memory.incompleteSpawns[roomTarget.name]);
+                        }
+                        else {
+                            targets = Memory.emptyTowers[roomTarget.name];
+                        }
+                    }
+                    else {
+                        targets = Memory.incompleteTowers[roomTarget.name];
+                    }
+                    break;
+                default:
+                    targets = roomTarget.hasOwnProperty("storage") ? [roomTarget.storage] : [];
             }
-            else  {
-                targets = Memory.incompleteTowers[roomTarget.name];
-            }
-
             // closer targets should be prioritized
-            targets = generalUtils.sortByPathCost(creep, targets);
+            targets = generalUtils.getLowestPathCostEntity(creep, targets);
 
             if (targets.length) {
                 if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {

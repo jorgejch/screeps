@@ -2,28 +2,23 @@ const generalUtils = require("GeneralUtils");
 
 let roleUtils;
 module.exports = roleUtils = {
-    harvestSource: function (creep, room, preferesSourceNum = 0, pathStroke = '#ffefd2') {
-        const stray_energy = room.find(FIND_DROPPED_RESOURCES,
-            {filter: (resource) => resource.resourceType === RESOURCE_ENERGY && resource.energy > 100});
-        const pickUpEnergy = !Memory.war
-            && stray_energy.length > 0;
-            // && room.find(FIND_MY_CREEPS);  // TODO: disallow picking up energy by the enemy
-
+    harvestSource: function (creep, room, preferedSourceNum = 0, pathStroke = '#ffefd2') {
+        const pickUpResource = !Memory.war
+            && Memory.strayResources[room.name]
+            && Memory.strayResources[room.name].length > 0;
 
         let source;
-        if (pickUpEnergy) {
+        if (pickUpResource) {
+            console.log("test")
             // closer sources should be prioritized
-            source = generalUtils.sortByPathCost(creep, stray_energy)[0];
+            source = generalUtils.getLowestPathCostEntity(creep, Memory.strayResources[room.name])[0];
         } else {
-            if (!Memory.sources.hasOwnProperty(room.name)) {
-                Memory.sources[room.name] = room.find(FIND_SOURCES, {filter: (s) => s.energy > 0});
-            }
-            const sources = Memory.sources[room.name];
-            source = sources.length >= preferesSourceNum + 1 ? sources[preferesSourceNum]
-                : generalUtils.sortByPathCost(creep, sources)[0];
+            const sources = Memory.nonEmptySources[room.name] || [];
+            source = sources.length >= preferedSourceNum + 1 ? sources[preferedSourceNum]
+                : generalUtils.getLowestPathCostEntity(creep, sources)[0];
         }
 
-        const r = pickUpEnergy ? creep.pickup(source) : creep.harvest(source);
+        const r = pickUpResource ? creep.pickup(source) : creep.harvest(source);
         switch (r) {
             case OK:
             case ERR_BUSY:
