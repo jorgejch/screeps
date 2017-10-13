@@ -2,13 +2,6 @@ const rolesUtils = require("RolesUtils");
 const generalUtils = require("GeneralUtils");
 
 module.exports = {
-    assignSubrole: function (creep) {
-        if (_.filter(Memory.builders, {memory: {subrole: "expat"}}).length <= 1
-            && _.filter(Memory.builders, {memory: {subrole: "expat"}}).length > 1) {
-            creep.memory.subrole = "expat";
-            console.log(`${creep.name} assigned to expat.`)
-        }
-    },
     run: function (creep, roomSource, roomTarget) {
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity) {
             creep.memory.harvesting = false;
@@ -34,7 +27,7 @@ module.exports = {
                 chargeTower = true;
             }
             // closer targets should be prioritized
-            targets = generalUtils.sortByPathCost(creep, targets);
+            targets = generalUtils.getLowestPathCostEntity(creep, targets);
 
             if (targets.length) {
                 if (!chargeTower) {

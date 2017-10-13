@@ -14,19 +14,21 @@ const repairmanRole = require('role.repairman');
 const generalUtils = require("GeneralUtils");
 const hr = require('HR');
 const garbageCollector = require('GarbageCollector');
+
 const spawner = require('Spawner');
 const hq_room = Game.rooms.W71S75;
 const roomsToExploitFlags = {/*target*/W71S75: [Game.flags.W71S76, Game.flags.W71S74]};
 
 module.exports.loop = function () {
-    // clean memory from dead creeps.
     garbageCollector.clearDeadScreepsFromMemory();
-    // update creeps roles counts
-    hr.updateNumOfCreepsByRoles();
-    // look for hostiles in hq
+    generalUtils.resetStoredStructures();
+    // update stored entities found in each room
+    Object.keys(Game.rooms).forEach(function (roomName) {
+        generalUtils.updateStructures(Game.rooms[roomName], roomName === "W71S76" || roomName === "W71S74");
+        generalUtils.updateStrayResources(Game.rooms[roomName]);
+    });
+    hr.updateCreepsRolesCount();
     const hostiles = hq_room.find(FIND_HOSTILE_CREEPS);
-    // update stored structures of interest
-    generalUtils.updateStoredStructures(hq_room);
 
     if (hostiles.length) {
         Memory.war = true;
@@ -55,7 +57,7 @@ module.exports.loop = function () {
         });
     }
 
-    generalUtils.print_stats(Memory.war ? "war" : "peace");
+    generalUtils.printStats(Memory.war ? "war" : "peace");
     hr.setRoles(hostiles.length);
     spawner.spawn(Game.spawns['Spawn1']);
 
@@ -64,8 +66,6 @@ module.exports.loop = function () {
         roomsToExploitFlags[0] = Game.flags.W71S76;
     }
 
-
-    Memory.sources = {}; // reset sources obj to recount them
     Object.keys(Game.creeps).forEach(function (key) {
         const creep = Game.creeps[key];
 
@@ -74,7 +74,7 @@ module.exports.loop = function () {
                 if (creep.memory.subrole === "commuter") {
                     const sourceRoom = Game.rooms["W71S76"];
                     if (sourceRoom === undefined) {
-                        harvesterRole.run(creep, roomsToExploitFlags[hq_room.name][0], hq_room, true);
+                        harvesterRole.run(creep, roomsToExploitFlags[hq_room.name][0], hq_room, 99, true);
                     } else {
                         harvesterRole.run(creep, sourceRoom, hq_room);
                     }
@@ -84,15 +84,7 @@ module.exports.loop = function () {
                 }
                 break;
             case "builder":
-                builderRole.assignSubrole(creep);
-
-                if (creep.memory.subrole === "expat") {
-                    builderRole.run(creep, roomsToExploitFlags[0], roomsToExploitFlags[0]);
-                }
-                else {
-                    builderRole.run(creep, hq_room, hq_room)
-                }
-
+                builderRole.run(creep, hq_room, hq_room);
                 break;
             case "upgrader":
                 const sourceRoom = Game.rooms["W71S74"];
@@ -111,7 +103,6 @@ module.exports.loop = function () {
                 guardRole.run(creep, hq_room);
                 break;
             case 'repairman':
-                repairmanRole.assignSubrole(creep);
                 repairmanRole.run(creep, hq_room, hq_room);
                 break;
         }

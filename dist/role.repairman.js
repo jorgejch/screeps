@@ -2,18 +2,6 @@ const rolesUtils = require("RolesUtils");
 
 let repairmanRole;
 module.exports = repairmanRole = {
-    assignSubrole: function (creep) {
-        if (_.filter(Memory.repairmans, {memory: {subrole: "all"}}).length > 1) {
-            if (_.filter(Memory.repairmans, {memory: {subrole: "defense"}}).length < 1) {
-                creep.memory.subrole = "defense"
-                console.log(`${creep.name} assigned to defense.`)
-            }
-            else if (_.filter(Memory.repairmans, {memory: {subrole: "roads"}}).length < 1) {
-                creep.memory.subrole = "roads"
-                console.log(`${creep.name} assigned to roads.`)
-            }
-        }
-    },
     run: function (creep, roomSource, roomTarget) {
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity) {
             creep.memory.harvesting = false;
