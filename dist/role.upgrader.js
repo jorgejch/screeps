@@ -2,7 +2,7 @@ const roleUtils = require("RolesUtils");
 
 module.exports = {
     run : function(creep, roomSource, roomTarget, preferredSource = 1, goToFlag = false){
-        if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity){
+        if (creep.memory.harvesting && _.sum(creep.carry) === creep.carryCapacity){
             creep.memory.harvesting = false;
             creep.say("upgrade")
         }

@@ -4,7 +4,7 @@ const generalUtils = require("GeneralUtils");
 let harvesterRole;
 module.exports = harvesterRole = {
     run: function (creep, roomSource, roomTarget, goToFlag = false) {
-        if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity) {
+        if (creep.memory.harvesting && _.sum(creep.carry) === creep.carryCapacity) {
             creep.memory.harvesting = false;
             creep.say("charge")
         }
@@ -48,7 +48,7 @@ module.exports = harvesterRole = {
                     targets = roomTarget.hasOwnProperty("storage") ? [roomTarget.storage] : [];
             }
             // closer targets should be prioritized
-            targets = generalUtils.getLowestPathCostEntity(creep, targets);
+            targets = generalUtils.sortByLowestPathCost(creep, targets);
 
             if (targets.length) {
                 if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {

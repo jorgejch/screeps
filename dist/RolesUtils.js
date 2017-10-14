@@ -9,13 +9,12 @@ module.exports = roleUtils = {
 
         let source;
         if (pickUpResource) {
-            console.log("test")
             // closer sources should be prioritized
-            source = generalUtils.getLowestPathCostEntity(creep, Memory.strayResources[room.name])[0];
+            source = generalUtils.sortByLowestPathCost(creep, Memory.strayResources[room.name])[0];
         } else {
             const sources = Memory.nonEmptySources[room.name] || [];
             source = sources.length >= preferedSourceNum + 1 ? sources[preferedSourceNum]
-                : generalUtils.getLowestPathCostEntity(creep, sources)[0];
+                : generalUtils.sortByLowestPathCost(creep, sources)[0];
         }
 
         const r = pickUpResource ? creep.pickup(source) : creep.harvest(source);
@@ -30,7 +29,7 @@ module.exports = roleUtils = {
                 if (creep.carry.energy > 0) {
                     creep.memory.harvesting = false;
                 }
-            default :
+            default:
                 console.log(`${creep.name} unable to move to source due to ${r}`);
         }
     },

@@ -6,6 +6,7 @@
 
 /* roles */
 const harvesterRole = require('role.harvester');
+const conquerorRole = require('role.conqueror');
 const upgraderRole = require('role.upgrader');
 const builderRole = require('role.builder');
 const guardRole = require('role.guard');
@@ -17,7 +18,6 @@ const garbageCollector = require('GarbageCollector');
 
 const spawner = require('Spawner');
 const hq_room = Game.rooms.W71S75;
-const roomsToExploitFlags = {/*target*/W71S75: [Game.flags.W71S76, Game.flags.W71S74]};
 
 module.exports.loop = function () {
     garbageCollector.clearDeadScreepsFromMemory();
@@ -61,42 +61,54 @@ module.exports.loop = function () {
     hr.setRoles(hostiles.length);
     spawner.spawn(Game.spawns['Spawn1']);
 
-    // default to room flag if room to exploit is not visible not visible
-    if (roomsToExploitFlags[0] !== undefined) {
-        roomsToExploitFlags[0] = Game.flags.W71S76;
-    }
-
     Object.keys(Game.creeps).forEach(function (key) {
         const creep = Game.creeps[key];
 
+        let roomName;
         switch (creep.memory.role) {
             case "harvester":
                 if (creep.memory.subrole === "commuter") {
-                    const sourceRoom = Game.rooms["W71S76"];
-                    if (sourceRoom === undefined) {
-                        harvesterRole.run(creep, roomsToExploitFlags[hq_room.name][0], hq_room, 99, true);
+                    roomName = creep.memory.target;
+                    if (Game.rooms[roomName] === undefined) {
+                        // goto room flag if room not visible
+                        harvesterRole.run(creep, Game.flags[roomName], Game.rooms[creep.memory.citizenship], true);
                     } else {
-                        harvesterRole.run(creep, sourceRoom, hq_room);
+                        harvesterRole.run(creep, Game.rooms[roomName], Game.rooms[creep.memory.citizenship]);
                     }
                 }
                 else {
-                    harvesterRole.run(creep, hq_room, hq_room);
+                    harvesterRole.run(creep, Game.rooms[creep.memory.citizenship], Game.rooms[creep.memory.citizenship]);
+                }
+                break;
+            case "conqueror":
+                roomName = creep.memory.citizenship;
+                if (Game.rooms[roomName] === undefined) {
+                    conquerorRole.run(creep, Game.flags[roomName], true)
+                } else {
+                    conquerorRole.run(creep, Game.rooms[roomName])
                 }
                 break;
             case "builder":
-                builderRole.run(creep, hq_room, hq_room);
+                roomName = creep.memory.citizenship;
+                builderRole.run(creep, Game.rooms[roomName], Game.rooms[roomName]);
                 break;
             case "upgrader":
-                const sourceRoom = Game.rooms["W71S74"];
                 if (creep.memory.subrole === "commuter") {
-                    if (sourceRoom === undefined) {
-                        upgraderRole.run(creep, roomsToExploitFlags[hq_room.name][1], hq_room, 99, true);
+                    creep.memory.target = "W71S74";
+                    roomName = creep.memory.target;
+                    if (Game.creeps[roomName] === undefined) {
+                        upgraderRole.run(creep, Game.flags[roomName], Game.rooms[creep.memory.citizenship], 99, true);
                     } else {
                         upgraderRole.run(creep, sourceRoom, hq_room, 99);
                     }
                 }
                 else {
-                    upgraderRole.run(creep, hq_room, hq_room, 99);
+                    upgraderRole.run(
+                        creep,
+                        Game.rooms[creep.memory.citizenship],
+                        Game.rooms[creep.memory.citizenship],
+                        99
+                    );
                 }
                 break;
             case "guard":

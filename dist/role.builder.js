@@ -27,7 +27,7 @@ module.exports = {
                 chargeTower = true;
             }
             // closer targets should be prioritized
-            targets = generalUtils.getLowestPathCostEntity(creep, targets);
+            targets = generalUtils.sortByLowestPathCost(creep, targets);
 
             if (targets.length) {
                 if (!chargeTower) {
