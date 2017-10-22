@@ -4,10 +4,10 @@ module.exports = hr = {
         peace: function () {
             Memory.numGuards = 0;
             Memory.numHarvesters = 3;
-            Memory.numCommuterHarvesters = 2;
-            Memory.numBuilders = 2;
-            Memory.numUpgraders = 6;
-            Memory.numCommuterUpgraders = 4;
+            Memory.numCommuterHarvesters = 3 + Memory.spawningPenalty;
+            Memory.numBuilders = 1; // Memory.constructionSites["W71S73"].length ? 1 : 0;
+            Memory.numUpgraders = 5 + Memory.spawningPenalty;
+            Memory.numCommuterUpgraders = 4 + Memory.spawningPenalty;
             Memory.numRepairmans = 0;
             Memory.numConquerors = 0;
         },
@@ -26,7 +26,7 @@ module.exports = hr = {
         Memory.guards = _.filter(Game.creeps, {memory: {role: 'guard'}});
         Memory.builders = _.filter(Game.creeps, {memory: {role: 'builder'}});
         Memory.harvesters = _.filter(Game.creeps, {memory: {role: 'harvester', subrole:'local'}});
-        Memory.commuterHarvesters = _.filter(Game.creeps, {memory: {role: 'harvester', subrole: 'commuter', target: "W71S76"}});
+        Memory.commuterHarvesters = _.filter(Game.creeps, {memory: {role: 'harvester', subrole: 'commuter'}});
         Memory.upgraders = _.filter(Game.creeps, {memory: {role: 'upgrader', subrole: 'local'}});
         Memory.commuterUpgraders = _.filter(Game.creeps, {memory: {role: 'upgrader', subrole: 'commuter'}});
         Memory.repairmans = _.filter(Game.creeps, {memory: {role: 'repairman'}});

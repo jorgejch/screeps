@@ -3,7 +3,7 @@ const generalUtils = require("GeneralUtils");
 let roleUtils;
 module.exports = roleUtils = {
     harvestSource: function (creep, room, preferedSourceNum = 0, pathStroke = '#ffefd2') {
-        const pickUpResource = !Memory.war
+        const pickUpResource = !Memory.war[room.name]
             && Memory.strayResources[room.name]
             && Memory.strayResources[room.name].length > 0;
 
@@ -32,5 +32,9 @@ module.exports = roleUtils = {
             default:
                 console.log(`${creep.name} unable to move to source due to ${r}`);
         }
+    },
+    isAnyStructureCritical: function (roomName) {
+        return Memory.allStructures.hasOwnProperty(roomName)
+            && Memory.allCriticalStateStructures[roomName].length > /*cuz controller is first*/ 1
     },
 };

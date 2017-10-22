@@ -24,14 +24,18 @@ module.exports = harvesterRole = {
         } else {
             /*
                 all local harvesters should be present and all extensions filled
-                to allow also charging towers at peace time
+                to allow also charging towers when no structure is critical or at peace time
              */
             let targets;
             switch (Object.keys(creep.carry)[0]) {
                 case RESOURCE_ENERGY:
-                    if (Memory.incompleteExtensions[roomTarget.name].length !== 0
+                    if (rolesUtils.isAnyStructureCritical(roomTarget.name)){
+                        targets = Memory.incompleteTowers[roomTarget.name];
+                    }
+                    else if (Memory.incompleteExtensions[roomTarget.name].length !== 0
                         || Memory.incompleteSpawns[roomTarget.name].length !== 0) {
 
+                        // towers should not be empty when at war
                         if (!Memory.war || Memory.emptyTowers[roomTarget.name].length === 0) {
                             targets = Memory.incompleteExtensions[roomTarget.name]
                                 .concat(Memory.incompleteSpawns[roomTarget.name]);
