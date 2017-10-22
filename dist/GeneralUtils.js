@@ -7,21 +7,24 @@ module.exports = generalUtils = {
             return aPathCost - bPathCost;
         });
     },
-    printStats: function (state) {
+    printStats: function () {
         console.log("**Game Stats**");
         console.log(`Cpu bucket count: ${Game.cpu.bucket}`);
         // print creeps stats
-        console.log(`State: ${state} | guards ${Memory.guards.length}/${Memory.numGuards} | repairmans ${Memory.repairmans.length}/${Memory.numRepairmans} | upgraders  ${Memory.upgraders.length}/${Memory.numUpgraders} | commuter upgraders  ${Memory.commuterUpgraders.length}/${Memory.numCommuterUpgraders} | builders   ${Memory.builders.length}/${Memory.numBuilders} | harvesters ${Memory.harvesters.length}/${Memory.numHarvesters} | commuter harvesters ${Memory.commuterHarvesters.length}/${Memory.numCommuterHarvesters}| conqueror ${Memory.conquerors.length}/${Memory.numConquerors}|`);
+        console.log(`Personnel: guards ${Memory.guards.length}/${Memory.numGuards} | repairmans ${Memory.repairmans.length}/${Memory.numRepairmans} | upgraders  ${Memory.upgraders.length}/${Memory.numUpgraders} | commuter upgraders  ${Memory.commuterUpgraders.length}/${Memory.numCommuterUpgraders} | builders   ${Memory.builders.length}/${Memory.numBuilders} | harvesters ${Memory.harvesters.length}/${Memory.numHarvesters} | commuter harvesters ${Memory.commuterHarvesters.length}/${Memory.numCommuterHarvesters}| conqueror ${Memory.conquerors.length}/${Memory.numConquerors}|`);
         // print available rooms info
         Object.keys(Game.rooms).forEach(function (roomName) {
             const room = Game.rooms[roomName];
             console.log(`Room ${roomName}:
-            - Energy ${room.energyAvailable}/${room.energyCapacityAvailable}  stored/capacity
+            - State: ${Memory.war[roomName] ? "war" : "peace"}
+            - Energy: ${room.energyAvailable}/${room.energyCapacityAvailable}  stored/capacity
             - Citizens: ${_.values(Game.creeps).filter((c) => c.memory.citizenship === roomName).length}`
             )
         });
     },
     resetStoredStructures: function () {
+        Memory.allStructures = {};
+        Memory.allCriticalStateStructures = {};
         Memory.sources = {};
         Memory.nonEmptySources = {};
         Memory.constructionSites = {};
@@ -30,6 +33,7 @@ module.exports = generalUtils = {
         Memory.emptyTowers = {};
         Memory.incompleteExtensions = {};
         Memory.strayResources = {};
+        Memory.containers = {};
     },
     updateStructures: function (room, onlySources = false) {
         Memory.sources[room.name] = room.find(FIND_SOURCES);
@@ -38,27 +42,27 @@ module.exports = generalUtils = {
         if (onlySources) {
             return;
         }
+        Memory.allStructures[room.name] = room.find(FIND_STRUCTURES);
+        Memory.allCriticalStateStructures[room.name] = Memory.allStructures[room.name].filter((s) => s.hits < 500);
+
+        Memory.containers[room.name] = Memory.allStructures[room.name].filter(
+            (s) => s.structureType === STRUCTURE_CONTAINER
+        );
 
         Memory.constructionSites[room.name] = room.find(FIND_CONSTRUCTION_SITES);
-        Memory.incompleteSpawns[room.name] = room.find(FIND_STRUCTURES,
-            {
-                filter: (structure) => structure.structureType === STRUCTURE_SPAWN
-                    && structure.energy < structure.energyCapacity
-            });
+        Memory.incompleteSpawns[room.name] = Memory.allStructures[room.name].filter(
+            (structure) => structure.structureType === STRUCTURE_SPAWN && structure.energy < structure.energyCapacity
+        );
 
-        Memory.incompleteTowers[room.name] = room.find(FIND_STRUCTURES,
-            {
-                filter: (structure) => structure.structureType === STRUCTURE_TOWER
-                    && structure.energy < structure.energyCapacity
-            });
-
+        Memory.incompleteTowers[room.name] = Memory.allStructures[room.name].filter(
+            (structure) => structure.structureType === STRUCTURE_TOWER && structure.energy < structure.energyCapacity
+        );
         Memory.emptyTowers[room.name] = Memory.incompleteTowers[room.name].length > 0
             ? Memory.incompleteTowers[room.name].filter((structure) => structure.energy < 10) : [];
-        Memory.incompleteExtensions[room.name] = room.find(FIND_STRUCTURES,
-            {
-                filter: (structure) => structure.structureType === STRUCTURE_EXTENSION
-                    && structure.energy < structure.energyCapacity
-            });
+        Memory.incompleteExtensions[room.name] = Memory.allStructures[room.name].filter(
+            (structure) => structure.structureType === STRUCTURE_EXTENSION
+                && structure.energy < structure.energyCapacity
+        );
     },
     updateStrayResources: function (room) {
         // low amount of energy don't matter
