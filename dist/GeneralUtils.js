@@ -22,14 +22,14 @@ module.exports = generalUtils = {
             )
         });
     },
-    resetStoredStructures: function () {
-        Memory.allStructures = {};
+    resetStoredEntities: function () {
         Memory.allCriticalStateStructures = {};
         Memory.sources = {};
         Memory.nonEmptySources = {};
         Memory.constructionSites = {};
         Memory.incompleteSpawns = {};
         Memory.incompleteTowers = {};
+        Memory.towers = {};
         Memory.emptyTowers = {};
         Memory.incompleteExtensions = {};
         Memory.strayResources = {};
@@ -42,27 +42,26 @@ module.exports = generalUtils = {
         if (onlySources) {
             return;
         }
-        Memory.allStructures[room.name] = room.find(FIND_STRUCTURES);
-        Memory.allCriticalStateStructures[room.name] = Memory.allStructures[room.name].filter((s) => s.hits < 500);
-
-        Memory.containers[room.name] = Memory.allStructures[room.name].filter(
+        Memory.allCriticalStateStructures[room.name] = room.find(FIND_STRUCTURES).filter((s) => s.hits < 500);
+        Memory.containers[room.name] = room.find(FIND_STRUCTURES).filter(
             (s) => s.structureType === STRUCTURE_CONTAINER
         );
-
         Memory.constructionSites[room.name] = room.find(FIND_CONSTRUCTION_SITES);
-        Memory.incompleteSpawns[room.name] = Memory.allStructures[room.name].filter(
+        Memory.incompleteSpawns[room.name] = room.find(FIND_STRUCTURES).filter(
             (structure) => structure.structureType === STRUCTURE_SPAWN && structure.energy < structure.energyCapacity
         );
-
-        Memory.incompleteTowers[room.name] = Memory.allStructures[room.name].filter(
-            (structure) => structure.structureType === STRUCTURE_TOWER && structure.energy < structure.energyCapacity
-        );
-        Memory.emptyTowers[room.name] = Memory.incompleteTowers[room.name].length > 0
-            ? Memory.incompleteTowers[room.name].filter((structure) => structure.energy < 10) : [];
-        Memory.incompleteExtensions[room.name] = Memory.allStructures[room.name].filter(
+        Memory.incompleteExtensions[room.name] = room.find(FIND_STRUCTURES).filter(
             (structure) => structure.structureType === STRUCTURE_EXTENSION
                 && structure.energy < structure.energyCapacity
         );
+
+        Memory.towers[room.name] = room.find(FIND_STRUCTURES)
+            .filter((structure) => structure.structureType === STRUCTURE_TOWER);
+        Memory.incompleteTowers[room.name] = Memory.towers[room.name]
+            .filter((structure) => structure.energy < structure.energyCapacity);
+        Memory.emptyTowers[room.name] = Memory.incompleteTowers[room.name].length > 0
+            ? Memory.incompleteTowers[room.name].filter((structure) => structure.energy < 10) : [];
+
     },
     updateStrayResources: function (room) {
         // low amount of energy don't matter
