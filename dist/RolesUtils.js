@@ -2,9 +2,9 @@ const generalUtils = require("GeneralUtils");
 
 let roleUtils;
 module.exports = roleUtils = {
-    harvestSource: function (creep, room, preferedSourceNum = 0, pathStroke = '#ffefd2') {
+    harvestSource: function (creep, room, preferedSourceNum = 99, pathStroke = '#ffefd2') {
         const pickUpResource = !Memory.war[room.name]
-            && Memory.strayResources[room.name]
+            && Memory.strayResources[room.name] !== undefined
             && Memory.strayResources[room.name].length > 0;
 
         let source;

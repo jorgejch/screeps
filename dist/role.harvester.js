@@ -3,7 +3,7 @@ const generalUtils = require("GeneralUtils");
 
 let harvesterRole;
 module.exports = harvesterRole = {
-    run: function (creep, roomSource, roomTarget, goToFlag = false) {
+    run: function (creep, roomSourceName, roomTargetName, goToFlag = false) {
         if (creep.memory.harvesting && _.sum(creep.carry) === creep.carryCapacity) {
             creep.memory.harvesting = false;
             creep.say("charge")
@@ -15,10 +15,10 @@ module.exports = harvesterRole = {
 
         if (creep.memory.harvesting) {
             if (goToFlag === true) {
-                const r = creep.moveTo(roomSource, {visualizePathStyle: {stroke: "#17ff06"}});
+                const r = creep.moveTo(Game.flags[roomSourceName], {visualizePathStyle: {stroke: "#17ff06"}});
                 console.log(`${creep.name} moveTo to room flag. Code: ${r}`)
             } else {
-                rolesUtils.harvestSource(creep, roomSource, 99, "#17ff06");
+                rolesUtils.harvestSource(creep, Game.rooms[roomSourceName], 99, "#17ff06");
             }
 
         } else {
@@ -29,23 +29,23 @@ module.exports = harvesterRole = {
             let targets;
             switch (Object.keys(creep.carry)[0]) {
                 case RESOURCE_ENERGY:
-                    if (rolesUtils.isAnyStructureCritical(roomTarget.name)){
-                        targets = Memory.incompleteTowers[roomTarget.name];
+                    if (rolesUtils.isAnyStructureCritical(roomTargetName)){
+                        targets = Memory.incompleteTowers[roomTargetName];
                     }
-                    else if (Memory.incompleteExtensions[roomTarget.name].length !== 0
-                        || Memory.incompleteSpawns[roomTarget.name].length !== 0) {
+                    else if (Memory.incompleteExtensions[roomTargetName].length !== 0
+                        || Memory.incompleteSpawns[roomTargetName].length !== 0) {
 
                         // towers should not be empty when at war
-                        if (!Memory.war || Memory.emptyTowers[roomTarget.name].length === 0) {
-                            targets = Memory.incompleteExtensions[roomTarget.name]
-                                .concat(Memory.incompleteSpawns[roomTarget.name]);
+                        if (!Memory.war || Memory.emptyTowers[roomTargetName].length === 0) {
+                            targets = Memory.incompleteExtensions[roomTargetName]
+                                .concat(Memory.incompleteSpawns[roomTargetName]);
                         }
                         else {
-                            targets = Memory.emptyTowers[roomTarget.name];
+                            targets = Memory.emptyTowers[roomTargetName];
                         }
                     }
                     else {
-                        targets = Memory.incompleteTowers[roomTarget.name];
+                        targets = Memory.incompleteTowers[roomTargetName];
                     }
                     break;
                 default:

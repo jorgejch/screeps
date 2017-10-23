@@ -19,9 +19,9 @@ const repairmanRole = require('role.repairman');
 
 const HQ_ROOM = Game.rooms.W71S75;
 // TODO: source farmed rooms creep counts from here
-const FARMED_ROOMS = {"W71S73": {}, "W71S76": {}};
+const FARMED_ROOMS = {"W71S74": {}, "W71S76": {}};
 
-generalUtils.resetStoredStructures();
+generalUtils.resetStoredEntities();
 
 module.exports.loop = function () {
     // if cpu bucket is too low wait
@@ -52,34 +52,35 @@ module.exports.loop = function () {
         .forEach(function (roomName) {
             const room = Game.rooms[roomName];
             const hostiles = room.find(FIND_HOSTILE_CREEPS);
+            Memory.war[room.name] = hostiles.length > 0;
             generalUtils.updateStructures(room);
             generalUtils.updateStrayResources(room);
 
-            if (hostiles.length) {
-                Memory.war[room.name] = true;
-                const username = hostiles[0].owner.username;
-                Game.notify(`User ${username} spotted in room ${room.name}`);
-                const towers = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
-                towers.forEach(tower => tower.attack(hostiles[0]));
-                if (Memory.harvesters < 2) {
-                    room.controller.activateSafeMode()
+            // hostiles => towers to attack || no hostiles => towers to repair
+            const towers = Memory.towers[room.name];
+            if (towers.length) {
+                if (Memory.war[room.name]) {
+                    const username = hostiles[0].owner.username;
+                    Game.notify(`User ${username} spotted in room ${room.name}`);
+                    const towers = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
+                    towers.forEach(tower => tower.attack(hostiles[0]));
+                    if (Memory.harvesters < 2) {
+                        room.controller.activateSafeMode()
+                    }
                 }
-            }
-            else {                  // no hostiles => use towers to repair
-                Memory.war[room.name] = false;
-                const towers = room.find(FIND_STRUCTURES,
-                    {filter: (structure) => (structure.structureType === STRUCTURE_TOWER)});
-                towers.forEach(function (tower) {
-                    const targets = HQ_ROOM.find(FIND_STRUCTURES,
-                        {
-                            filter: (structure) => (structure.hits < structure.hitsMax)
-                                && (structure.hitsMax - structure.hits > 100)
-                        });
-                    const toRepair = targets.sort(function (a, b) {
-                        return a.hits - b.hits
-                    })[0];
-                    tower.repair(toRepair)
-                });
+                else {
+                    towers.forEach(function (tower) {
+                        const targets = room.find(FIND_STRUCTURES,
+                            {
+                                filter: (structure) => (structure.hits < structure.hitsMax)
+                                    && (structure.hitsMax - structure.hits > 100)
+                            })
+                            .sort(function (a, b) {
+                                return a.hits - b.hits
+                            });
+                        tower.repair(targets[0])
+                    });
+                }
             }
         });
 
@@ -96,17 +97,16 @@ module.exports.loop = function () {
         switch (creep.memory.role) {
             case "harvester":
                 if (creep.memory.subrole === "commuter") {
-                    creep.memory.target = "W71S76";
                     roomName = creep.memory.target;
                     if (Game.rooms[roomName] === undefined) {
                         // goto room flag if room not visible
-                        harvesterRole.run(creep, Game.flags[roomName], Game.rooms[creep.memory.citizenship], true);
+                        harvesterRole.run(creep, roomName, creep.memory.citizenship, true);
                     } else {
-                        harvesterRole.run(creep, Game.rooms[roomName], Game.rooms[creep.memory.citizenship]);
+                        harvesterRole.run(creep, roomName, creep.memory.citizenship);
                     }
                 }
                 else {
-                    harvesterRole.run(creep, Game.rooms[creep.memory.citizenship], Game.rooms[creep.memory.citizenship]);
+                    harvesterRole.run(creep, creep.memory.citizenship, creep.memory.citizenship);
                 }
                 break;
             case "conqueror":
@@ -125,18 +125,13 @@ module.exports.loop = function () {
                 if (creep.memory.subrole === "commuter") {
                     roomName = creep.memory.target;
                     if (Game.rooms[roomName] === undefined) {
-                        upgraderRole.run(creep, Game.flags[roomName], Game.rooms[creep.memory.citizenship], null, true);
+                        upgraderRole.run(creep, roomName, creep.memory.citizenship, true);
                     } else {
-                        upgraderRole.run(creep, Game.rooms[roomName], Game.rooms[creep.memory.citizenship], 99);
+                        upgraderRole.run(creep, roomName, creep.memory.citizenship);
                     }
                 }
                 else {
-                    upgraderRole.run(
-                        creep,
-                        Game.rooms[creep.memory.citizenship],
-                        Game.rooms[creep.memory.citizenship],
-                        99
-                    );
+                    upgraderRole.run(creep, creep.memory.citizenship, creep.memory.citizenship);
                 }
                 break;
             case "guard":

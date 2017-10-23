@@ -17,7 +17,7 @@ module.exports = {
                         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, /* 500 */
                         WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK /* 900 */
                     ],
-                    name, {memory: {role: "builder", subrole: "local", citizenship: "W71S73"}});
+                    name, {memory: {role: "builder", subrole: "local", citizenship: "W71S75"}});
                 console.log("Fazendo builder: " + return_code);
                 return;
             }
@@ -48,6 +48,7 @@ module.exports = {
                             role: "harvester",
                             subrole: "commuter",
                             citizenship: spawn.room.name,
+                            target: "W71S74",
                             preferredSource: Memory.commuterHarvesters
                                 .filter((s) => s.memory.preferredSource === 0)
                                 .length < Memory.commuterHarvesters.length/2 ? 0 : 1
