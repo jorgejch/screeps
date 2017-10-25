@@ -19,6 +19,7 @@ module.exports = {
             let targets;
             let chargeTower = false;    // if there are no construction sites builder should charge incomplete towers
             const sites = Memory.constructionSites[roomTarget.name];
+            // const sites = Object.keys(Game.constructionSites).map(key => Game.constructionSites[key]);
 
             if (sites.length) {
                 targets = sites;

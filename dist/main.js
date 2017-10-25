@@ -6,11 +6,13 @@
 
 /* imports */
 const generalUtils = require("GeneralUtils");
+const rolesUtils = require("RolesUtils");
 const hr = require('HR');
 const garbageCollector = require('GarbageCollector');
 const spawner = require('Spawner');
 // roles
 const harvesterRole = require('role.harvester');
+const distributorRole = require('role.distributor');
 const conquerorRole = require('role.conqueror');
 const upgraderRole = require('role.upgrader');
 const builderRole = require('role.builder');
@@ -53,15 +55,17 @@ module.exports.loop = function () {
             const room = Game.rooms[roomName];
             const hostiles = room.find(FIND_HOSTILE_CREEPS);
             Memory.war[room.name] = hostiles.length > 0;
+            if (Memory.war[room.name]){
+                const username = hostiles[0].owner.username;
+                Game.notify(`User ${username} spotted in room ${room.name}`);
+            }
             generalUtils.updateStructures(room);
             generalUtils.updateStrayResources(room);
 
-            // hostiles => towers to attack || no hostiles => towers to repair
+            // hostiles => towers attack || no hostiles => towers repair
             const towers = Memory.towers[room.name];
             if (towers.length) {
                 if (Memory.war[room.name]) {
-                    const username = hostiles[0].owner.username;
-                    Game.notify(`User ${username} spotted in room ${room.name}`);
                     const towers = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
                     towers.forEach(tower => tower.attack(hostiles[0]));
                     if (Memory.harvesters < 2) {
@@ -70,11 +74,12 @@ module.exports.loop = function () {
                 }
                 else {
                     towers.forEach(function (tower) {
-                        const targets = room.find(FIND_STRUCTURES,
-                            {
-                                filter: (structure) => (structure.hits < structure.hitsMax)
-                                    && (structure.hitsMax - structure.hits > 100)
-                            })
+                        const targets = room
+                            .find(FIND_STRUCTURES,
+                                {
+                                    filter: (structure) => (structure.hits < structure.hitsMax)
+                                        && (structure.hitsMax - structure.hits > 100)
+                                })
                             .sort(function (a, b) {
                                 return a.hits - b.hits
                             });
@@ -95,6 +100,9 @@ module.exports.loop = function () {
 
         let roomName;
         switch (creep.memory.role) {
+            case "distributor":
+                distributorRole.run(creep, creep.memory.citizenship, rolesUtils.targetBuilder);
+                break;
             case "harvester":
                 if (creep.memory.subrole === "commuter") {
                     roomName = creep.memory.target;
