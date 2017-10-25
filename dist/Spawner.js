@@ -106,7 +106,7 @@ module.exports = {
             }
         }
 
-        if (Memory.harvesters.length < Memory.numHarvesters && spawn.energy >= 200) {
+        if (Memory.harvesters.length < Memory.numHarvesters) {
             name = 'BigHarvester' + Game.time;
             return_code = spawn.spawnCreep(
                 [   // total: 1350
