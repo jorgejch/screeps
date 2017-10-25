@@ -1,12 +1,33 @@
 module.exports = {
     spawn: function (spawn) {
         let name;
+        let return_code;
         if (Memory.harvesters.length >= Memory.numHarvesters && spawn.energy >= 100) {
             if (Memory.guards.length < Memory.numGuards) {
                 name = 'Guard' + Game.time;
                 return_code = spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, TOUGH, ATTACK, ATTACK, ATTACK],
                     name, {memory: {role: "guard", citizenship: spawn.room.name}});
                 console.log("Fazendo guard: " + return_code);
+                return;
+            }
+            else if (Memory.distributors.length < Memory.numDistributors) {
+                name = 'BigDistributor' + Game.time;
+                return_code = spawn.spawnCreep(
+                    [   // total: 2300
+                        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, /* 700 */
+                        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, /* 400 */
+                        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, /* 600 */
+                        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, /* 600 */
+                    ],
+                    name, {
+                        memory: {
+                            role: "distributor",
+                            subrole: "local",
+                            citizenship: spawn.room.name,
+                            resourceType: RESOURCE_ENERGY
+                        }
+                    });
+                console.log("Fazendo distributor: " + return_code);
                 return;
             }
             else if (Memory.builders.length < Memory.numBuilders) {
@@ -51,7 +72,7 @@ module.exports = {
                             target: "W71S74",
                             preferredSource: Memory.commuterHarvesters
                                 .filter((s) => s.memory.preferredSource === 0)
-                                .length < Memory.commuterHarvesters.length/2 ? 0 : 1
+                                .length < Memory.commuterHarvesters.length / 2 ? 0 : 1
                         }
                     }
                 );
@@ -60,13 +81,13 @@ module.exports = {
             else if (Memory.commuterUpgraders.length < Memory.numCommuterUpgraders) {
                 name = 'BigCommuterUpgrader' + Game.time;
                 return_code = spawn.spawnCreep(
-                    [
+                    [   // total: 1800
                         MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, /* 700 */
                         MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, /* 600 */
                         WORK, WORK, WORK, WORK, WORK /* 500 */
                     ],
                     name,
-                    {memory: {role: "upgrader", subrole: "commuter", citizenship: spawn.room.name, target: "W71S74"}}
+                    {memory: {role: "upgrader", subrole: "commuter", citizenship: spawn.room.name, target: "W71S76"}}
                 );
                 console.log("Fazendo big commuter upgrader: " + return_code);
                 return;
@@ -109,10 +130,10 @@ module.exports = {
         if (Memory.harvesters.length < Memory.numHarvesters) {
             name = 'BigHarvester' + Game.time;
             return_code = spawn.spawnCreep(
-                [   // total: 1350
-                    MOVE, MOVE, MOVE, MOVE, MOVE, /* 250 */
-                    CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, /* 400 */
-                    WORK, WORK, WORK, WORK, WORK, WORK, WORK /* 700 */
+                [   // total: 2300
+                    MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, /* 350 */
+                    CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, /* 650 */
+                    WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, /* 1300 */
                 ],
                 name, {memory: {role: "harvester", subrole: "local", citizenship: spawn.room.name}});
             console.log("Fazendo harvester: " + return_code);

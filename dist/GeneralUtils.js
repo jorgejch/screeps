@@ -11,7 +11,7 @@ module.exports = generalUtils = {
         console.log("**Game Stats**");
         console.log(`Cpu bucket count: ${Game.cpu.bucket}`);
         // print creeps stats
-        console.log(`Personnel: guards ${Memory.guards.length}/${Memory.numGuards} | repairmans ${Memory.repairmans.length}/${Memory.numRepairmans} | upgraders  ${Memory.upgraders.length}/${Memory.numUpgraders} | commuter upgraders  ${Memory.commuterUpgraders.length}/${Memory.numCommuterUpgraders} | builders   ${Memory.builders.length}/${Memory.numBuilders} | harvesters ${Memory.harvesters.length}/${Memory.numHarvesters} | commuter harvesters ${Memory.commuterHarvesters.length}/${Memory.numCommuterHarvesters}| conqueror ${Memory.conquerors.length}/${Memory.numConquerors}|`);
+        console.log(`Personnel: guards ${Memory.guards.length}/${Memory.numGuards} | distributors ${Memory.distributors.length}/${Memory.numDistributors} | repairmans ${Memory.repairmans.length}/${Memory.numRepairmans} | upgraders  ${Memory.upgraders.length}/${Memory.numUpgraders} | commuter upgraders  ${Memory.commuterUpgraders.length}/${Memory.numCommuterUpgraders} | builders   ${Memory.builders.length}/${Memory.numBuilders} | harvesters ${Memory.harvesters.length}/${Memory.numHarvesters} | commuter harvesters ${Memory.commuterHarvesters.length}/${Memory.numCommuterHarvesters}| conqueror ${Memory.conquerors.length}/${Memory.numConquerors}|`);
         // print available rooms info
         Object.keys(Game.rooms).forEach(function (roomName) {
             const room = Game.rooms[roomName];
@@ -42,10 +42,8 @@ module.exports = generalUtils = {
         if (onlySources) {
             return;
         }
-        Memory.allCriticalStateStructures[room.name] = room.find(FIND_STRUCTURES).filter((s) => s.hits < 500);
-        Memory.containers[room.name] = room.find(FIND_STRUCTURES).filter(
-            (s) => s.structureType === STRUCTURE_CONTAINER
-        );
+        Memory.allCriticalStateStructures[room.name] = room.find(FIND_STRUCTURES, {filter: s => s.hits < 500});
+        Memory.containers[room.name] = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER});
         Memory.constructionSites[room.name] = room.find(FIND_CONSTRUCTION_SITES);
         Memory.incompleteSpawns[room.name] = room.find(FIND_STRUCTURES).filter(
             (structure) => structure.structureType === STRUCTURE_SPAWN && structure.energy < structure.energyCapacity
