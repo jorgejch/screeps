@@ -7,7 +7,7 @@ module.exports = hr = {
             Memory.numCommuterHarvesters = 3 + Memory.spawningPenalty;
             Memory.numBuilders =  Memory.constructionSites["W71S75"].length ? 1 : 0;
             Memory.numUpgraders = 5 + Memory.spawningPenalty;
-            Memory.numCommuterUpgraders = ; //4 + Memory.spawningPenalty;
+            Memory.numCommuterUpgraders = 4 + Memory.spawningPenalty;
             Memory.numRepairmans = 0;
             Memory.numConquerors = 0;
         },
