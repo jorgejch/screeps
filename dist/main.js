@@ -21,7 +21,7 @@ const repairmanRole = require('role.repairman');
 
 const HQ_ROOM = Game.rooms.W71S75;
 // TODO: source farmed rooms creep counts from here
-const FARMED_ROOMS = {"W71S74": {}, "W71S76": {}};
+const FARMED_ROOMS = {"W71S74": {}, "W71S76": {}, "W72S74": {}};
 
 generalUtils.resetStoredEntities();
 
@@ -47,6 +47,7 @@ module.exports.loop = function () {
             generalUtils.updateStrayResources(Game.rooms[roomName]);
         });
     // loop my rooms
+    Memory.war = {};
     Object.keys(Game.rooms)
         .filter((roomName) => Game.rooms[roomName].controller !== undefined
             && Game.rooms[roomName].controller.owner !== undefined
@@ -55,7 +56,7 @@ module.exports.loop = function () {
             const room = Game.rooms[roomName];
             const hostiles = room.find(FIND_HOSTILE_CREEPS);
             Memory.war[room.name] = hostiles.length > 0;
-            if (Memory.war[room.name]){
+            if (Memory.war[room.name]) {
                 const username = hostiles[0].owner.username;
                 Game.notify(`User ${username} spotted in room ${room.name}`);
             }
@@ -68,18 +69,14 @@ module.exports.loop = function () {
                 if (Memory.war[room.name]) {
                     const towers = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
                     towers.forEach(tower => tower.attack(hostiles[0]));
-                    if (Memory.harvesters < 2) {
+                    if (Memory.distributors.length <= 1) {
                         room.controller.activateSafeMode()
                     }
                 }
                 else {
                     towers.forEach(function (tower) {
                         const targets = room
-                            .find(FIND_STRUCTURES,
-                                {
-                                    filter: (structure) => (structure.hits < structure.hitsMax)
-                                        && (structure.hitsMax - structure.hits > 100)
-                                })
+                            .find(FIND_STRUCTURES, {filter: structure => structure.hitsMax - structure.hits > 99})
                             .sort(function (a, b) {
                                 return a.hits - b.hits
                             });
@@ -126,8 +123,10 @@ module.exports.loop = function () {
                 }
                 break;
             case "builder":
-                roomName = creep.memory.citizenship;
-                builderRole.run(creep, Game.rooms[roomName], Game.rooms[roomName]);
+                if (Game.cpu.bucket > 3000) {
+                    roomName = creep.memory.citizenship;
+                    builderRole.run(creep, roomName, roomName);
+                }
                 break;
             case "upgrader":
                 if (creep.memory.subrole === "commuter") {

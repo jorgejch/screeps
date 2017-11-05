@@ -4,6 +4,7 @@ module.exports = generalUtils = {
         return collection.sort(function (a, b) {
             aPathCost = PathFinder.search(reference.pos, a.pos).cost;
             bPathCost = PathFinder.search(reference.pos, b.pos).cost;
+
             return aPathCost - bPathCost;
         });
     },

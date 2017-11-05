@@ -2,7 +2,7 @@ const rolesUtils = require("RolesUtils");
 const generalUtils = require("GeneralUtils");
 
 module.exports = {
-    run: function (creep, roomSource, roomTarget) {
+    run: function (creep, roomSourceName, roomTargetName) {
         if (creep.memory.harvesting && creep.carry.energy === creep.carryCapacity) {
             creep.memory.harvesting = false;
             creep.say("build")
@@ -13,22 +13,27 @@ module.exports = {
         }
 
         if (creep.memory.harvesting) {
-            rolesUtils.harvestSource(creep, roomSource, 999, '#ff2125')
+            rolesUtils.harvestSource(creep, Game.rooms[roomSourceName], null, '#ff2125')
         }
         else {
-            let targets;
             let chargeTower = false;    // if there are no construction sites builder should charge incomplete towers
-            const sites = Memory.constructionSites[roomTarget.name];
-            // const sites = Object.keys(Game.constructionSites).map(key => Game.constructionSites[key]);
+            let targets;
+            let sites;
+            // if (Game.cpu.bucket > 5000){
+                // sites = Object.keys(Game.constructionSites).map(key => Game.constructionSites[key]);
+            // }
+            // else {
+                sites = Memory.constructionSites[roomTargetName];
+            // }
 
             if (sites.length) {
                 targets = sites;
             } else {
-                targets = Memory.incompleteTowers[roomTarget.name];
+                targets = Memory.incompleteTowers[roomTargetName];
                 chargeTower = true;
             }
             // closer targets should be prioritized
-            targets = generalUtils.sortByLowestPathCost(creep, targets);
+            // targets = generalUtils.sortByLowestPathCost(creep, targets);
 
             if (targets.length) {
                 if (!chargeTower) {
