@@ -23,7 +23,12 @@ module.exports = harvesterRole = {
 
         } else {
             // closer targets should be prioritized
-            const targets = generalUtils.sortByLowestPathCost(creep, Memory.containers[roomTargetName]);
+            const roomStorage = Game.rooms[roomTargetName].storage;
+            const incompleteContainers = Memory.containers[roomTargetName].filter(
+                c => _.sum(c.store) < c.storeCapacity);
+            const targets = generalUtils.sortByLowestPathCost(creep,
+                roomStorage !== undefined && _.sum(roomStorage.store) < roomStorage.storeCapacity
+                    ? incompleteContainers.concat([roomStorage]) : incompleteContainers);
 
             if (targets && targets.length) {
                 if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
