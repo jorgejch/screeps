@@ -3,8 +3,8 @@ module.exports = hr = {
     personelConfigurations: {
         peace: function () {
             Memory.numGuards = 0;
-            Memory.numHarvesters = 2;
-            Memory.numDistributors = 2;
+            Memory.numHarvesters = 1;
+            Memory.numDistributors = 1;
             Memory.numCommuterHarvesters = 3 + Memory.spawningPenalty;
             Memory.numBuilders =  1;
             Memory.numUpgraders = 5 + Memory.spawningPenalty;

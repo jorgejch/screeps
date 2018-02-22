@@ -19,13 +19,14 @@ const builderRole = require('role.builder');
 const guardRole = require('role.guard');
 const repairmanRole = require('role.repairman');
 
-const HQ_ROOM = Game.rooms.W71S75;
+const HQ_ROOM = Game.rooms.E13S15;
 // TODO: source farmed rooms creep counts from here
-const FARMED_ROOMS = {"W71S74": {}, "W71S76": {}, "W72S74": {}};
+const FARMED_ROOMS = {};
 
 generalUtils.resetStoredEntities();
 
 module.exports.loop = function () {
+    return;
     // if cpu bucket is too low wait
     if (Game.cpu.bucket < 100) {
         return;
