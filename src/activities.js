@@ -5,13 +5,20 @@ class Activity {
 }
 
 export class HarvestEnergyFromSource extends Activity {
-    constructor(source) {
+    constructor(source, justRally = false) {
         super();
         this.source = source
+        this.justRally = justRally
     }
 
     perform(creep) {
-        const res = creep.harvest(this.source)
+        let res
+        if (!this.justRally) {
+            res = creep.harvest(this.source)
+        }
+        else{
+            res = ERR_NOT_IN_RANGE
+        }
 
         switch (res) {
             case OK:
@@ -26,14 +33,22 @@ export class HarvestEnergyFromSource extends Activity {
 }
 
 export class TransferAllResourceTypeToTarget extends Activity {
-    constructor(target, resourceType) {
+    constructor(target, resourceType, justRally) {
         super();
         this.target = target
         this.resourceType = resourceType
+        this.justRally = justRally
     }
 
     perform(creep) {
-        const res = creep.transfer(this.target, this.resourceType)
+        let res
+
+        if(! this.justRally) {
+            res = creep.transfer(this.target, this.resourceType)
+        }
+        else{
+            res = ERR_NOT_IN_RANGE
+        }
 
         switch (res) {
             case OK:

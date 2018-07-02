@@ -42,8 +42,18 @@ export default {
          *  roomName: Name of the room to harvest the closest source to creep.
          */
         taskFunc: (creep, currentTaskTicket) => {
-            const room = getRoom(currentTaskTicket.taskParams.roomName)
-            const source = creep.pos.findClosestByPath(room.find(FIND_SOURCES_ACTIVE))
+            const roomName = currentTaskTicket.taskParams.roomName
+            let justRally = false
+            let source
+
+            if (creep.pos.roomName === roomName) {
+                const room = Game.rooms[roomName]
+                source = creep.pos.findClosestByPath(room.find(FIND_SOURCES_ACTIVE))
+            } else {
+                const flagName = `${roomName}_RALLY`
+                source = Game.flags[flagName]
+                justRally = true
+            }
 
             // no source is job done
             if (!source) {
@@ -53,7 +63,7 @@ export default {
 
             executeTask(
                 creep,
-                new HarvestEnergyFromSource(source),
+                new HarvestEnergyFromSource(source, justRally),
                 [
                     new Outcome(
                         new CreepIsFull(),
@@ -73,6 +83,7 @@ export default {
          */
         taskFunc: (creep, currentTaskTicket) => {
             const room = getRoom(currentTaskTicket.taskParams.roomName)
+            let justRally = false
             let target = creep.pos.findClosestByPath(room.find(FIND_STRUCTURES, {
                     filter: function (struct) {
                         return (struct.structureType === STRUCTURE_EXTENSION
@@ -84,13 +95,14 @@ export default {
 
             // no target is job done
             if (!target) {
-                console.log(`No target for ${creep.name}. Rallying around closest Spawn1.`)
-                target = creep.pos.findClosestByRange(Object.values(Game.spawns))
+                console.log(`No target for ${creep.name}. Rallying around closest Spawn.`)
+                target = Game.flags[`${room.name}_RALLY`]
+                justRally = true
             }
 
             executeTask(
                 creep,
-                new TransferAllResourceTypeToTarget(target, RESOURCE_ENERGY),
+                new TransferAllResourceTypeToTarget(target, RESOURCE_ENERGY, justRally),
                 [
                     new Outcome(
                         new CreepResourceIsEmpty(RESOURCE_ENERGY),
@@ -134,8 +146,20 @@ export default {
          */
         taskFunc: (creep, currentTaskTicket) => {
             const room = getRoom(currentTaskTicket.taskParams.roomName)
-            let target = creep.pos.findClosestByPath(room.find(FIND_CONSTRUCTION_SITES))
+            let target
             let justRally = false
+
+            const wallAndRampart = room.find(FIND_CONSTRUCTION_SITES, {
+                filter: cs => cs.structureType === STRUCTURE_WALL || cs.structureType === STRUCTURE_RAMPART
+            })
+
+            // wall and Ramparts get priority
+            if (wallAndRampart.length > 0) {
+                target = creep.pos.findClosestByPath(wallAndRampart)
+            } else {
+                target = creep.pos.findClosestByPath(room.find(FIND_CONSTRUCTION_SITES))
+            }
+
 
             // rally is no target
             if (!target) {
@@ -172,10 +196,8 @@ export default {
                 .sort(
                     function (a, b) {
                         return (
-                            ((a.hits * (1 + creep.pos.getRangeTo(a)))
-                                / (a.hitsMax + (a.hitsMax * b.hitsMax) / a.hits))
-                            - ((b.hits * (1 + creep.pos.getRangeTo(b)))
-                                / (b.hitsMax + (b.hitsMax * a.hitsMax) / b.hits))
+                            a.hits * (2 + Math.pow(creep.pos.getRangeTo(a), 1 / 3) + 5 * (a.hits / a.hitsMax))
+                            - b.hits * (2 + Math.pow(creep.pos.getRangeTo(b), 1 / 3) + 5 * (b.hits / b.hitsMax))
                         )
                     }
                 )
