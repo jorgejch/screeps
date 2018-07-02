@@ -3,6 +3,10 @@ import {RuleTicket} from 'rulesUtils'
 import {TaskTicket} from "tasksUtils"
 import tasks from "tasks"
 
+function getRandomArrayElement(array) {
+    const size = array.length
+    return array[Math.floor(Math.random() *  size)]
+}
 
 function addOrUpdateCreepTypeNumberToRoomRuleTicket(room, type, requiredQuantity, initParams, priority) {
     const ruleTickets = room.memory.ruleTickets
@@ -38,7 +42,6 @@ function addOrUpdateCreepTypeNumberToRoomRuleTicket(room, type, requiredQuantity
     }
 }
 
-
 export default {
     /**
      * bootstrap rooms once
@@ -64,6 +67,7 @@ export default {
     creepsRequirementConfig: function () {
         if ("E47S16" in Game.rooms) {
             const room = Game.rooms["E47S16"]
+            const roomFarms = ["E47S15", "E48S16", "E47S17"]
             // Room props
             room.memory.spawns = ["Spawn1"]
 
@@ -71,7 +75,7 @@ export default {
             //// Basic Harvester
             addOrUpdateCreepTypeNumberToRoomRuleTicket(
                 room,
-                "BASIC_HARVESTER_1",
+                "BASIC_HARVESTER_2",
                 3,
                 {
                     taskTicketQueue: [
@@ -86,10 +90,11 @@ export default {
                 1
             )
 
+
             //// Basic Upgrader
             addOrUpdateCreepTypeNumberToRoomRuleTicket(
                 room,
-                "BASIC_UPGRADER_1",
+                "BASIC_UPGRADER_2",
                 4,
                 {
                     taskTicketQueue: [
@@ -107,8 +112,8 @@ export default {
             //// Basic Builder
             addOrUpdateCreepTypeNumberToRoomRuleTicket(
                 room,
-                "BASIC_BUILDER_1",
-                5,
+                "BASIC_BUILDER_2",
+                3,
                 {
                     taskTicketQueue: [
                         new TaskTicket(
@@ -119,13 +124,13 @@ export default {
                         )
                     ]
                 },
-                5
+                7
             )
 
             //// Basic Repairman
             addOrUpdateCreepTypeNumberToRoomRuleTicket(
                 room,
-                "BASIC_REPAIRMAN_1",
+                "BASIC_REPAIRMAN_2",
                 5,
                 {
                     taskTicketQueue: [
@@ -137,7 +142,47 @@ export default {
                         )
                     ]
                 },
+                5
+            )
+
+            //// Commuter Harvester
+            addOrUpdateCreepTypeNumberToRoomRuleTicket(
+                room,
+                "COMMUTER_HARVESTER_2",
+                8,
+                {
+                    taskTicketQueue: [
+                        new TaskTicket(
+                            tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {
+                                roomName: getRandomArrayElement(roomFarms)
+                            }
+                        ),
+                        new TaskTicket(
+                            tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name, {roomName: room.name}
+                        )
+                    ]
+                },
                 10
+            )
+
+            //// Commuter Upgrader
+            addOrUpdateCreepTypeNumberToRoomRuleTicket(
+                room,
+                "COMMUTER_UPGRADER_2",
+                8,
+                {
+                    taskTicketQueue: [
+                        new TaskTicket(
+                            tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {
+                                roomName: getRandomArrayElement(roomFarms)
+                            }
+                        ),
+                        new TaskTicket(
+                            tasks.CYCLIC_UPGRADE_ROOM_CONTROLLER.name, {roomName: room.name}
+                        )
+                    ]
+                },
+                15
             )
         }
     }
