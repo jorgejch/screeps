@@ -4,27 +4,24 @@ class Activity {
     }
 }
 
+function moveCreepTo(creep, destination) {
+    creep.moveTo(destination, {visualizePathStyle: {}})
+}
+
 export class HarvestEnergyFromSource extends Activity {
-    constructor(source, justRally = false) {
+    constructor(source) {
         super();
         this.source = source
-        this.justRally = justRally
     }
 
     perform(creep) {
-        let res
-        if (!this.justRally) {
-            res = creep.harvest(this.source)
-        }
-        else{
-            res = ERR_NOT_IN_RANGE
-        }
+        const res = creep.harvest(this.source)
 
         switch (res) {
             case OK:
                 break;
             case ERR_NOT_IN_RANGE:
-                creep.moveTo(this.source)
+                moveCreepTo(creep, this.source)
                 break;
             default:
                 console.log(`Unable to harvest source id ${this.source.id} due to err # ${res}`)
@@ -33,32 +30,71 @@ export class HarvestEnergyFromSource extends Activity {
 }
 
 export class TransferAllResourceTypeToTarget extends Activity {
-    constructor(target, resourceType, justRally) {
+    constructor(target, resourceType) {
         super();
         this.target = target
         this.resourceType = resourceType
-        this.justRally = justRally
     }
 
     perform(creep) {
-        let res
-
-        if(! this.justRally) {
-            res = creep.transfer(this.target, this.resourceType)
-        }
-        else{
-            res = ERR_NOT_IN_RANGE
-        }
+        const res = creep.transfer(this.target, this.resourceType)
 
         switch (res) {
             case OK:
                 break
             case ERR_NOT_IN_RANGE:
-                creep.moveTo(this.target)
+                moveCreepTo(creep, this.target)
                 break
             default:
                 console.log(`Unable to transfer ${this.resourceType} ` +
                     `to ${this.target.structureType} id ${this.target.id} due to err # ${res}`)
+        }
+    }
+}
+
+export class GoToTarget extends Activity {
+    constructor(target) {
+        super()
+        this.target = target
+    }
+
+    perform(creep) {
+        const res = creep.moveTo(this.target)
+
+        switch (res) {
+            case OK:
+                break
+            default:
+                console.log(`Unable to go to target id ${this.target.id} at position ${JSON.stringify(this.target.pos)}`
+                    + ` on room ${this.target.pos.roomName} due to err # ${res}`)
+        }
+    }
+}
+
+export class DropResourceAmount extends Activity {
+    constructor(resourceType, amount = null) {
+        super()
+        this.resourceType = resourceType
+        this.amount = amount
+    }
+
+    perform(creep) {
+
+        let res
+        if (this.amount !== null) {
+            res = creep.drop(this.resourceType, this.amount)
+        }
+        else {
+            creep.drop(this.resourceType)
+        }
+
+        switch (res) {
+
+            case OK:
+                break
+            default:
+                console.log(`Unable to drop ${this.resourceType} due to err # ${res}`)
+
         }
     }
 }
@@ -76,7 +112,7 @@ export class UpgradeRoomController extends Activity {
             case OK:
                 break
             case ERR_NOT_IN_RANGE:
-                creep.moveTo(this.controller)
+                moveCreepTo(creep, this.controller)
                 break
             default:
                 console.log(`Unable to upgrade rooms ${this.controller.room.name} due to err # ${res}`)
@@ -85,27 +121,19 @@ export class UpgradeRoomController extends Activity {
 }
 
 export class BuildRoomConstructionSite extends Activity {
-    constructor(targetCSite, justRally = false) {
+    constructor(targetCSite) {
         super();
         this.targetCSite = targetCSite
-        this.justRally = justRally
     }
 
     perform(creep) {
-        let res
-
-        if (!this.justRally){
-            res = creep.build(this.targetCSite)
-        }
-        else {
-            res = ERR_NOT_IN_RANGE
-        }
+        const res = creep.build(this.targetCSite)
 
         switch (res) {
             case OK:
                 break
             case ERR_NOT_IN_RANGE:
-                creep.moveTo(this.targetCSite)
+                moveCreepTo(creep, this.targetCSite)
                 break
             default:
                 console.log(`Unable to build construction site in room ${this.targetCSite.room.name} ` +
@@ -115,27 +143,19 @@ export class BuildRoomConstructionSite extends Activity {
 }
 
 export class RepairTargetStructure extends Activity {
-    constructor(target, justRally = false) {
+    constructor(target) {
         super();
         this.repairTarget = target
-        this.justRally = justRally
     }
 
     perform(creep) {
-        let res
-
-        if (!this.justRally){
-            res = creep.repair(this.repairTarget)
-        }
-        else {
-            res = ERR_NOT_IN_RANGE
-        }
+        const res = creep.repair(this.repairTarget)
 
         switch (res) {
             case OK:
                 break
             case ERR_NOT_IN_RANGE:
-                creep.moveTo(this.repairTarget)
+                moveCreepTo(creep, this.repairTarget)
                 break
             default:
                 console.log(`Unable to repair structure id ${this.repairTarget.id}` +

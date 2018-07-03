@@ -22,3 +22,16 @@ export function printStats () {
     });
 }
 
+export function getGameObjectById(id) {
+    return Game.getObjectById(id)
+}
+
+
+export function getRoom(roomName) {
+    return Game.rooms[roomName]
+}
+
+export function getRandomArrayElement(array) {
+    const size = array.length
+    return array[Math.floor(Math.random() *  size)]
+}
