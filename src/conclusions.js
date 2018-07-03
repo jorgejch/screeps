@@ -1,5 +1,11 @@
-export class UnregisterAndAddCurrentTaskToQueueTop {
+class Conclusion{
+    conclude(creep){
+        throw "Must be implemented by child."
+    }
+}
+export class UnregisterAndAddCurrentTaskToQueueTop extends Conclusion{
         constructor(task) {
+            super();
             this.task = task
         }
 
@@ -7,4 +13,10 @@ export class UnregisterAndAddCurrentTaskToQueueTop {
             creep.memory.taskTicketQueue.push(this.task)
             creep.memory.currentTaskTicket = null
         }
+}
+
+export class Foo extends Conclusion{
+    conclude(creep){
+        console.log(`Creep ${creep.name} concluded task step.`)
+    }
 }
