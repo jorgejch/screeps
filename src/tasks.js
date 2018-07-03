@@ -125,8 +125,8 @@ export default {
             executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
         }
     },
-    CYCLIC_DROP_RESOURCE_ON_TOP_TARGET: {
-        name: "CYCLIC_DROP_RESOURCE_ON_TOP_TARGET",
+    CYCLIC_DROP_RESOURCE_ON_TOP_ASSIGNED_CONTAINER: {
+        name: "CYCLIC_DROP_RESOURCE_ON_TOP_ASSIGNED_CONTAINER",
         /**
          *
          * @param creep Creep performing the task
@@ -134,28 +134,38 @@ export default {
          *
          */
         taskFunc: (creep) => {
+            let activity, doneCriteria, conclusion
             const currentTaskTicket = getCurrentTaskTicket(creep)
             const resourceType = currentTaskTicket.taskParams.resourceType
-            const target = getGameObjectById(currentTaskTicket.taskParams.targetId)
-            let activity, doneCriteria, conclusion
+            const roomName = currentTaskTicket.taskParams.resourceType
+            const cam = getGameObjectById(currentTaskTicket.taskParams.containerAssignmentManager)
+            const target = cam.allocateClosetFreeContainerInRoomToCreep(creep, roomName)
 
-            if (creep.pos.isEqualTo(target.pos)) {
-                if ("amount" in currentTaskTicket.taskParams) {
-                    const amount = currentTaskTicket.taskParams.amount
-                    activity = new DropResourceAmount(resourceType, amount)
-                }
-                else {
-                    activity = new DropResourceAmount(resourceType)
-                }
-                doneCriteria = new CreepResourceIsEmpty(resourceType)
-                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
-            }
-            else {
-                activity = new GoToTarget(target)
-                doneCriteria = new CreepIsOnTarget(target)
+            // rally if no target
+            if (!target){
+                const flag = Game.flags[roomName]
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
                 conclusion = new Foo()
             }
-
+            else {
+                if (creep.pos.isEqualTo(target.pos)) {
+                    if ("amount" in currentTaskTicket.taskParams) {
+                        const amount = currentTaskTicket.taskParams.amount
+                        activity = new DropResourceAmount(resourceType, amount)
+                    }
+                    else {
+                        activity = new DropResourceAmount(resourceType)
+                    }
+                    doneCriteria = new CreepResourceIsEmpty(resourceType)
+                    conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+                }
+                else {
+                    activity = new GoToTarget(target)
+                    doneCriteria = new CreepIsOnTarget(target)
+                    conclusion = new Foo()
+                }
+            }
             executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
         }
     },
