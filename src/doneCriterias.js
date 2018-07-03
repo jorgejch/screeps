@@ -23,3 +23,14 @@ export class CreepResourceIsEmpty extends DoneCriteria{
         return creep.carry[this.resourceType] === 0
     }
 }
+
+export class CreepIsOnTarget extends DoneCriteria{
+    constructor(target){
+        super()
+        this.target = target
+    }
+
+    test(creep){
+        return creep.pos.isEqualTo(this.target.pos)
+    }
+}

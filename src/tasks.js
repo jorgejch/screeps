@@ -1,11 +1,12 @@
-import {CreepIsFull, CreepResourceIsEmpty} from 'doneCriterias';
-import {UnregisterAndAddCurrentTaskToQueueTop} from 'conclusions';
+import {getRoom, getGameObjectById} from 'generalUtils'
+import {CreepIsFull, CreepResourceIsEmpty, CreepIsOnTarget} from 'doneCriterias';
+import {UnregisterAndAddCurrentTaskToQueueTop, Foo} from 'conclusions';
 import {
     HarvestEnergyFromSource,
     TransferAllResourceTypeToTarget,
     UpgradeRoomController,
     BuildRoomConstructionSite,
-    RepairTargetStructure
+    RepairTargetStructure, GoToTarget, DropResourceAmount
 } from "activities";
 
 class Outcome {
@@ -15,22 +16,17 @@ class Outcome {
     }
 }
 
-function getRoom(roomName) {
-    return Game.rooms[roomName]
+function getCurrentTaskTicket(creep) {
+    return creep.memory.currentTaskTicket
 }
 
-function executeTask(creep, activity, outcomes) {
-
-    for (const outcomeIndex in outcomes) {
-        const outcome = outcomes[outcomeIndex]
-        if (outcome.doneCriteria.test(creep)) {
-            outcome.conclusion.conclude(creep)
-            return
-        }
+function executeTaskStep(creep, activity, outcome) {
+    if (outcome.doneCriteria.test(creep)) {
+        outcome.conclusion.conclude(creep)
+        return
     }
     activity.perform(creep)
 }
-
 
 export default {
     CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM: {
@@ -38,39 +34,59 @@ export default {
         /**
          *
          * @param creep Creep performing the task
-         * @param currentTaskTicket TaskTicket with the following in taskParams:
          *  roomName: Name of the room to harvest the closest source to creep.
          */
-        taskFunc: (creep, currentTaskTicket) => {
+        taskFunc: (creep) => {
+            const currentTaskTicket = getCurrentTaskTicket(creep)
             const roomName = currentTaskTicket.taskParams.roomName
-            let justRally = false
-            let source
+            let activity, doneCriteria, conclusion
 
             if (creep.pos.roomName === roomName) {
                 const room = Game.rooms[roomName]
-                source = creep.pos.findClosestByPath(room.find(FIND_SOURCES_ACTIVE))
+                const source = creep.pos.findClosestByPath(room.find(FIND_SOURCES_ACTIVE))
+
+                // no source is job done
+                if (!source) {
+                    console.log(`No source for ${creep.name}`)
+                    return
+                }
+                activity = new HarvestEnergyFromSource(source)
+                doneCriteria = new CreepIsFull()
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+
             } else {
-                const flagName = `${roomName}_RALLY`
-                source = Game.flags[flagName]
-                justRally = true
+                const flag = Game.flags[`${roomName}_RALLY`]
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new Foo()
             }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
+        }
+    },
+    CYCLIC_HARVEST_CLOSEST_SOURCE: {
+        name: "CYCLIC_HARVEST_CLOSEST_SOURCE",
+        /**
+         *
+         * @param creep Creep performing the task
+         */
+        taskFunc: (creep) => {
+            const currentTaskTicket = getCurrentTaskTicket(creep)
+            const roomName = creep.pos.roomName
+            let activity, doneCriteria, conclusion
+            const source = creep.pos.findClosestByPath(getRoom(roomName).find(FIND_SOURCES_ACTIVE))
 
-            // no source is job done
             if (!source) {
-                console.log(`No source for ${creep.name}`)
-                return
+                console.log(`No source for ${creep.name}. Rallying.`)
+                const flag = Game.flags[`${roomName}_RALLY`]
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new Foo()
+            } else {
+                activity = new HarvestEnergyFromSource(source)
+                doneCriteria = new CreepIsFull()
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
             }
-
-            executeTask(
-                creep,
-                new HarvestEnergyFromSource(source, justRally),
-                [
-                    new Outcome(
-                        new CreepIsFull(),
-                        new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
-                    )
-                ],
-            )
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
         }
     },
     CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS: {
@@ -78,13 +94,13 @@ export default {
         /**
          *
          * @param creep Creep performing the task
-         * @param currentTaskTicket TaskTicket with the following in taskParams:
          *  roomName: Name of the room with spawning structures to transfer energy to.
          */
-        taskFunc: (creep, currentTaskTicket) => {
+        taskFunc: (creep) => {
+            const currentTaskTicket = getCurrentTaskTicket(creep)
             const room = getRoom(currentTaskTicket.taskParams.roomName)
-            let justRally = false
-            let target = creep.pos.findClosestByPath(room.find(FIND_STRUCTURES, {
+            let activity, doneCriteria, conclusion
+            const target = creep.pos.findClosestByPath(room.find(FIND_STRUCTURES, {
                     filter: function (struct) {
                         return (struct.structureType === STRUCTURE_EXTENSION
                             || struct.structureType === STRUCTURE_SPAWN)
@@ -96,20 +112,51 @@ export default {
             // no target is job done
             if (!target) {
                 console.log(`No target for ${creep.name}. Rallying around closest Spawn.`)
-                target = Game.flags[`${room.name}_RALLY`]
-                justRally = true
+                const flag = Game.flags[`${room.name}_RALLY`]
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new Foo()
+            }
+            else {
+                activity = new TransferAllResourceTypeToTarget(target, RESOURCE_ENERGY)
+                doneCriteria = new CreepResourceIsEmpty(RESOURCE_ENERGY)
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
+        }
+    },
+    CYCLIC_DROP_RESOURCE_ON_TOP_TARGET: {
+        name: "CYCLIC_DROP_RESOURCE_ON_TOP_TARGET",
+        /**
+         *
+         * @param creep Creep performing the task
+         *  container: The container to drop on top of
+         *
+         */
+        taskFunc: (creep) => {
+            const currentTaskTicket = getCurrentTaskTicket(creep)
+            const resourceType = currentTaskTicket.taskParams.resourceType
+            const target = getGameObjectById(currentTaskTicket.taskParams.targetId)
+            let activity, doneCriteria, conclusion
+
+            if (creep.pos.isEqualTo(target.pos)) {
+                if ("amount" in currentTaskTicket.taskParams) {
+                    const amount = currentTaskTicket.taskParams.amount
+                    activity = new DropResourceAmount(resourceType, amount)
+                }
+                else {
+                    activity = new DropResourceAmount(resourceType)
+                }
+                doneCriteria = new CreepResourceIsEmpty(resourceType)
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            else {
+                activity = new GoToTarget(target)
+                doneCriteria = new CreepIsOnTarget(target)
+                conclusion = new Foo()
             }
 
-            executeTask(
-                creep,
-                new TransferAllResourceTypeToTarget(target, RESOURCE_ENERGY, justRally),
-                [
-                    new Outcome(
-                        new CreepResourceIsEmpty(RESOURCE_ENERGY),
-                        new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
-                    )
-                ]
-            )
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
         }
     },
     CYCLIC_UPGRADE_ROOM_CONTROLLER: {
@@ -117,22 +164,20 @@ export default {
         /**
          *
          * @param creep
-         * @param currentTaskTicket TaskTicket with the following in taskParams:
          *  roomName: Name of the room to upgrade controller.
          */
-        taskFunc: (creep, currentTaskTicket) => {
+        taskFunc: (creep) => {
+            const currentTaskTicket = getCurrentTaskTicket(creep)
             const room = getRoom(currentTaskTicket.taskParams.roomName)
             const target = room.controller
 
-            executeTask(
+            executeTaskStep(
                 creep,
                 new UpgradeRoomController(target),
-                [
-                    new Outcome(
-                        new CreepResourceIsEmpty(RESOURCE_ENERGY),
-                        new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
-                    )
-                ]
+                new Outcome(
+                    new CreepResourceIsEmpty(RESOURCE_ENERGY),
+                    new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+                )
             )
         }
     },
@@ -141,13 +186,12 @@ export default {
         /**
          *
          * @param creep
-         * @param currentTaskTicket TaskTicket with the following in taskParams:
          *  roomName: Name of the room to build all construction sites.
          */
-        taskFunc: (creep, currentTaskTicket) => {
+        taskFunc: (creep) => {
+            const currentTaskTicket = getCurrentTaskTicket(creep)
             const room = getRoom(currentTaskTicket.taskParams.roomName)
-            let target
-            let justRally = false
+            let target, activity, doneCriteria, conclusion
 
             const wallAndRampart = room.find(FIND_CONSTRUCTION_SITES, {
                 filter: cs => cs.structureType === STRUCTURE_WALL || cs.structureType === STRUCTURE_RAMPART
@@ -160,24 +204,52 @@ export default {
                 target = creep.pos.findClosestByPath(room.find(FIND_CONSTRUCTION_SITES))
             }
 
+            // rally is no target
+            if (!target) {
+                console.log(`No target for ${creep.name}. Rallying.`)
+                const flag = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new Foo()
+            }
+            else {
+                activity = new BuildRoomConstructionSite(target)
+                doneCriteria = new CreepResourceIsEmpty(RESOURCE_ENERGY)
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
+        }
+    },
+    CYCLIC_BUILD_ALL: {
+        name: "CYCLIC_BUILD_ALL",
+        taskFunc: (creep) => {
+            let target, activity, doneCriteria, conclusion
+            const currentTaskTicket = getCurrentTaskTicket(creep)
+            const constructionSites = Object.values(Game.constructionSites)
+            const wallAndRampartCs = constructionSites
+                .filter(cs => cs.structureType === STRUCTURE_WALL || cs.structureType === STRUCTURE_RAMPART)
+
+            // wall and Ramparts get priority
+            if (wallAndRampartCs.length > 0) {
+                target = creep.pos.findClosestByPath(wallAndRampartCs)
+            } else {
+                target = creep.pos.findClosestByPath(constructionSites)
+            }
 
             // rally is no target
             if (!target) {
                 console.log(`No target for ${creep.name}. Rallying.`)
-                target = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
-                justRally = true
+                const flag = Game.flags[`${creep.memory.ownerRoomName}_RALLY`]
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new Foo()
             }
-
-            executeTask(
-                creep,
-                new BuildRoomConstructionSite(target, justRally),
-                [
-                    new Outcome(
-                        new CreepResourceIsEmpty(RESOURCE_ENERGY),
-                        new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
-                    )
-                ]
-            )
+            else{
+                activity = new BuildRoomConstructionSite(target)
+                doneCriteria = new CreepResourceIsEmpty(RESOURCE_ENERGY)
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
         }
     },
     CYCLIC_REPAIR_ROOM_STRUCTURES: {
@@ -185,10 +257,11 @@ export default {
         /**
          *
          * @param creep
-         * @param currentTaskTicket TaskTicket with the following in taskParams:
          *  roomName: Name of the room to repair until all fixed.
          */
-        taskFunc: (creep, currentTaskTicket) => {
+        taskFunc: (creep) => {
+            let activity, doneCriteria, conclusion
+            const currentTaskTicket = getCurrentTaskTicket(creep)
             const room = getRoom(currentTaskTicket.taskParams.roomName)
             const indexOrderedStructues = room
                 .find(FIND_STRUCTURES)
@@ -201,28 +274,22 @@ export default {
                         )
                     }
                 )
-            console.log(`DEBUG: my structures ordered my repairability index, 
-            first is more repairable:\n${JSON.stringify(indexOrderedStructues)}`)
-            let target = indexOrderedStructues[0]
-            let justRally = false
+            const target = indexOrderedStructues[0]
 
-            // rally is no target
+            // rally if no target
             if (!target) {
                 console.log(`No target for ${creep.name}. Rallying.`)
-                target = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
-                justRally = true
+                const flag = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new Foo()
             }
-
-            executeTask(
-                creep,
-                new RepairTargetStructure(target, justRally),
-                [
-                    new Outcome(
-                        new CreepResourceIsEmpty(RESOURCE_ENERGY),
-                        new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
-                    )
-                ]
-            )
+            else {
+                activity = new RepairTargetStructure(target)
+                doneCriteria = new CreepResourceIsEmpty(RESOURCE_ENERGY)
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
         }
     }
 }

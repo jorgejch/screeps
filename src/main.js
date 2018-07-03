@@ -1,9 +1,9 @@
 import * as creepConfig from 'creepsConfig'
 import * as creepSpawner from "creepSpawner"
-import roomsConfig from 'roomsConfig'
 import tasks from "tasks"
 import rules from 'rules'
 import * as generalUtils from "generalUtils"
+import E47S16 from './E47S16'
 
 function processTasks(creep) {
     if (!creep.memory.currentTaskTicket) {
@@ -12,25 +12,28 @@ function processTasks(creep) {
             creep.memory.currentTaskTicket = creep.memory.taskTicketQueue.shift()
         }
         else {
+            console.log(`No tasks for ${creep.name}. Creep  Idle.`)
             return
         }
     }
-    const taskTicket = creep.memory.currentTaskTicket
-    const taskFunc = tasks[taskTicket.taskName].taskFunc
-    taskFunc(creep, taskTicket)
+    const taskFunc = tasks[creep.memory.currentTaskTicket.taskName].taskFunc
+    taskFunc(creep)
 }
 
 export function loop() {
     generalUtils.clearDeadScreepsFromMemory()
-    roomsConfig.bootstrapRoomsConfig()
-    roomsConfig.roomsReset()
-    roomsConfig.creepsRequirementConfig()
+
+    console.log("Configuring rooms...")
+    const configClasses = [ E47S16 ]
+    configClasses.forEach(roomConfigClass => {
+        new roomConfigClass().configure()
+    })
 
     console.log("Processing creeps...")
     Object.values(Game.creeps).forEach(
         function (creep) {
             // update owner room's inventory
-            creepConfig.updateOwnerRoomInventory(creep, )
+            creepConfig.updateOwnerRoomInventory(creep,)
 
             // process tasks
             processTasks(creep)
