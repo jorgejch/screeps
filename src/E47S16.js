@@ -3,39 +3,6 @@ import {BaseRoomConfig} from "./BaseRoomConfig";
 import {TaskTicket} from "./tasksUtils"
 import tasks from "./tasks"
 
-class ContainerAssigmentManager {
-    constructor() {
-        this.containerCatalogByRoom = {}
-    }
-
-    init() {
-
-        Object.values(Game.rooms).forEach((room) => {
-            containerCatalogByRoom[room.name] = {}
-            const roomContainers = room.find(FIND_MY_STRUCTURES,
-                {filter: struct => struct.structureType === STRUCTURE_CONTAINER})
-            roomContainers.forEach(container => {
-                this.containerCatalogByRoom[room.name][container.id] = 0
-            })
-        })
-    }
-
-    allocateClosetFreeContainerInRoomToCreep(creep, roomName) {
-        const roomContainersObj = this.containerCatalogByRoom[roomName]
-        const availableContainers = []
-        Object.keys(roomContainersObj).forEach(containerId => {
-            if (roomContainersObj[containerId] === 0 ) {
-                availableContainers.push(getGameObjectById(containerId))
-            }
-        })
-        const closestContainer = creep.pos.findClosestByRange(availableContainers)
-
-        if (closestContainer){
-            roomContainersObj[closestContainer.id] = 1
-        }
-        return closestContainer
-    }
-}
 
 export default class extends BaseRoomConfig {
     constructor() {
@@ -48,16 +15,14 @@ export default class extends BaseRoomConfig {
         if ("E47S16" in Game.rooms) {
             // Setup Required Creeps
             //// Stationary Harvester
-            const containerAssignmentManager = new ContainerAssigmentManager()
-            containerAssignmentManager.init()
             this.addCreepTypeQuantityInRoomRule(
                 "STATIONARY_HARVESTER_3",
-                1,
+                2,
                 {
                     taskTicketQueue: [
                         new TaskTicket(
                             tasks.CYCLIC_DROP_RESOURCE_ON_TOP_ASSIGNED_CONTAINER.name,
-                            {containerAssignmentManager: containerAssignmentManager, roomName: this.room.name}
+                            {roomName: this.room.name, resourceType: RESOURCE_ENERGY}
                         ),
                         new TaskTicket(
                             tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {roomName: this.room.name}
@@ -65,6 +30,23 @@ export default class extends BaseRoomConfig {
                     ]
                 },
                 1
+            )
+            //// Leech Upgrader
+            this.addCreepTypeQuantityInRoomRule(
+                "LEECH_UPGRADER_3",
+                2,
+                {
+                    taskTicketQueue: [
+                        new TaskTicket(
+                            tasks.CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM.name,
+                            {roomName: this.room.name, resourceType: RESOURCE_ENERGY, amount: null}
+                        ),
+                        new TaskTicket(
+                            tasks.CYCLIC_UPGRADE_ROOM_CONTROLLER.name, {roomName: this.room.name}
+                        )
+                    ]
+                },
+                2
             )
             //// Basic Harvester
             this.addCreepTypeQuantityInRoomRule(
@@ -86,7 +68,7 @@ export default class extends BaseRoomConfig {
             //// Basic Upgrader
             this.addCreepTypeQuantityInRoomRule(
                 "BASIC_UPGRADER_2",
-                5,
+                3,
                 {
                     taskTicketQueue: [
                         new TaskTicket(

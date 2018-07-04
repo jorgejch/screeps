@@ -29,6 +29,36 @@ export class HarvestEnergyFromSource extends Activity {
     }
 }
 
+export class WithdrawResourceFromTarget extends Activity {
+    constructor(target, resourceType = RESOURCE_ENERGY, amount = null) {
+        super();
+        this.target = target
+        this.resourceType = resourceType
+        this.amount =  amount
+    }
+
+    perform(creep) {
+        let res
+        if (this.amount === null){
+            res = creep.withdraw(this.target, this.resourceType)
+        }
+        else{
+            res = creep.withdraw(this.target, this.resourceType, this.amount)
+        }
+
+        switch (res) {
+            case OK:
+                break
+            case ERR_NOT_IN_RANGE:
+                moveCreepTo(creep, this.target)
+                break
+            default:
+                console.log(`Unable to withdraw ${this.resourceType} ` +
+                    `from ${this.target.structureType} id ${this.target.id} due to err # ${res}`)
+        }
+    }
+}
+
 export class TransferAllResourceTypeToTarget extends Activity {
     constructor(target, resourceType) {
         super();
@@ -65,7 +95,8 @@ export class GoToTarget extends Activity {
             case OK:
                 break
             default:
-                console.log(`Unable to go to target id ${this.target.id} at position ${JSON.stringify(this.target.pos)}`
+                console.log(`Creep ${creep.name} is unable to go to target id ${JSON.stringify(this.target)} `
+                    + `at position ${JSON.stringify(this.target.pos)}`
                     + ` on room ${this.target.pos.roomName} due to err # ${res}`)
         }
     }
@@ -85,7 +116,7 @@ export class DropResourceAmount extends Activity {
             res = creep.drop(this.resourceType, this.amount)
         }
         else {
-            creep.drop(this.resourceType)
+            res = creep.drop(this.resourceType)
         }
 
         switch (res) {
