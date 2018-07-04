@@ -1,3 +1,4 @@
+import {cam} from 'StructuresManagement'
 import {getRoom, getGameObjectById} from 'generalUtils'
 import {CreepIsFull, CreepResourceIsEmpty, CreepIsOnTarget} from 'doneCriterias';
 import {UnregisterAndAddCurrentTaskToQueueTop, Foo} from 'conclusions';
@@ -6,7 +7,10 @@ import {
     TransferAllResourceTypeToTarget,
     UpgradeRoomController,
     BuildRoomConstructionSite,
-    RepairTargetStructure, GoToTarget, DropResourceAmount
+    RepairTargetStructure,
+    GoToTarget,
+    DropResourceAmount,
+    WithdrawResourceFromTarget
 } from "activities";
 
 class Outcome {
@@ -76,13 +80,39 @@ export default {
             const source = creep.pos.findClosestByPath(getRoom(roomName).find(FIND_SOURCES_ACTIVE))
 
             if (!source) {
-                console.log(`No source for ${creep.name}. Rallying.`)
                 const flag = Game.flags[`${roomName}_RALLY`]
                 activity = new GoToTarget(flag)
                 doneCriteria = new CreepIsOnTarget(flag)
                 conclusion = new Foo()
             } else {
                 activity = new HarvestEnergyFromSource(source)
+                doneCriteria = new CreepIsFull()
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
+        }
+    },
+    CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM: {
+        name: "CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM",
+        taskFunc: (creep) => {
+            let activity, doneCriteria, conclusion
+            const currentTaskTicket = getCurrentTaskTicket(creep)
+            const resourceType = currentTaskTicket.taskParams.resourceType
+            const amount = currentTaskTicket.taskParams.amount
+            const roomName = currentTaskTicket.taskParams.roomName
+            const container = creep.pos.findClosestByPath(getRoom(roomName)
+                .find(FIND_STRUCTURES, {
+                    filter: s => s.structureType === STRUCTURE_CONTAINER
+                        && s.store[resourceType] > 0
+                }))
+
+            if (!container) {
+                const flag = Game.flags[`${roomName}_RALLY`]
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new Foo()
+            } else {
+                activity = new WithdrawResourceFromTarget(container, resourceType, amount)
                 doneCriteria = new CreepIsFull()
                 conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
             }
@@ -111,7 +141,6 @@ export default {
 
             // no target is job done
             if (!target) {
-                console.log(`No target for ${creep.name}. Rallying around closest Spawn.`)
                 const flag = Game.flags[`${room.name}_RALLY`]
                 activity = new GoToTarget(flag)
                 doneCriteria = new CreepIsOnTarget(flag)
@@ -137,13 +166,13 @@ export default {
             let activity, doneCriteria, conclusion
             const currentTaskTicket = getCurrentTaskTicket(creep)
             const resourceType = currentTaskTicket.taskParams.resourceType
-            const roomName = currentTaskTicket.taskParams.resourceType
-            const cam = currentTaskTicket.taskParams.containerAssignmentManager
-            const target = cam.allocateClosetFreeContainerInRoomToCreep(creep, roomName)
+            const roomName = currentTaskTicket.taskParams.roomName
+            const target = cam.allocateClosestFreeContainerInRoom(creep, roomName)
+            console.log(`${JSON.stringify(resourceType)}`)
 
             // rally if no target
-            if (!target){
-                const flag = Game.flags[roomName]
+            if (!target) {
+                const flag = Game.flags[`${roomName}_RALLY`]
                 activity = new GoToTarget(flag)
                 doneCriteria = new CreepIsOnTarget(flag)
                 conclusion = new Foo()
@@ -216,7 +245,6 @@ export default {
 
             // rally is no target
             if (!target) {
-                console.log(`No target for ${creep.name}. Rallying.`)
                 const flag = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
                 activity = new GoToTarget(flag)
                 doneCriteria = new CreepIsOnTarget(flag)
@@ -248,13 +276,12 @@ export default {
 
             // rally is no target
             if (!target) {
-                console.log(`No target for ${creep.name}. Rallying.`)
                 const flag = Game.flags[`${creep.memory.ownerRoomName}_RALLY`]
                 activity = new GoToTarget(flag)
                 doneCriteria = new CreepIsOnTarget(flag)
                 conclusion = new Foo()
             }
-            else{
+            else {
                 activity = new BuildRoomConstructionSite(target)
                 doneCriteria = new CreepResourceIsEmpty(RESOURCE_ENERGY)
                 conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
@@ -288,7 +315,6 @@ export default {
 
             // rally if no target
             if (!target) {
-                console.log(`No target for ${creep.name}. Rallying.`)
                 const flag = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
                 activity = new GoToTarget(flag)
                 doneCriteria = new CreepIsOnTarget(flag)

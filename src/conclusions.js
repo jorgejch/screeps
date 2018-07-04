@@ -17,6 +17,5 @@ export class UnregisterAndAddCurrentTaskToQueueTop extends Conclusion{
 
 export class Foo extends Conclusion{
     conclude(creep){
-        console.log(`Creep ${creep.name} concluded task step.`)
     }
 }

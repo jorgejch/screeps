@@ -7,7 +7,7 @@ export function clearDeadScreepsFromMemory () {
     }
 }
 
-export function printStats () {
+export function printStats (roomsConfig) {
     console.log("**Game Stats**");
     console.log(`Cpu bucket count: ${Game.cpu.bucket}`);
     // print creeps stats
@@ -17,7 +17,7 @@ export function printStats () {
         console.log(`Room ${roomName}:
             - Energy: ${room.energyAvailable}/${room.energyCapacityAvailable}  stored/capacity
             - Citizens: ${_.values(Game.creeps).filter((c) => c.memory.ownerRoomName === roomName).length}
-            - Personnel: ${JSON.stringify(room.memory.creepsInventory)}`
+            - Personnel: ${JSON.stringify(roomsConfig[roomName].creepsInventory)}`
         )
     });
 }

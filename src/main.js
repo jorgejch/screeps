@@ -1,3 +1,4 @@
+import {cam} from 'StructuresManagement'
 import * as creepSpawner from "creepSpawner"
 import tasks from "tasks"
 import * as generalUtils from "generalUtils"
@@ -21,6 +22,9 @@ function processTasks(creep) {
 export function loop() {
     generalUtils.clearDeadScreepsFromMemory()
 
+    console.log("Initializing Managers...")
+    cam.init()
+
     console.log("Configuring rooms...")
     const roomsConfigs = {"E47S16": new E47S16()}
     Object.values(roomsConfigs).forEach(roomConfigClass => {
@@ -31,17 +35,26 @@ export function loop() {
     Object.values(Game.creeps).forEach(
         function (creep) {
             // update owner room's inventory
-            generalUtils.updateRoomCreepInventory(creep.memory.type, roomsConfigs[creep.memory.ownerRoomName])
+            generalUtils.updateRoomCreepInventory(creep.memory.type, roomsConfigs[creep.memory.ownerRoomName].creepsInventory)
 
-            // process tasks
-            processTasks(creep)
+            try{
+                processTasks(creep)
+            }
+            catch (e) {
+                console.log(`Creep ${creep.name} failed task processing.`)
+            }
         }
     )
 
     console.log("Processing rooms' rules...")
     Object.values(roomsConfigs).forEach(roomConfig => {
         roomConfig.rules.forEach(rule => {
-            rule.process(roomConfig)
+            try{
+                rule.process(roomConfig)
+            }
+            catch (e) {
+                console.log(`Failed to process rule ${JSON.stringify(rule)}`)
+            }
         })
     });
 
@@ -51,12 +64,13 @@ export function loop() {
             const orderBook = roomsConfigs[spawn.room.name].orderBook
             // execute the first item of the room's ordered OrderBook
             if (Object.keys(orderBook).length > 0) {
-                const highestPriorityOrder = Object.values(orderBook).sort((a, b) => {
+                const orders = Object.values(orderBook).sort((a, b) => {
                     return a.priority - b.priority
-                })[0]
+                })
+                const highestPriorityOrder = orders[0]
                 creepSpawner.executeOrder(highestPriorityOrder, spawn, orderBook)
             }
         }
     })
-    generalUtils.printStats()
+    generalUtils.printStats(roomsConfigs)
 }
