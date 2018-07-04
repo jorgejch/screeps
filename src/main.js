@@ -1,7 +1,5 @@
-import * as creepConfig from 'creepsConfig'
 import * as creepSpawner from "creepSpawner"
 import tasks from "tasks"
-import rules from 'rules'
 import * as generalUtils from "generalUtils"
 import E47S16 from './E47S16'
 
@@ -24,16 +22,16 @@ export function loop() {
     generalUtils.clearDeadScreepsFromMemory()
 
     console.log("Configuring rooms...")
-    const configClasses = [ E47S16 ]
-    configClasses.forEach(roomConfigClass => {
-        new roomConfigClass().configure()
+    const roomsConfigs = {"E47S16": new E47S16()}
+    Object.values(roomsConfigs).forEach(roomConfigClass => {
+        roomConfigClass.configure()
     })
 
     console.log("Processing creeps...")
     Object.values(Game.creeps).forEach(
         function (creep) {
             // update owner room's inventory
-            creepConfig.updateOwnerRoomInventory(creep,)
+            generalUtils.updateRoomCreepInventory(creep.memory.type, roomsConfigs[creep.memory.ownerRoomName])
 
             // process tasks
             processTasks(creep)
@@ -41,27 +39,22 @@ export function loop() {
     )
 
     console.log("Processing rooms' rules...")
-    Object.values(Game.rooms).forEach(
-        function (room) {
-            // verify rules compliance and rectify when verification fails
-            room.memory.ruleTickets
-                .forEach(function (ruleTicket) {
-                    const ruleFunc = rules[ruleTicket.ruleName].ruleFunc
-                    ruleFunc(room, ruleTicket)
-                })
-        }
-    );
+    Object.values(roomsConfigs).forEach(roomConfig => {
+        roomConfig.rules.forEach(rule => {
+            rule.process(roomConfig)
+        })
+    });
 
     console.log("Processing spawns...")
-    Object.values(Game.spawns).forEach(function (spawn) {
+    Object.values(Game.spawns).forEach(spawn => {
         if (spawn.spawning === null) {
-            const orderBook = spawn.room.memory.orderBook
+            const orderBook = roomsConfigs[spawn.room.name].orderBook
             // execute the first item of the room's ordered OrderBook
             if (Object.keys(orderBook).length > 0) {
-                const highestPriorityOrder = Object.values(orderBook).sort(function (a, b) {
+                const highestPriorityOrder = Object.values(orderBook).sort((a, b) => {
                     return a.priority - b.priority
                 })[0]
-                creepSpawner.executeOrder(highestPriorityOrder, spawn)
+                creepSpawner.executeOrder(highestPriorityOrder, spawn, orderBook)
             }
         }
     })

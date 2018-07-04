@@ -138,7 +138,7 @@ export default {
             const currentTaskTicket = getCurrentTaskTicket(creep)
             const resourceType = currentTaskTicket.taskParams.resourceType
             const roomName = currentTaskTicket.taskParams.resourceType
-            const cam = getGameObjectById(currentTaskTicket.taskParams.containerAssignmentManager)
+            const cam = currentTaskTicket.taskParams.containerAssignmentManager
             const target = cam.allocateClosetFreeContainerInRoomToCreep(creep, roomName)
 
             // rally if no target

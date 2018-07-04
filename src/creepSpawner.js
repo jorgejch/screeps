@@ -12,13 +12,13 @@ export class CreepOrder {
 /**
  * add an order to the order book
  * @param {CreepOrder} order
- * @param {Map} orderBook
+ * @param {Object} orderBook
  */
 export function addCreepOrder(order, orderBook) {
     orderBook[order.type] = order
 }
 
-export function executeOrder(order, spawn) {
+export function executeOrder(order, spawn, orderBook) {
     console.log(`Executing order for ${order.type} in room ${spawn.room.name}'s ${spawn.name} spawn.`)
     const owner = spawn.room
     order.creepParams["ownerRoomName"] = owner.name
@@ -37,7 +37,6 @@ export function executeOrder(order, spawn) {
                 + `\n  Type: ${order.type}`
                 + `\n  Opts: ${JSON.stringify(creepOpts)}`
             )
-            const orderBook = owner.memory.orderBook
             orderBook[order.type].quantity -= 1
             if (orderBook[order.type].quantity === 0) {
                 console.log(`Deleting order for ${order.type}`)

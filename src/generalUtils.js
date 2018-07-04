@@ -35,3 +35,12 @@ export function getRandomArrayElement(array) {
     const size = array.length
     return array[Math.floor(Math.random() *  size)]
 }
+
+export function updateRoomCreepInventory(type, inventory) {
+    if (type in inventory) {
+        inventory[type] += 1
+    }
+    else {
+        inventory[type] = 1
+    }
+}

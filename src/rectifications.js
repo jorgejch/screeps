@@ -19,16 +19,15 @@ export class AddOrderForNecessaryAmountOfCreeps extends Rectification {
         this.priority = priority
     }
 
-    rectify(room) {
-
-        let existingNum = room.memory.creepsInventory[this.type]
+    rectify(roomConfig) {
+        let existingNum = roomConfig.creepsInventory[this.type]
 
         if (existingNum === undefined) {
             existingNum = 0
         }
 
         if (existingNum < this.reqNumber) {
-            const orderBook = room.memory.orderBook
+            const orderBook = roomConfig.orderBook
 
             // already being made, should not add another CreepOrder
             if (this.type in orderBook) {
