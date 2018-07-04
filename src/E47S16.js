@@ -9,8 +9,9 @@ class ContainerAssigmentManager {
     }
 
     init() {
+
         Object.values(Game.rooms).forEach((room) => {
-            this.containerCatalogByRoom[room.name] = {}
+            containerCatalogByRoom[room.name] = {}
             const roomContainers = room.find(FIND_MY_STRUCTURES,
                 {filter: struct => struct.structureType === STRUCTURE_CONTAINER})
             roomContainers.forEach(container => {
@@ -41,19 +42,17 @@ export default class extends BaseRoomConfig {
         super(
             /* room      */   getRoom("E47S16"),
             /* roomFarms */   ["E47S15", "E48S16", "E47S17"],
-            /* spawns    */   ["Spawn1"]
         )
     }
-
     configureCreepRequirements() {
         if ("E47S16" in Game.rooms) {
             // Setup Required Creeps
             //// Stationary Harvester
             const containerAssignmentManager = new ContainerAssigmentManager()
             containerAssignmentManager.init()
-            this.addOrUpdateCreepTypeNumberToRoomRuleTicket(
+            this.addCreepTypeQuantityInRoomRule(
                 "STATIONARY_HARVESTER_3",
-                0,
+                1,
                 {
                     taskTicketQueue: [
                         new TaskTicket(
@@ -68,7 +67,7 @@ export default class extends BaseRoomConfig {
                 1
             )
             //// Basic Harvester
-            this.addOrUpdateCreepTypeNumberToRoomRuleTicket(
+            this.addCreepTypeQuantityInRoomRule(
                 "BASIC_HARVESTER_2",
                 4,
                 {
@@ -85,7 +84,7 @@ export default class extends BaseRoomConfig {
             )
 
             //// Basic Upgrader
-            this.addOrUpdateCreepTypeNumberToRoomRuleTicket(
+            this.addCreepTypeQuantityInRoomRule(
                 "BASIC_UPGRADER_2",
                 5,
                 {
@@ -102,7 +101,7 @@ export default class extends BaseRoomConfig {
             )
 
             //// Basic Builder
-            this.addOrUpdateCreepTypeNumberToRoomRuleTicket(
+            this.addCreepTypeQuantityInRoomRule(
                 "BASIC_BUILDER_2",
                 1,
                 {
@@ -119,7 +118,7 @@ export default class extends BaseRoomConfig {
             )
 
             //// Basic Repairman
-            this.addOrUpdateCreepTypeNumberToRoomRuleTicket(
+            this.addCreepTypeQuantityInRoomRule(
                 "BASIC_REPAIRMAN_2",
                 5,
                 {
@@ -136,7 +135,7 @@ export default class extends BaseRoomConfig {
             )
 
             //// Commuter Harvester
-            this.addOrUpdateCreepTypeNumberToRoomRuleTicket(
+            this.addCreepTypeQuantityInRoomRule(
                 "COMMUTER_HARVESTER_2",
                 10,
                 {
@@ -155,7 +154,7 @@ export default class extends BaseRoomConfig {
             )
 
             //// Commuter Upgrader
-            this.addOrUpdateCreepTypeNumberToRoomRuleTicket(
+            this.addCreepTypeQuantityInRoomRule(
                 "COMMUTER_UPGRADER_2",
                 10,
                 {

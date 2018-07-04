@@ -14,9 +14,9 @@ export class CreepTypeInInventory extends Verification {
     /**
      * @return {boolean}
      */
-    verify(room) {
-        if (this.type in room.memory.creepsInventory) {
-            return room.memory.creepsInventory[this.type] === this.reqNumber
+    verify(roomConfig) {
+        if (this.type in roomConfig.creepsInventory) {
+            return roomConfig.creepsInventory[this.type] === this.reqNumber
         }
         else {
             return false
