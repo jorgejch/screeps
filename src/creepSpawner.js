@@ -1,8 +1,9 @@
 import creepTypes from "creepTypes"
 
 export class CreepOrder {
-    constructor(type, num, creepParams, priority) {
+    constructor(type, role, num, creepParams, priority) {
         this.type = type
+        this.role = role
         this.quantity = num
         this.creepParams = creepParams
         this.priority = priority
@@ -15,15 +16,16 @@ export class CreepOrder {
  * @param {Object} orderBook
  */
 export function addCreepOrder(order, orderBook) {
-    orderBook[order.type] = order
+    orderBook[order.role] = order
 }
 
 export function executeOrder(order, spawn, orderBook) {
-    console.log(`Executing order for ${order.type} in room ${spawn.room.name}'s ${spawn.name} spawn.`)
+    console.log(`Executing order for ${order.role} in room ${spawn.room.name}'s ${spawn.name} spawn.`)
     const owner = spawn.room
     order.creepParams["ownerRoomName"] = owner.name
     order.creepParams["type"] = order.type
-    const creepName = `${order.type}_${Game.time}`
+    order.creepParams["role"] = order.role
+    const creepName = `${order.role}_${Game.time}`
     const creepBody = creepTypes.getTypesBody(order.type)
     const creepOpts = {memory: order.creepParams}
     const res = spawn.spawnCreep(creepBody, creepName, creepOpts)
@@ -34,16 +36,18 @@ export function executeOrder(order, spawn, orderBook) {
                 `New creep's params.`
                 + `\n  Name: ${creepName}`
                 + `\n  Body: ${creepBody}`
+                + `\n  Role: ${order.role}`
                 + `\n  Type: ${order.type}`
                 + `\n  Opts: ${JSON.stringify(creepOpts)}`
             )
-            orderBook[order.type].quantity -= 1
-            if (orderBook[order.type].quantity === 0) {
-                console.log(`Deleting order for ${order.type}`)
-                delete orderBook[order.type]
+            orderBook[order.role].quantity -= 1
+            if (orderBook[order.role].quantity === 0) {
+                console.log(`Deleting order for ${order.role}`)
+                delete orderBook[order.role]
             }
             break;
         default:
-            console.log(`Unable to spawn creep of type ${order.type} for room ${owner.name} due to err # ${res}`)
+            console.log(`Spawn ${spawn.name} unable to spawn creep with role ${order.role} ` +
+                `for room ${owner.name} due to err # ${res}`)
     }
 }

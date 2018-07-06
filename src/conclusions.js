@@ -3,6 +3,7 @@ class Conclusion{
         throw "Must be implemented by child."
     }
 }
+
 export class UnregisterAndAddCurrentTaskToQueueTop extends Conclusion{
         constructor(task) {
             super();
@@ -15,7 +16,14 @@ export class UnregisterAndAddCurrentTaskToQueueTop extends Conclusion{
         }
 }
 
-export class Foo extends Conclusion{
+export class UnregisterCurrentTask extends Conclusion{
+    conclude(creep){
+        creep.memory.currentTaskTicket = null
+    }
+}
+
+
+export class FooConclusion extends Conclusion{
     conclude(creep){
     }
 }
