@@ -9,22 +9,31 @@ function moveCreepTo(creep, destination) {
 }
 
 export class HarvestEnergyFromSource extends Activity {
-    constructor(source) {
+    constructor(source, inPlace = false) {
         super();
         this.source = source
+        this.inPlace = inPlace
     }
 
     perform(creep) {
         const res = creep.harvest(this.source)
 
+        if (creep.role === "STATIONARY_HARVESTER"){
+            console.log(`DEBUG ${creep.name} ${res}`)
+        }
         switch (res) {
             case OK:
                 break;
             case ERR_NOT_IN_RANGE:
-                moveCreepTo(creep, this.source)
+                if (!this.inPlace){
+                    moveCreepTo(creep, this.source)
+                }
+                else{
+                    console.log(`Source ${this.source.id}`)
+                }
                 break;
             default:
-                console.log(`Unable to harvest source id ${this.source.id} due to err # ${res}`)
+                console.log(`Creep ${creep.name} unable to harvest source id ${this.source.id} due to err # ${res}`)
         }
     }
 }
@@ -53,21 +62,28 @@ export class WithdrawResourceFromTarget extends Activity {
                 moveCreepTo(creep, this.target)
                 break
             default:
-                console.log(`Unable to withdraw ${this.resourceType} ` +
+                console.log(`Creep ${creep.name} unable to withdraw ${this.resourceType} ` +
                     `from ${this.target.structureType} id ${this.target.id} due to err # ${res}`)
         }
     }
 }
 
-export class TransferAllResourceTypeToTarget extends Activity {
-    constructor(target, resourceType) {
+export class TransferResourceTypeToTarget extends Activity {
+    constructor(target, resourceType, amount = null) {
         super();
         this.target = target
         this.resourceType = resourceType
+        this.amount = amount
     }
 
     perform(creep) {
-        const res = creep.transfer(this.target, this.resourceType)
+        let res
+        if (this.amount){
+            res = creep.transfer(this.target, this.resourceType, this.amount)
+        }
+        else {
+            res = creep.transfer(this.target, this.resourceType)
+        }
 
         switch (res) {
             case OK:
@@ -98,6 +114,24 @@ export class GoToTarget extends Activity {
                 console.log(`Creep ${creep.name} is unable to go to target id ${JSON.stringify(this.target)} `
                     + `at position ${JSON.stringify(this.target.pos)}`
                     + ` on room ${this.target.pos.roomName} due to err # ${res}`)
+        }
+    }
+}
+
+export class FollowPath extends Activity {
+    constructor(path) {
+        super()
+        this.path = path
+    }
+
+    perform(creep) {
+        const res = creep.moveByPath(this.path)
+
+        switch (res) {
+            case OK:
+                break
+            default:
+                console.log(`Creep ${creep.name} is unable to move by path due to err # ${res}`)
         }
     }
 }
@@ -151,7 +185,7 @@ export class UpgradeRoomController extends Activity {
     }
 }
 
-export class BuildRoomConstructionSite extends Activity {
+export class BuildConstructionSite extends Activity {
     constructor(targetCSite) {
         super();
         this.targetCSite = targetCSite
@@ -193,4 +227,49 @@ export class RepairTargetStructure extends Activity {
                     `on room ${this.repairTarget.room.name} due to err # ${res}`)
         }
     }
+}
+
+export class SetAssignedTargetContainer extends Activity{
+    constructor(containerId){
+        super()
+        this.containerId = containerId
+    }
+
+    perform(creep){
+       creep.memory.assignedTargetContainerId = this.containerId
+    }
+}
+
+export class SetAssignedSourceContainer extends Activity{
+    constructor(containerId){
+        super()
+        this.containerId = containerId
+    }
+
+    perform(creep){
+        creep.memory.assignedSourceContainerId = this.containerId
+    }
+}
+
+export class StoreTargetId extends Activity{
+    constructor(targetId){
+        super();
+        this.targetId = targetId
+    }
+    perform(creep){
+        creep.memory.storedTargetId = this.targetId
+    }
+}
+
+export class RemoveAnyStoredTarget extends Activity{
+    constructor(){
+        super();
+    }
+    perform(creep){
+        delete creep.memory.storedTargetId
+    }
+}
+
+export class FooActivity extends Activity{
+    perform(creep){}
 }

@@ -4,10 +4,10 @@ class Verification {
     }
 }
 
-export class CreepTypeInInventory extends Verification {
-    constructor(type, requiredNumber) {
+export class CreepRoleInInventory extends Verification {
+    constructor(role, requiredNumber) {
         super()
-        this.type = type
+        this.role = role
         this.reqNumber = requiredNumber
     }
 
@@ -15,8 +15,8 @@ export class CreepTypeInInventory extends Verification {
      * @return {boolean}
      */
     verify(roomConfig) {
-        if (this.type in roomConfig.creepsInventory) {
-            return roomConfig.creepsInventory[this.type] === this.reqNumber
+        if (this.role in roomConfig.creepsInventory) {
+            return roomConfig.creepsInventory[this.role] === this.reqNumber
         }
         else {
             return false

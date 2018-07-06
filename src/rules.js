@@ -1,4 +1,4 @@
-import {CreepTypeInInventory} from "verifications"
+import {CreepRoleInInventory} from "verifications"
 import {AddOrderForNecessaryAmountOfCreeps} from "rectifications"
 
 class Rule{
@@ -13,11 +13,11 @@ class Rule{
 
     }
 }
-export class CreepTypeQuantityInRoom extends Rule{
-    constructor(type, reqNum, priority, newCreepParams){
+export class CreepRoleQuantityInRoom extends Rule{
+    constructor(role, type, reqNum, priority, newCreepParams){
         super(
-            new CreepTypeInInventory(type, reqNum),
-            new AddOrderForNecessaryAmountOfCreeps(reqNum, type, newCreepParams, priority)
+            new CreepRoleInInventory(type, reqNum),
+            new AddOrderForNecessaryAmountOfCreeps(reqNum, role, type, newCreepParams, priority)
         )
     }
 }

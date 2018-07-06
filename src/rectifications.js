@@ -11,16 +11,17 @@ class Rectification {
  * @param room A room game obj.
  */
 export class AddOrderForNecessaryAmountOfCreeps extends Rectification {
-    constructor(requiredNumber, type, creepsParams, priority) {
+    constructor(requiredNumber, role, type, creepsParams, priority) {
         super()
         this.reqNumber = requiredNumber
+        this.role = role
         this.type = type
         this.creepsParams = creepsParams
         this.priority = priority
     }
 
     rectify(roomConfig) {
-        let existingNum = roomConfig.creepsInventory[this.type]
+        let existingNum = roomConfig.creepsInventory[this.role]
 
         if (existingNum === undefined) {
             existingNum = 0
@@ -30,11 +31,12 @@ export class AddOrderForNecessaryAmountOfCreeps extends Rectification {
             const orderBook = roomConfig.orderBook
 
             // already being made, should not add another CreepOrder
-            if (this.type in orderBook) {
+            if (this.role in orderBook) {
                 return
             }
             const order = new creepSpawner.CreepOrder(
                 this.type,
+                this.role,
                 this.reqNumber - existingNum,
                 this.creepsParams,
                 this.priority
