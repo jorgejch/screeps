@@ -33,7 +33,7 @@ export default class extends BaseRoomConfig {
             this.addCreepRoleQuantityInRoomRule(
                 "BASIC_HARVESTER",
                 "BASIC_WORKER_2",
-                1,
+                0,
                 {
                     taskTicketQueue: [
                         new TaskTicket(
@@ -49,7 +49,7 @@ export default class extends BaseRoomConfig {
             //// Storage Loader
             this.addCreepRoleQuantityInRoomRule(
                 "STORAGE_LOADER",
-                "LOADER_4",
+                "LOADER_3",
                 2,
                 {
                     taskTicketQueue: [
@@ -207,6 +207,10 @@ export default class extends BaseRoomConfig {
                 },
                 10
             )
+            //// Room Claimers
+            for (const roomName in this.r )
+
+
             //// Leech Repairman
             this.addCreepRoleQuantityInRoomRule(
                 "LEECH_REPAIRMAN",

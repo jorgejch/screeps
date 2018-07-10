@@ -4,6 +4,7 @@ import {
     CreepHasUnclaimedTargetContainerAssigned,
     CreepHasUnclaimedSourceContainerAssigned,
     CreepIsFull,
+    CreepResourceIsNotEmpty,
     CreepIsOnTarget,
     CreepResourceIsEmpty,
     CreepHasStoredTargetId,
@@ -24,11 +25,13 @@ import {
     UpgradeRoomController,
     WithdrawResourceFromTarget,
     RemoveAnyStoredTarget,
+    ReserveRoomController,
     SetAssignedSourceContainer,
     StoreTargetId,
     FooActivity
 } from "activities";
 import {getGameObjectById} from "generalUtils";
+import {getRoomFlag} from "generalUtils";
 
 export class TaskTicket {
     constructor(taskName, taskParams = null) {
@@ -53,11 +56,11 @@ function getCurrentTaskTicket(creep) {
 }
 
 function executeTaskStep(creep, activity, outcome) {
+    activity.perform(creep)
+
     if (outcome.doneCriteria.test(creep)) {
         outcome.conclusion.conclude(creep)
-        return
     }
-    activity.perform(creep)
 }
 
 
@@ -162,7 +165,7 @@ export default {
                 conclusion = new FooConclusion()
             } else {
                 activity = new WithdrawResourceFromTarget(container, resourceType, amount)
-                doneCriteria = new CreepIsFull()
+                doneCriteria = new CreepResourceIsNotEmpty(resourceType)
                 conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
             }
             executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
@@ -185,7 +188,7 @@ export default {
                 conclusion = new FooConclusion()
             } else {
                 activity = new WithdrawResourceFromTarget(container, resourceType, amount)
-                doneCriteria = new CreepIsFull()
+                doneCriteria = new CreepResourceIsNotEmpty(resourceType)
                 conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
             }
             executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
@@ -204,17 +207,24 @@ export default {
                     FIND_STRUCTURES,
                     {
                         filter: s => s.structureType === STRUCTURE_STORAGE
+                            && s.store[resourceType] > 0
                     }
                 )[0]
 
-            if (!storage) {
+            if (!storage && creep.energy === 0) {
                 const flag = Game.flags[`${roomName}_RALLY`]
                 activity = new GoToTarget(flag)
                 doneCriteria = new CreepIsOnTarget(flag)
                 conclusion = new FooConclusion()
-            } else {
+            }
+            else if (!storage) {
+                activity = new FooActivity()
+                doneCriteria = new CreepResourceIsNotEmpty(resourceType)
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            else {
                 activity = new WithdrawResourceFromTarget(storage, resourceType, amount)
-                doneCriteria = new CreepIsFull()
+                doneCriteria = new CreepResourceIsNotEmpty(resourceType)
                 conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
             }
             executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
@@ -262,7 +272,8 @@ export default {
                 const currentTaskTicket = getCurrentTaskTicket(creep)
                 const room = generalUtils.getRoom(currentTaskTicket.taskParams.roomName)
                 let activity, doneCriteria, conclusion
-                const target = creep.pos.findClosestByPath(room.find(FIND_STRUCTURES, {
+                const target = creep.pos.findClosestByPath(room.find(
+                    FIND_STRUCTURES, {
                         filter: function (struct) {
                             return (struct.structureType === STRUCTURE_EXTENSION
                                 || struct.structureType === STRUCTURE_SPAWN)
@@ -414,9 +425,9 @@ export default {
 
                 // rally if no target
                 if (!target && constructionSites.length > 0) {
-                    const path = findCheapestPath(creep.pos, constructionSites)
-                    activity = new FollowPath(path)
-                    doneCriteria = new FooFalseCriteria()
+                    const pathObj = findCheapestPath(creep.pos, constructionSites)
+                    activity = new FollowPath(pathObj.path)
+                    doneCriteria = new FooTrueCriteria()
                     conclusion = new FooConclusion()
 
                 }
@@ -504,12 +515,15 @@ export default {
                 const roomName = currentTaskTicket.taskParams.roomName
                 let target = generalUtils.getClosestUnassignedSourceContainerInRoom(creep, roomName)
 
+                console.log(`DEBUG 1`)
                 if (!target && !creep.memory.assignedSourceContainerId) {
                     console.log(`No available container on room ${roomName} for creep ${creep.name}.`)
                     return
-                } else if (creep.memory.assignedSourceContainerId) {
+                } else if (!target) {
                     target = generalUtils.getGameObjectById(creep.memory.assignedSourceContainerId)
                 }
+                console.log(`DEBUG 2`)
+
                 const activity = new SetAssignedSourceContainer(target.id)
                 const doneCriteria = new CreepHasUnclaimedSourceContainerAssigned()
                 const conclusion = new UnregisterCurrentTask()
@@ -525,10 +539,10 @@ export default {
                 const structureType = currentTaskTicket.taskParams.structureType
                 const notFullFunc = (struct) => {
                     if (struct.store) {
-                        return _.sum(struct.store) < struct.storeCapacity
+                        return _.sum(struct.store) < struct.storeCapacity - 100
                     }
                     else {
-                        return struct.energy < struct.energyCapacity
+                        return struct.energy < struct.energyCapacity - 100
                     }
                 }
                 const struct = creep.pos.findClosestByPath(
@@ -539,7 +553,7 @@ export default {
                         }
                     }
                 )
-                console.log( `DEBUG 2${JSON.stringify(struct)}`)
+                console.log(`DEBUG 2${JSON.stringify(struct)}`)
                 if (!struct) {
                     // job done
                     console.log(`Creep ${creep.name} has no structure to store.`)
@@ -604,8 +618,29 @@ export default {
             }
             executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
         }
-    }
+    },
+    RESERVE_STORED_ROOM_CONTROLLER: {
+        name: "RESERVE_STORED_ROOM_CONTROLLER",
+        taskFunc: (creep) => {
+            let activity, doneCriteria, conclusion
+            const taskTicket = getCurrentTaskTicket(creep)
+            const roomName = taskTicket.taskParams.roomName
+            const controller = getGameObjectById(Game.rooms[roomName].controller)
 
+            if (!controller) {
+                const flag = getRoomFlag(roomName)
+                activity = new GoToTarget(flag)
+                doneCriteria = new FooTrueCriteria()
+                conclusion = new FooConclusion()
+            }
+            else {
+                activity = new ReserveRoomController(controller)
+                doneCriteria = new FooTrueCriteria()
+                conclusion = new FooConclusion()
+            }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
+        }
+    }
 }
 
 

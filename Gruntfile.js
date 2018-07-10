@@ -21,8 +21,8 @@ module.exports = function (grunt) {
             options: {
                 email: 'jorgejch@gmail.com',
                 password: 'j=Cbd4012',
-                branch: 'default',
-                // branch: 'tutorial-1',
+                // branch: 'default',
+                branch: 'tutorial-1',
                 ptr: false
             },
             dist: {

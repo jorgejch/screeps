@@ -40,6 +40,9 @@ export default {
         STATIONARY_WORKER_4: [                                                                     // Total: 1300
             MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,
             WORK, WORK, WORK, WORK, WORK, WORK
+        ],
+        CLAIMER_1: [                                                                          // Total: 1300
+            MOVE, MOVE, CLAIM, CLAIM
         ]
     },
     getTypesBody: function (type) {

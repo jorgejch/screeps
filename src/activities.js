@@ -125,6 +125,7 @@ export class FollowPath extends Activity {
     }
 
     perform(creep) {
+        console.log(`${JSON.stringify(this.path)}`)
         const res = creep.moveByPath(this.path)
 
         switch (res) {
@@ -267,6 +268,27 @@ export class RemoveAnyStoredTarget extends Activity{
     }
     perform(creep){
         delete creep.memory.storedTargetId
+    }
+}
+
+export class ReserveRoomController extends Activity{
+    constructor(controller){
+        super()
+        this.controller = controller
+    }
+
+    perform(creep){
+        const res = creep.reserveController(this.controller)
+
+        switch (res) {
+            case OK:
+                break
+            case ERR_NOT_IN_RANGE:
+                moveCreepTo(creep, this.controller)
+                break
+            default:
+                console.log(`Unable to  due to err # ${res}`)
+        }
     }
 }
 

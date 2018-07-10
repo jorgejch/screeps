@@ -14,6 +14,17 @@ export class CreepIsFull extends DoneCriteria {
     }
 }
 
+export class CreepResourceIsNotEmpty extends DoneCriteria {
+    constructor(resourceType) {
+        super();
+        this.resourceType = resourceType
+    }
+
+    test(creep) {
+        return creep.carry[this.resourceType] > 0
+    }
+}
+
 export class CreepResourceIsEmpty extends DoneCriteria {
     constructor(resourceType) {
         super();

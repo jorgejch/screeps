@@ -16,7 +16,7 @@ class Tower {
         const structToRepair = Game.rooms[this.struct.pos.roomName]
             .find(
                 FIND_STRUCTURES,
-                {filter: s => s.hits < s.hitsMax}
+                {filter: s => s.hits < s.hitsMax && s.hits < 130000}
             ).sort((a, b) => {
                 return a.hits - b.hits
             })[0]
