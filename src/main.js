@@ -23,6 +23,7 @@ export function loop() {
     generalUtils.clearDeadScreepsFromMemory()
 
     console.log("Configuring rooms...")
+    console.log(`${JSON.stringify(Game.rooms)}`)
     const roomsConfigs = {"E47S16": new E47S16()}
     Object.values(roomsConfigs).forEach(roomConfig => {
         try {

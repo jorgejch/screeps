@@ -19,7 +19,6 @@ export class HarvestEnergyFromSource extends Activity {
         const res = creep.harvest(this.source)
 
         if (creep.role === "STATIONARY_HARVESTER"){
-            console.log(`DEBUG ${creep.name} ${res}`)
         }
         switch (res) {
             case OK:

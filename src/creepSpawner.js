@@ -26,7 +26,7 @@ export function executeOrder(order, spawn, orderBook) {
     order.creepParams["type"] = order.type
     order.creepParams["role"] = order.role
     const creepName = `${order.role}_${Game.time}`
-    const creepBody = creepTypes.getTypesBody(order.type)
+    const creepBody = creepTypes.getTypeBody(order.type)
     const creepOpts = {memory: order.creepParams}
     const res = spawn.spawnCreep(creepBody, creepName, creepOpts)
 
