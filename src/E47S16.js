@@ -8,7 +8,7 @@ export default class extends BaseRoomConfig {
     constructor() {
         super(
             /* room      */   getRoom("E47S16"),
-            /* roomFarms */   ["E47S15", "E48S16", "E47S17"],
+            /* roomFarms */   ["E47S15", "E48S16", "E47S17", "E48S15", "E46S17"],
         )
     }
 
@@ -29,37 +29,16 @@ export default class extends BaseRoomConfig {
                 },
                 1
             )
-            //// Basic Harvester
-            this.addCreepRoleQuantityInRoomRule(
-                "BASIC_HARVESTER",
-                "BASIC_WORKER_2",
-                0,
-                {
-                    taskTicketQueue: [
-                        new TaskTicket(
-                            tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {roomName: this.room.name}
-                        ),
-                        new TaskTicket(
-                            tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name, {roomName: this.room.name}
-                        )
-                    ]
-                },
-                0
-            )
             //// Storage Loader
             this.addCreepRoleQuantityInRoomRule(
                 "STORAGE_LOADER",
                 "LOADER_3",
-                2,
+                1,
                 {
                     taskTicketQueue: [
                         new TaskTicket(
-                            tasks.ALLOCATE_SOURCE_CONTAINER_IN_ROOM.name,
-                            {roomName: this.room.name}
-                        ),
-                        new TaskTicket(
-                            tasks.CYCLIC_LEECH_FROM_ASSIGNED_CONTAINER_IN_ROOM.name,
-                            {roomName: this.room.name, resourceType: RESOURCE_ENERGY, amount: null}
+                            tasks.CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM.name,
+                            {roomName: this.room.name,  amount: null}
                         ),
                         new TaskTicket(
                             tasks.CYCLIC_TRANSFER_RESOURCE_TO_ROOM_STORAGE.name,
@@ -168,26 +147,42 @@ export default class extends BaseRoomConfig {
                     10
                 )
             }
-            //// Commuter Harvester
-            this.addCreepRoleQuantityInRoomRule(
-                "COMMUTER_HARVESTER",
-                "COMMUTER_WORKER_4",
-                10,
-                {
-                    taskTicketQueue: [
-                        new TaskTicket(
-                            tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {
-                                roomName: getRandomArrayElement(this.roomFarms)
-                            }
-                        ),
-                        new TaskTicket(
-                            tasks.CYCLIC_TRANSFER_RESOURCE_TO_ROOM_STORAGE.name,
-                            {roomName: this.room.name, resourceType: RESOURCE_ENERGY, amount: null}
-                        )
-                    ]
-                },
-                4
-            )
+            Object.values(this.roomFarms).forEach(roomName => {
+                //// Commuter Harvester
+                this.addCreepRoleQuantityInRoomRule(
+                    `COMMUTER_HARVESTER_OF_${roomName}`,
+                    "COMMUTER_WORKER_4",
+                    5,
+                    {
+                        taskTicketQueue: [
+                            new TaskTicket(
+                                tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {
+                                    roomName: getRandomArrayElement(this.roomFarms)
+                                }
+                            ),
+                            new TaskTicket(
+                                tasks.CYCLIC_TRANSFER_RESOURCE_TO_ROOM_STORAGE.name,
+                                {roomName: this.room.name, resourceType: RESOURCE_ENERGY, amount: null}
+                            )
+                        ]
+                    },
+                    5
+                )
+                //// Reserver
+                this.addCreepRoleQuantityInRoomRule(
+                    `RESERVER_OF_${roomName}`,
+                    "CLAIMER_2",
+                    1,
+                    {
+                        taskTicketQueue: [
+                            new TaskTicket(
+                                tasks.RESERVE_STORED_ROOM_CONTROLLER.name, {roomName: roomName}
+                            )
+                        ]
+                    },
+                    6
+                )
+            })
             //// Commuter Upgrader
             this.addCreepRoleQuantityInRoomRule(
                 "COMMUTER_UPGRADER",
@@ -207,10 +202,6 @@ export default class extends BaseRoomConfig {
                 },
                 10
             )
-            //// Room Claimers
-            for (const roomName in this.r )
-
-
             //// Leech Repairman
             this.addCreepRoleQuantityInRoomRule(
                 "LEECH_REPAIRMAN",
@@ -228,6 +219,23 @@ export default class extends BaseRoomConfig {
                     ]
                 },
                 5
+            )
+            //// Basic Harvester
+            this.addCreepRoleQuantityInRoomRule(
+                "BASIC_HARVESTER",
+                "BASIC_WORKER_2",
+                0,
+                {
+                    taskTicketQueue: [
+                        new TaskTicket(
+                            tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {roomName: this.room.name}
+                        ),
+                        new TaskTicket(
+                            tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name, {roomName: this.room.name}
+                        )
+                    ]
+                },
+                0
             )
             //// Basic Upgrader
             this.addCreepRoleQuantityInRoomRule(

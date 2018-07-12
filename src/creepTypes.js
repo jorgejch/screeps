@@ -33,19 +33,21 @@ export default {
             CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
             CARRY, CARRY, CARRY
         ],
-        STATIONARY_WORKER_3: [                                                                     // Total: 1000
-            MOVE, WORK, WORK, WORK, WORK,
-            WORK, WORK, WORK, WORK, WORK
+        STATIONARY_WORKER_3: [                                                                     // Total: 900
+            MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK
         ],
         STATIONARY_WORKER_4: [                                                                     // Total: 1300
             MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,
             WORK, WORK, WORK, WORK, WORK, WORK
         ],
-        CLAIMER_1: [                                                                          // Total: 1300
+        FARREACH_STATIONARY_WORKER_3: [                                                            // Total: 1000
+            MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK
+        ],
+        CLAIMER_2: [                                                                          // Total: 1300
             MOVE, MOVE, CLAIM, CLAIM
         ]
     },
-    getTypesBody: function (type) {
+    getTypeBody: function (type) {
         return this.bodies[type]
     }
 }

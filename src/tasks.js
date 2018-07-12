@@ -157,7 +157,35 @@ export default {
                 })
             )
 
-            console.log(`DEBUG ${JSON.stringify(container)}`)
+            if (!container) {
+                const flag = Game.flags[`${roomName}_RALLY`]
+                activity = new GoToTarget(flag)
+                doneCriteria = new CreepIsOnTarget(flag)
+                conclusion = new FooConclusion()
+            } else {
+                activity = new WithdrawResourceFromTarget(container, resourceType, amount)
+                doneCriteria = new CreepResourceIsNotEmpty(resourceType)
+                conclusion = new UnregisterAndAddCurrentTaskToQueueTop(currentTaskTicket)
+            }
+            executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
+        }
+    },
+    CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM: {
+        name: "CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM",
+        taskFunc: (creep) => {
+            let activity, doneCriteria, conclusion
+            const currentTaskTicket = getCurrentTaskTicket(creep)
+            const resourceType = RESOURCE_ENERGY
+            const amount = currentTaskTicket.taskParams.amount
+            const roomName = currentTaskTicket.taskParams.roomName
+            const container = generalUtils.getRoom(roomName)
+                .find(FIND_STRUCTURES, {
+                        filter: s => s.structureType === STRUCTURE_CONTAINER
+                    }
+                ).sort((a, b) => {
+                    return _.sum(b.store) - _.sum(a.store)
+                })[0]
+
             if (!container) {
                 const flag = Game.flags[`${roomName}_RALLY`]
                 activity = new GoToTarget(flag)
@@ -340,8 +368,7 @@ export default {
                 }
                 executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
             }
-    }
-    ,
+    },
     CYCLIC_UPGRADE_ROOM_CONTROLLER: {
         name: "CYCLIC_UPGRADE_ROOM_CONTROLLER",
         /**
@@ -364,8 +391,7 @@ export default {
                     )
                 )
             }
-    }
-    ,
+    },
     CYCLIC_BUILD_ROOM: {
         name: "CYCLIC_BUILD_ROOM",
         /**
@@ -404,8 +430,7 @@ export default {
                 }
                 executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
             }
-    }
-    ,
+    },
     CYCLIC_BUILD_ALL: {
         name: "CYCLIC_BUILD_ALL",
         taskFunc:
@@ -444,8 +469,7 @@ export default {
                 }
                 executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
             }
-    }
-    ,
+    },
     CYCLIC_REPAIR_ROOM_STRUCTURES: {
         name: "CYCLIC_REPAIR_ROOM_STRUCTURES",
         /**
@@ -485,8 +509,7 @@ export default {
                 }
                 executeTaskStep(creep, activity, new Outcome(doneCriteria, conclusion))
             }
-    }
-    ,
+    },
     ALLOCATE_TARGET_CONTAINER_IN_ROOM: {
         name: "ALLOCATE_TARGET_CONTAINER_IN_ROOM",
         taskFunc:
@@ -515,14 +538,12 @@ export default {
                 const roomName = currentTaskTicket.taskParams.roomName
                 let target = generalUtils.getClosestUnassignedSourceContainerInRoom(creep, roomName)
 
-                console.log(`DEBUG 1`)
                 if (!target && !creep.memory.assignedSourceContainerId) {
                     console.log(`No available container on room ${roomName} for creep ${creep.name}.`)
                     return
                 } else if (!target) {
                     target = generalUtils.getGameObjectById(creep.memory.assignedSourceContainerId)
                 }
-                console.log(`DEBUG 2`)
 
                 const activity = new SetAssignedSourceContainer(target.id)
                 const doneCriteria = new CreepHasUnclaimedSourceContainerAssigned()
@@ -553,7 +574,6 @@ export default {
                         }
                     }
                 )
-                console.log(`DEBUG 2${JSON.stringify(struct)}`)
                 if (!struct) {
                     // job done
                     console.log(`Creep ${creep.name} has no structure to store.`)
@@ -625,15 +645,16 @@ export default {
             let activity, doneCriteria, conclusion
             const taskTicket = getCurrentTaskTicket(creep)
             const roomName = taskTicket.taskParams.roomName
-            const controller = getGameObjectById(Game.rooms[roomName].controller)
+            const room = Game.rooms[roomName]
 
-            if (!controller) {
+            if (!room) {
                 const flag = getRoomFlag(roomName)
                 activity = new GoToTarget(flag)
                 doneCriteria = new FooTrueCriteria()
                 conclusion = new FooConclusion()
             }
             else {
+                const controller = Game.rooms[roomName].controller
                 activity = new ReserveRoomController(controller)
                 doneCriteria = new FooTrueCriteria()
                 conclusion = new FooConclusion()

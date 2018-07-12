@@ -31,7 +31,10 @@ export class BaseRoomConfig {
         this.orderBook = {}
         this.creepsInventory = {}
         this.rules = []
-        this.towers = room
+    }
+
+    get towers() {
+        return this.room
             .find(FIND_MY_STRUCTURES,
                 {filter: s => s.structureType === STRUCTURE_TOWER})
             .map(struct => new Tower(struct))
