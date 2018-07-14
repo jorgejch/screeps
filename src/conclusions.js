@@ -1,29 +1,15 @@
-class Conclusion{
-    conclude(creep){
-        throw "Must be implemented by child."
+export function performNextTask(creep) {
+    const queue = creep.memory.taskTicketQueue
+    const nextTicket = queue.shift()
+    if (nextTicket) {
+        creep.memory.currentTaskTicket = nextTicket
+    }
+    else {
+        throw `Creep ${creep.name} has no task to execute.`
     }
 }
-
-export class UnregisterAndAddCurrentTaskToQueueTop extends Conclusion{
-        constructor(task) {
-            super();
-            this.task = task
-        }
-
-        conclude(creep) {
-            creep.memory.taskTicketQueue.push(this.task)
-            creep.memory.currentTaskTicket = null
-        }
-}
-
-export class UnregisterCurrentTask extends Conclusion{
-    conclude(creep){
-        creep.memory.currentTaskTicket = null
-    }
-}
-
-
-export class FooConclusion extends Conclusion{
-    conclude(creep){
-    }
+export function addCurrentTaskToTopOfQueueAndPerformNextTask(creep, task) {
+    const queue = creep.memory.taskTicketQueue
+    queue.push(task)
+    performNextTask(creep)
 }

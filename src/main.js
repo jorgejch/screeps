@@ -37,45 +37,11 @@ export function loop() {
     // console.log("Processing common rooms routine...")
     // Object.values(Game.rooms).forEach(room => {
     //     // process dropped resources
-    //     const droppedResources = room.find(FIND_DROPPED_RESOURCES)
-    //
-    //     if (droppedResources) {
-    //         droppedResources.forEach(dr => {
-    //
-    //
-    //
-    //             const closestAbleCreep = dr.pos.findClosestByPath(
-    //                 FIND_MY_CREEPS,
-    //                 {
-    //                     filter: creep => {
-    //                         const costToResource = PathFinder.search(creep.pos, dr.pos).cost
-    //                         /* this https://screeps.com/forum/topic/2211/document-pathfinding/4  hints roads are
-    //                          * included in the default cost matrix */
-    //                         const maxLeftResourceAmount = dr.amount - costToResource * (Math.ceil(dr.amount / 1000))
-    //                         return creep.energyCapacity - creep.energy >= maxLeftResourceAmount
-    //                             && creep.getActiveBodyparts(MOVE) >= (Math.trunc(dr.amount / 100))
-    //                             && maxLeftResourceAmount > 150
-    //                             && creep.ticksToLive > costToResource
-    //                     }
-    //                 }
-    //             )
-    //
-    //             if (closestAbleCreep) {
-    //                 closestAbleCreep.memory.taskTicketQueue.unshift(
-    //                     new TaskTicket(
-    //                         tasks.PICKUP_DROPPED_RESOURCE.name,
-    //                         {}
-    //                     ),
-    //
-    //                 )
-    //             }
-    //         })
-    //     }
     // })
 
 
     console.log("Processing creeps...")
-    generalUtils.suffleArray(Object.values(Game.creeps)).forEach(
+    Object.values(Game.creeps).forEach(
         function (creep) {
             // update owner room's inventory
             try {

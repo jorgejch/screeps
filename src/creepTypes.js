@@ -27,14 +27,14 @@ export default {
             MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
             CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
         ],
-        LOADER_4: [                                                                                // Total: 1300
+        LOADER_4: [                                                                                // Total: 1700
             MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-            MOVE, MOVE, MOVE,
+            MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
             CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
-            CARRY, CARRY, CARRY
+            CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
         ],
-        STATIONARY_WORKER_3: [                                                                     // Total: 900
-            MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK
+        STATIONARY_WORKER_3: [                                                                     // Total: 700
+            MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,
         ],
         STATIONARY_WORKER_4: [                                                                     // Total: 1300
             MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,
