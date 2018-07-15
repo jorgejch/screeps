@@ -1,6 +1,6 @@
 import * as generalUtils from 'generalUtils'
 import * as conclusions from 'conclusions';
-import * as criterias from 'doneCriterias';
+import * as criterias from 'src/criterias';
 import * as activities from "activities";
 
 export class TaskTicket {
@@ -215,12 +215,10 @@ export default {
             }
         }
     },
-    CYCLIC_TRANSFER_RESOURCE_TO_ROOM_STORAGE: {
-        name: "CYCLIC_TRANSFER_RESOURCE_TO_ROOM_STORAGE",
+    CYCLIC_TRANSFER_ALL_RESOURCES_TO_ROOM_STORAGE: {
+        name: "CYCLIC_TRANSFER_ALL_RESOURCES_TO_ROOM_STORAGE",
         taskFunc: (creep) => {
             const currentTaskTicket = getCurrentTaskTicket(creep)
-            const resourceType = currentTaskTicket.taskParams.resourceType
-            const amount = currentTaskTicket.taskParams.amount
             const room = generalUtils.getRoom(currentTaskTicket.taskParams.roomName)
             const storage = room.find(
                 FIND_STRUCTURES,
@@ -235,8 +233,10 @@ export default {
                 activities.goToTarget(creep, flag)
             }
             else {
-                activities.transferResourceTypeToTarget(creep, storage, resourceType, amount)
-                if (criterias.creepResourceIsEmpty(creep, resourceType)) {
+                Object.keys(creep.carry).forEach(resourceType => {
+                    activities.transferResourceTypeToTarget(creep, storage, resourceType, null)
+                })
+                if (criterias.creepIsEmpty(creep)){
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
@@ -585,26 +585,32 @@ export default {
         name: "CYCLIC_PICKUP_DROPPED_RESOURCE",
         taskFunc: (creep) => {
             const taskTicket = getCurrentTaskTicket(creep)
-            const room = generalUtils.getRoom(taskTicket.taskParams.roomName)
+            const room = generalUtils.getRoom(creep.pos.roomName)
 
-            const droppedResource = creep.pos.findClosestByPath(room.find(FIND_DROPPED_RESOURCES, {
-                filter: dr => {
-                    /* this https://screeps.com/forum/topic/2211/document-pathfinding/4  hints roads are
-                     * included in the default cost matrix */
-                    const estimatedCostToResource = PathFinder.search(creep.pos, dr.pos).cost // back and forth
-                    // adopting twice the estimated tick cost plus estimated decay as penalty
-                    const ammountWithPenalty = dr.amount - estimatedCostToResource * (2 + Math.ceil(dr.amount / 1000))
-                    return ammountWithPenalty > 0
-                        && creep.ticksToLive > 2 * estimatedCostToResource  // assuming creep balanced amt of M
-                        && creep.carryCapacity - _.sum(creep.carry) >= 2 * estimatedCostToResource  // an arbitrary value
-                }
-            }))
-
+            const droppedResource = creep.pos.findClosestByPath(
+                room.find(
+                    FIND_DROPPED_RESOURCES,
+                    {
+                        filter: dr => {
+                            /* this https://screeps.com/forum/topic/2211/document-pathfinding/4  hints roads are
+                             * included in the default cost matrix */
+                            const estimatedCostToResource = PathFinder.search(creep.pos, dr.pos).cost // back and forth
+                            // adopting twice the estimated tick cost plus estimated decay as penalty
+                            const ammountWithPenalty = dr.amount - estimatedCostToResource
+                                * (2 + Math.ceil(dr.amount / 1000))
+                            return ammountWithPenalty > 0
+                                && creep.ticksToLive > 2 * estimatedCostToResource  // assuming creep balanced amt of M
+                                // an arbitrary value
+                                && creep.carryCapacity - _.sum(creep.carry) >= 2 * estimatedCostToResource
+                        }
+                    }))
             if (!droppedResource || _.sum(creep.carry) === creep.carryCapacity) {
                 conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
             }
             else {
-                activities.pickupDroppedResource(creep, droppedResource)
+                if (activities.pickupDroppedResource(creep, droppedResource)) {
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
+                }
             }
         }
     }

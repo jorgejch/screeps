@@ -1,3 +1,7 @@
+export function creepIsEmpty(creep) {
+    return _.sum(creep.carry) === 0;
+}
+
 export function creepIsFull(creep) {
     return _.sum(creep.carry) === creep.carryCapacity
 }

@@ -45,16 +45,15 @@ export default class extends BaseRoomConfig {
                 {
                     taskTicketQueue: [
                         new TaskTicket(
-                            tasks.CYCLIC_PICKUP_DROPPED_RESOURCE.name,
-                            {roomName: this.room.name}
+                            tasks.CYCLIC_PICKUP_DROPPED_RESOURCE.name, {}
                         ),
                         new TaskTicket(
                             tasks.CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM.name,
                             {roomName: this.room.name, amount: null}
                         ),
                         new TaskTicket(
-                            tasks.CYCLIC_TRANSFER_RESOURCE_TO_ROOM_STORAGE.name,
-                            {roomName: this.room.name, resourceType: RESOURCE_ENERGY, amount: null}
+                            tasks.CYCLIC_TRANSFER_ALL_RESOURCES_TO_ROOM_STORAGE.name,
+                            {roomName: this.room.name}
                         )
                     ]
                 },
@@ -67,6 +66,9 @@ export default class extends BaseRoomConfig {
                 2,
                 {
                     taskTicketQueue: [
+                        new TaskTicket(
+                            tasks.CYCLIC_PICKUP_DROPPED_RESOURCE.name, {}
+                        ),
                         new TaskTicket(
                             tasks.CYCLIC_LEECH_FROM_ROOM_STORAGE.name,
                             {roomName: this.room.name, resourceType: RESOURCE_ENERGY, amount: null}
@@ -162,9 +164,12 @@ export default class extends BaseRoomConfig {
                                 }
                             ),
                             new TaskTicket(
-                                tasks.CYCLIC_TRANSFER_RESOURCE_TO_ROOM_STORAGE.name,
-                                {roomName: this.room.name, resourceType: RESOURCE_ENERGY, amount: null}
-                            )
+                                tasks.CYCLIC_TRANSFER_ALL_RESOURCES_TO_ROOM_STORAGE.name,
+                                {roomName: this.room.name}
+                            ),
+                            new TaskTicket(
+                                tasks.CYCLIC_PICKUP_DROPPED_RESOURCE.name, {}
+                            ),
                         ]
                     },
                     5
