@@ -1,6 +1,6 @@
 import * as generalUtils from 'generalUtils'
 import * as conclusions from 'conclusions';
-import * as criterias from 'src/criterias';
+import * as criterias from 'criterias';
 import * as activities from "activities";
 
 export class TaskTicket {
