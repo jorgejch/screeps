@@ -1,5 +1,6 @@
 module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
+    const config = require('./.screeps.json')
     grunt.loadNpmTasks('grunt-screeps');
 
     grunt.initConfig({
@@ -19,11 +20,10 @@ module.exports = function (grunt) {
         },
         screeps: {
             options: {
-                email: 'jorgejch@gmail.com',
-                password: '***REMOVED***',
-                branch: 'default',
-                // branch: 'tutorial-1',
-                ptr: false
+                email: config.email,
+                password: config.password,
+                branch: config.branch,
+                ptr: config.ptr
             },
             dist: {
                 src: ['lib/src/*.js']
