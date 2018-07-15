@@ -170,11 +170,13 @@ export function pickupDroppedResource(creep, resource) {
 
     switch (res) {
         case OK:
-            break
+            return true
         case ERR_NOT_IN_RANGE:
             moveCreepTo(creep, resource)
             break
         default:
             console.log(`Unable to pickup resource id ${resource.id} due to err # ${res}`)
+
     }
+    return false
 }
