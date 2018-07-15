@@ -1,6 +1,8 @@
 'use strict'
 
 
+import {Scheduler} from "./os.scheduler";
+
 export class Kernel {
     constructor(){
         this.processTable = {}
@@ -43,6 +45,7 @@ export class Kernel {
     run(){
         this._loadProcessTableFromMemory()
         const scheduler = new Scheduler(this.processTable)
+        scheduler.init()
 
         let proc
         while(proc = scheduler.nextProcessToRun()){

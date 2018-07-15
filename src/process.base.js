@@ -3,6 +3,7 @@ export class BaseProcess {
         this.pid = pid
         this.parentPid = parentPid
         this.state = "DEAD"
+        this.priority = 99
     }
 
     run() {
