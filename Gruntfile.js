@@ -14,7 +14,8 @@ module.exports = function (grunt) {
                     expand: true,
                     src: ['src/**/*.js'],
                     dest: 'lib',
-                    ext: '.js'
+                    ext: '.js',
+                    extDot:'last'
                 }]
             }
         },

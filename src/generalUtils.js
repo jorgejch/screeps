@@ -81,3 +81,8 @@ export function getClosestUnassignedSourceContainerInRoom(creep, roomName) {
 export function checkDroppedResourceUnassigned(droppedResource){
     return Object.values(Game.creeps).find(creep => creep.memory)
 }
+
+// OS rewrite
+export function getFlagDescriptor(flagColor1, flagColor2) {
+    return `${flagColor1}_${flagColor2}`
+}
