@@ -1,4 +1,5 @@
 'use strict'
+import processClassMap from "os.processClassMap"
 
 export class OSScheduler {
     _getFreePid() {
@@ -14,6 +15,10 @@ export class OSScheduler {
         }
     }
 
+    static getProcessClass(className){
+        return processClassMap[className]
+    }
+
     setProcessTable(table) {
         this.processTable = table
     }
@@ -23,7 +28,8 @@ export class OSScheduler {
     }
 
     nextProcessToRun() {
-        return this.orderedPids.shift()
+        const procPid =this.orderedPids.shift()
+        return this.processTable[procPid]
     }
 
     launchProcess(processClass, parentPid, label) {

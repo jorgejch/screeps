@@ -2,7 +2,6 @@
 
 import {OSScheduler} from "os.scheduler"
 import ProcessState from "os.processState"
-
 export class OSKernel {
     constructor() {
         this.scheduler = new OSScheduler()
@@ -20,15 +19,15 @@ export class OSKernel {
         }
     }
 
+
     _loadProcessTableFromMemory() {
-        console.log(`DEBUG 2: Loading process table from memory.`)
         this.rawProcessTable.forEach(rawProcess => {
-            const processClass = require(rawProcess[2])
+            const processClass = OSScheduler.getProcessClass(rawProcess[2])
             const pid = rawProcess[0]
             const parentPid = rawProcess[1]
             const label = rawProcess[3]
-            this.processTable[pid] = evalnew processClass(pid, parentPid, label)
-            console.log(`DEBUG 3: Loaded process with pid ${pid} from memory: \n`
+            this.processTable[pid] = new processClass(pid, parentPid, label)
+            console.log(`DEBUG: Loaded process with pid ${pid} from memory: \n`
                 + ` ${JSON.stringify({
                     parentPid: parentPid,
                     processLabel: label,
@@ -38,17 +37,16 @@ export class OSKernel {
     }
 
     _saveProcessTableToMemory() {
-        console.log(`DEBUG 4: Saving processes table to memory. Process table: ${JSON.stringify(this.processTable)}`)
+        this.rawProcessTable.length = 0
         Object.keys(this.processTable).forEach(pid => {
                 const process = this.processTable[pid]
                 if (process.state !== ProcessState.DEAD) {
 
-                    console.log(`DEBUG X1: ${process.constructor.name}`)
                     const processClassName = process.constructor.name
                     const parentPid = process.parentPid
                     const label = process.label
                     this.rawProcessTable.push([pid, parentPid , processClassName , label])
-                    console.log(`DEBUG 5: Saved process with pid ${pid} to memory: \n`
+                    console.log(`DEBUG: Saved process with pid ${pid} to memory: \n`
                         + ` ${JSON.stringify({
                             parentPid: parentPid,
                             processLabel: label,
@@ -60,7 +58,6 @@ export class OSKernel {
     }
 
     init() {
-        console.log(`DEBUG 1: Initializing kernel.`)
         this._loadProcessTableFromMemory()
         this.scheduler.setProcessTable(this.processTable)
         this.scheduler.init()
