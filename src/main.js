@@ -1,3 +1,5 @@
+import {OSKernel} from "./os.kernel";
+
 export function loop() {
 
     if (Game.cpu.bucket < 500) {

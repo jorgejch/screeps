@@ -1,5 +1,6 @@
 import {BaseProcess} from "./process.base";
 import ProcessState from "./os.processState";
+import {CreepManager} from "./process.creeps";
 
 export class SourceHarvestManager extends BaseProcess {
     set ownerRoomName(name) {
@@ -33,10 +34,21 @@ export class SourceHarvestManager extends BaseProcess {
                     this.data.harvestersProcsLabels = []
                 }
 
-                this.data.harvestersProcesses = this.data.harvestersProcesses
+                this.data.harvestersProcsLabels = this.data.harvestersProcsLabels
                     .filter(label => Kernel.scheduler.getProcessByLabel(label))
+                
+                const ownerManagerLabel = `${this.ownerRoomName}_manager`
+                const ownerManager = Kernel.scheduler.getProcessByLabel(ownerManagerLabel)
 
-                const ownerManager = Kernel.scheduler.getProcessByLabel(`${ownerRoom}_manager`)
+                if (!ownerManager){
+                    throw `${ownerManagerLabel} process does not exist.`
+                }
+                
+                // there should be 3 basic workers harvesting at this level
+                while (this.data.harvestersProcsLabels.length < 3){
+                    const process = Kernel.launchProcess(CreepManager)
+                }
+
             }
 
         }
