@@ -1,17 +1,22 @@
-import ProcessStatus from "os.processState"
+import ProcessState from "os.processState"
 
 export class BaseProcess {
-    constructor(pid, parentPid, label) {
+    constructor(pid, parentPid, label, priority, state) {
         this.pid = pid
         this.parentPid = parentPid
-        this.state = ProcessStatus.WAIT
-        this.priority = 99
         this.label = label
+        this.priority = priority
+        this.state = state
 
-        if (!pid in Memory.processesMemory){
-            Memory.processesMemory[pid]= {}
+        if (!Memory.processesMemory[this.label]){
+            Memory.processesMemory[this.label]= {}
         }
-        this.data = Memory.processesMemory[pid]
+        this.data = Memory.processesMemory[this.label]
+    }
+
+    die(){
+        delete Memory.processesMemory[this.label]
+        this.state = ProcessState.DEAD
     }
 
     run() {

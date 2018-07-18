@@ -1,3 +1,4 @@
 export function sayHelloWorld(flag){
-    console.log(`Hello world `)
+    const visual = new RoomVisual(flag.roomName)
+    visual.text(`Hello world!`, flag.pos)
 }

@@ -2,6 +2,9 @@
 
 import {OSScheduler} from "os.scheduler"
 import ProcessState from "os.processState"
+import * as generalUtils from "src/util.general"
+import {Init} from "process.init";
+
 export class OSKernel {
     constructor() {
         this.scheduler = new OSScheduler()
@@ -21,23 +24,27 @@ export class OSKernel {
 
 
     _loadProcessTableFromMemory() {
+        // console.log(`DEBUG1: Loading processes from memory`)
         this.rawProcessTable.forEach(rawProcess => {
-            const processClass = OSScheduler.getProcessClass(rawProcess[2])
+            const processClass = generalUtils.getProcessClass(rawProcess[2])
             const pid = rawProcess[0]
             const parentPid = rawProcess[1]
             const label = rawProcess[3]
-            this.processTable[pid] = new processClass(pid, parentPid, label)
-            console.log(`DEBUG: Loaded process with pid ${pid} from memory: \n`
-                + ` ${JSON.stringify({
-                    parentPid: parentPid,
-                    processLabel: label,
-                    processClass: processClass
-                })} to process table`)
+            const priority = rawProcess[4]
+            const state = rawProcess[5]
+            this.processTable[pid] = new processClass(pid, parentPid, label, priority, state)
+            // console.log(`DEBUG2: Loaded process with pid ${pid} from memory: \n`
+            //     + ` ${JSON.stringify({
+            //         parentPid: parentPid,
+            //         processLabel: label,
+            //         processClass: processClass
+            //     })} to process table`)
         })
     }
 
     _saveProcessTableToMemory() {
-        this.rawProcessTable.length = 0
+        console.log(`DEBUG Saving processes from memory`)
+        this.rawProcessTable.length = 0  // reset
         Object.keys(this.processTable).forEach(pid => {
                 const process = this.processTable[pid]
                 if (process.state !== ProcessState.DEAD) {
@@ -45,32 +52,43 @@ export class OSKernel {
                     const processClassName = process.constructor.name
                     const parentPid = process.parentPid
                     const label = process.label
-                    this.rawProcessTable.push([pid, parentPid , processClassName , label])
-                    console.log(`DEBUG: Saved process with pid ${pid} to memory: \n`
-                        + ` ${JSON.stringify({
-                            parentPid: parentPid,
-                            processLabel: label,
-                            processClassName: processClassName
-                        })} to process table`)
+                    const priority = process.priority
+                    const state = process.state
+                    this.rawProcessTable.push([pid, parentPid , processClassName , label, priority, state])
+                    // console.log(`DEBUG: Saved process with pid ${pid} to memory: \n`
+                    //     + ` ${JSON.stringify({
+                    //         parentPid: parentPid,
+                    //         processLabel: label,
+                    //         processClassName: processClassName
+                    //     })} to process table`)
                 }
             }
         )
     }
 
     init() {
+        // console.log(`DEBUG1 Initializing kernel`)
         this._loadProcessTableFromMemory()
+        // able to add jobs after setting process table on scheduler
         this.scheduler.setProcessTable(this.processTable)
-        this.scheduler.init()
+
+        // init should be the first process to run
+        if (Object.keys(this.processTable).length === 0){
+            this.scheduler.launchProcess(Init, "init", null, 0)
+        }
     }
 
     run() {
+        // order processes to run
+        this.scheduler.init()
+
         let proc
         while (proc = this.scheduler.nextProcessToRun()) {
             try {
                 proc.run()
             }
             catch (ex){
-                throw `Failed to run process ${proc.label} due to: ${ex.stack}`
+                console.log(`Failed to run process ${proc.label} due to: ${ex.stack}`)
             }
         }
 

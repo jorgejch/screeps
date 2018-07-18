@@ -1,7 +1,7 @@
-import {getRandomArrayElement, getRoom} from './generalUtils'
+import {getRandomArrayElement, getRoom} from './util.general'
 import {BaseRoomConfig} from "./BaseRoomConfig";
-import {TaskTicket} from "./tasks"
-import tasks from "./tasks"
+import {TaskTicket} from "./creep.tasks"
+import tasks from "./creep.tasks"
 
 
 export default class extends BaseRoomConfig {

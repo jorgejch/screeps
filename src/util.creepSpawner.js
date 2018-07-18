@@ -1,4 +1,4 @@
-import creepTypes from "creepTypes"
+import creepTypes from "src/creep.types"
 
 export class CreepOrder {
     constructor(type, role, num, creepParams, priority) {
@@ -15,14 +15,14 @@ export class CreepOrder {
  * @param {CreepOrder} order
  * @param {Object} orderBook
  */
-export function addCreepOrder(order, orderBook) {
-    orderBook[order.role] = order
+export function addOrderForCreepInOrderBook(order, orderBook) {
+    orderBook.push(order)
 }
 
 export function executeOrder(order, spawn, orderBook) {
     console.log(`Executing order for ${order.role} in room ${spawn.room.name}'s ${spawn.name} spawn.`)
-    const owner = spawn.room
-    order.creepParams["ownerRoomName"] = owner.name
+    const ownerRoomName = spawn.room.name
+    order.creepParams["ownerRoomName"] = ownerRoomName
     order.creepParams["type"] = order.type
     order.creepParams["role"] = order.role
     const creepName = `${order.role}_${Game.time}`
@@ -40,14 +40,14 @@ export function executeOrder(order, spawn, orderBook) {
                 + `\n  Type: ${order.type}`
                 + `\n  Opts: ${JSON.stringify(creepOpts)}`
             )
-            orderBook[order.role].quantity -= 1
-            if (orderBook[order.role].quantity === 0) {
+            order.quantity -= 1
+            if (order.quantity === 0) {
                 console.log(`Deleting order for ${order.role}`)
-                delete orderBook[order.role]
+                orderBook.splice(orderBook.indexOf(order), 1)
             }
             break;
         default:
             console.log(`Spawn ${spawn.name} unable to spawn creep with role ${order.role} ` +
-                `for room ${owner.name} due to err # ${res}`)
+                `for room ${ownerRoomName} due to err # ${res}`)
     }
 }

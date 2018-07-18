@@ -1,5 +1,5 @@
 'use strict'
-import processClassMap from "os.processClassMap"
+import ProcessState from "os.processState"
 
 export class OSScheduler {
     _getFreePid() {
@@ -8,16 +8,13 @@ export class OSScheduler {
         if (Object.keys(this.processTable).length > 0){
             lastPid = Object.keys(this.processTable).sort((a, b) => b - a)[0]
         }
-        for (let candidate = 1; candidate <= lastPid + 1; candidate++) {
+        for (let candidate = 0; candidate <= lastPid + 1; candidate++) {
             if (!this.processTable[candidate]) {
                 return candidate
             }
         }
     }
 
-    static getProcessClass(className){
-        return processClassMap[className]
-    }
 
     setProcessTable(table) {
         this.processTable = table
@@ -28,13 +25,25 @@ export class OSScheduler {
     }
 
     nextProcessToRun() {
-        const procPid =this.orderedPids.shift()
-        return this.processTable[procPid]
+        let procPid
+        while (procPid = this.orderedPids.shift()){
+            const state = this.processTable[procPid].state
+            if (state !== ProcessState.SLEEP && state !== ProcessState.DEAD){
+                break
+            }
+            procPid = null
+        }
+        if (procPid){
+            return this.processTable[procPid]
+        }
+        return undefined
     }
 
-    launchProcess(processClass, parentPid, label) {
+    launchProcess(processClass, label, parentPid = null, priority = 90, state = ProcessState.WAIT) {
         const pid = this._getFreePid()
-        this.processTable[pid] = new processClass(pid, parentPid, label)
+        const process = new processClass(pid, parentPid, label, priority, state)
+        this.processTable[pid] = process
+        return process
     }
 
     getProcessByLabel(label) {

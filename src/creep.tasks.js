@@ -1,7 +1,7 @@
-import * as generalUtils from 'generalUtils'
-import * as conclusions from 'conclusions';
-import * as criterias from 'criterias';
-import * as activities from "activities";
+import * as generalUtils from 'src/util.general'
+import * as conclusions from 'src/creep.conclusions';
+import * as criterias from 'src/creep.criterias';
+import * as activities from "src/creep.activities";
 
 export class TaskTicket {
     constructor(taskName, taskParams = null) {
