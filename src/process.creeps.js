@@ -16,9 +16,26 @@ export class CreepManager extends BaseProcess {
         return Game.creeps[this.creepName]
     }
 
+    set creepType(type){
+        this.data.creepType = type
+    }
+
+    get creepType(){
+        return this.data.creepType
+    }
+
+    set taskTicketQueue(queue){
+        this.data.taskTicketQueue = queue
+    }
+
+    get taskTicketQueue(){
+        return this.data.taskTicketQueue
+
+    }
+
     getCurrentTaskTicket(){
         if (!this.creep.memory.currentTaskTicket) {
-            if (this.creep.memory.taskTicketQueue.length > 0) {
+            if (this.taskTicketQueue.length > 0) {
                 console.log(`Picking up next task ticket for creep ${this.creep.name}`)
                 this.creep.memory.currentTaskTicket = this.creep.memory.taskTicketQueue.shift()
             }

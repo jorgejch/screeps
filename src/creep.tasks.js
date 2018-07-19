@@ -49,6 +49,27 @@ export default {
             }
         }
     },
+    CYCLIC_HARVEST_SOURCE: {
+        name: "CYCLIC_HARVEST_SOURCE",
+        /**
+         *
+         * @param creep Creep performing the task
+         */
+        taskFunc: (creep) => {
+            const currentTaskTicket = getCurrentTaskTicket(creep)
+            const sourceId = currentTaskTicket.taskParams.sourceId
+            const source = Game.getObjectById(sourceId)
+
+            if (!source) {
+                throw `Invalid source id ${sourceId}.`
+            } else {
+                activities.harvestEnergyFromSource(creep, source)
+                if (criterias.creepIsFull(creep)) {
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                }
+            }
+        }
+    },
     CYCLIC_HARVEST_CLOSEST_SOURCE: {
         name: "CYCLIC_HARVEST_CLOSEST_SOURCE",
         /**

@@ -1,6 +1,8 @@
 import {BaseProcess} from "./process.base";
 import ProcessState from "./os.processState";
 import {CreepManager} from "./process.creeps";
+import CreepTypes from "creep.types"
+import tasks, {TaskTicket} from "./creep.tasks";
 
 export class SourceHarvestManager extends BaseProcess {
     set ownerRoomName(name) {
@@ -46,7 +48,17 @@ export class SourceHarvestManager extends BaseProcess {
                 
                 // there should be 3 basic workers harvesting at this level
                 while (this.data.harvestersProcsLabels.length < 3){
-                    const process = Kernel.launchProcess(CreepManager)
+                    const label = `creep_manager_${Game.time}`
+                    const process = Kernel.launchProcess(CreepManager, label, this.pid)
+                    process.creepType = CreepTypes.BASIC_WORKER_1
+                    process.taskTicketQueue = [
+                        new TaskTicket(
+                            tasks.CYCLIC_HARVEST_SOURCE.name, {sourceId: this.sourceId}
+                        ),
+                        new TaskTicket(
+                            tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name, {roomName: this.ownerRoomName}
+                        )
+                    ]
                 }
 
             }

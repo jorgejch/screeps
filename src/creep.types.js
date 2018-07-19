@@ -1,5 +1,4 @@
 export default {
-    bodies: {
         BASIC_WORKER_1: [MOVE, CARRY, WORK],                                                       // Total: 200
         BASIC_WORKER_2: [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, WORK, WORK],                  // Total: 550
         BASIC_WORKER_3: [                                                                          // Total: 1000
@@ -46,8 +45,4 @@ export default {
         CLAIMER_2: [                                                                          // Total: 1300
             MOVE, MOVE, CLAIM, CLAIM
         ]
-    },
-    getTypeBody: function (type) {
-        return this.bodies[type]
-    }
 }
