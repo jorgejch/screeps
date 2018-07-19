@@ -1,5 +1,5 @@
 module.exports = function (grunt) {
-    const config = require('/.screeps.json')
+    const config = require('./.screeps.json')
     grunt.loadNpmTasks('grunt-screeps');
 
     grunt.initConfig({

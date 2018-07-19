@@ -75,6 +75,7 @@ module.exports = {
                                     {roomName: this.ownerRoomName}
                                 )
                             ]
+                            this.harvestersProcLabels.push(process.label)
                         }
                         catch (e) {
                             console.log(`Failed to lunch harvester process due to; ${e.stack}`)
