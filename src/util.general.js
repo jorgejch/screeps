@@ -1,4 +1,3 @@
-import processClassMap from "os.processClassMap"
 
 export function suffleArray(array) {
     let currentIndex = array.length, temporaryValue, randomIndex;
@@ -85,6 +84,3 @@ export function checkDroppedResourceUnassigned(droppedResource){
 }
 
 // OS rewrite
-export function getProcessClass(className){
-    return processClassMap[className]
-}

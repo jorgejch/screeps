@@ -2,13 +2,6 @@ import {BaseProcess} from "./process.base";
 import {addOrderForCreepInOrderBook, executeOrder} from "util.creepSpawner"
 
 export class RoomManager extends BaseProcess {
-    _processNextCreepOrder(spawn){
-        const order = this.orderBook.sort((a, b) => a.priority - b.priority)[0]
-        if (order){
-            executeOrder(order, spawn, this.orderBook)
-        }
-    }
-
     set roomName(roomName) {
         this.data.roomName = roomName
     }
@@ -28,9 +21,18 @@ export class RoomManager extends BaseProcess {
         addOrderForCreepInOrderBook(order, this.orderBook)
     }
 
+    isOrderForCreepNameInOrderBook(creepName){
+        return !!this.orderBook.find(order => order.name === creepName)
+    }
+
+    _processNextCreepOrder(spawn){
+        const order = this.orderBook.sort((a, b) => a.priority - b.priority)[0]
+        if (order){
+            executeOrder(order, spawn, this.orderBook)
+        }
+    }
 
     run() {
-        console.log(`DEBUG Runnig room ${this.roomName}`)
         const room = Game.rooms[this.roomName]
 
         // spawn
@@ -43,8 +45,5 @@ export class RoomManager extends BaseProcess {
                 console.log(`Failed to spawn creep on room ${this.roomName}'s ${spawn.name} spawn due to: ${e.stack}`)
             }
         })
-
     }
-
-
 }

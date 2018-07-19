@@ -1,5 +1,5 @@
 export function performNextTask(creep) {
-    const queue = creep.memory.taskTicketQueue
+    const queue = creep.memory.initialTaskTicketQueue
     const nextTicket = queue.shift()
     if (nextTicket) {
         creep.memory.currentTaskTicket = nextTicket
@@ -9,7 +9,7 @@ export function performNextTask(creep) {
     }
 }
 export function addCurrentTaskToTopOfQueueAndPerformNextTask(creep, task) {
-    const queue = creep.memory.taskTicketQueue
+    const queue = creep.memory.initialTaskTicketQueue
     queue.push(task)
     performNextTask(creep)
 }

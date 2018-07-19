@@ -2,7 +2,6 @@
 
 import {OSScheduler} from "os.scheduler"
 import ProcessState from "os.processState"
-import * as generalUtils from "src/util.general"
 import {Init} from "process.init";
 
 export class OSKernel {
@@ -22,23 +21,27 @@ export class OSKernel {
         }
     }
 
+    getProcessData(process){
+        // not static so it can be accessed only of procs mem init.
+        return Memory.processesMemory[process.label]
+    }
 
     _loadProcessTableFromMemory() {
-        // console.log(`DEBUG1: Loading processes from memory`)
+        console.log(`DEBUG1: Loading processes from memory`)
         this.rawProcessTable.forEach(rawProcess => {
-            const processClass = generalUtils.getProcessClass(rawProcess[2])
+            const processClass = OSScheduler.getProcessClass(rawProcess[2])
             const pid = rawProcess[0]
             const parentPid = rawProcess[1]
             const label = rawProcess[3]
             const priority = rawProcess[4]
             const state = rawProcess[5]
             this.processTable[pid] = new processClass(pid, parentPid, label, priority, state)
-            // console.log(`DEBUG2: Loaded process with pid ${pid} from memory: \n`
-            //     + ` ${JSON.stringify({
-            //         parentPid: parentPid,
-            //         processLabel: label,
-            //         processClass: processClass
-            //     })} to process table`)
+            console.log(`DEBUG2: Loaded process with pid ${pid} from memory: \n`
+                + ` ${JSON.stringify({
+                    parentPid: parentPid,
+                    processLabel: label,
+                    processClass: processClass
+                })} to process table`)
         })
     }
 
@@ -55,12 +58,12 @@ export class OSKernel {
                     const priority = process.priority
                     const state = process.state
                     this.rawProcessTable.push([pid, parentPid , processClassName , label, priority, state])
-                    // console.log(`DEBUG: Saved process with pid ${pid} to memory: \n`
-                    //     + ` ${JSON.stringify({
-                    //         parentPid: parentPid,
-                    //         processLabel: label,
-                    //         processClassName: processClassName
-                    //     })} to process table`)
+                    console.log(`DEBUG: Saved process with pid ${pid} to memory: \n`
+                        + ` ${JSON.stringify({
+                            parentPid: parentPid,
+                            processLabel: label,
+                            processClassName: processClassName
+                        })} to process table`)
                 }
             }
         )
@@ -79,12 +82,14 @@ export class OSKernel {
     }
 
     run() {
+        console.log(`DEBUG at beggining  kernel run`)
         // order processes to run
         this.scheduler.init()
 
         let proc
         while (proc = this.scheduler.nextProcessToRun()) {
             try {
+                console.log(`DEBUG Running process ${proc.label}.`)
                 proc.run()
             }
             catch (ex){
@@ -93,6 +98,8 @@ export class OSKernel {
         }
 
         this._saveProcessTableToMemory()
+
+        console.log(`DEBUG at end of kernel run`)
     }
 
 }

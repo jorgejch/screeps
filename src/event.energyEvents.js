@@ -11,7 +11,7 @@ export function harvestSourceUnderFlagForOwnRoom(flag){
         visual.text(`Process to harvest source ${source.id} already exists.`, flag.pos)
         return
     }
-    const process = Kernel.scheduler.launchProcess(SourceHarvestManager, processLabel(source.id))
+    const process = Kernel.scheduler.launchProcess(SourceHarvestManager, processLabel(source.id), 0)
     visual.text(`Launched process ${process.label}.`, flag.pos)
     process.sourceId = source.id
     process.ownerRoomName = source.room.name

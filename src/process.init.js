@@ -2,6 +2,7 @@ import {BaseProcess} from "./process.base";
 import eventFlagMap from "./os.eventFuncMap";
 import ProcessState from "./os.processState";
 import {EmpireManager} from "./process.empire";
+import {SourceHarvestManager} from "./process.energy";
 
 export class FlagEventListener extends BaseProcess {
 
@@ -49,5 +50,12 @@ export class Init extends BaseProcess{
             Kernel.scheduler.launchProcess(EmpireManager, EMPIRE_MANAGER_PROCESS_LABEL, this.pid, 2)
         }
 
+        const TEST_LABEL = "test_source_harvest_manager"
+        if (!Kernel.scheduler.getProcessByLabel(TEST_LABEL)) {
+            const process = Kernel.scheduler.launchProcess(SourceHarvestManager, TEST_LABEL)
+            const processData = Kernel.getProcessData(process)
+            processData.sourceId = Object.values(Game.rooms)[0].find(FIND_SOURCES_ACTIVE)[0].id
+            processData.ownerRoomName = Game.getObjectById(processData.sourceId).room.name
+        }
     }
 }

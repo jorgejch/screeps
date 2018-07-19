@@ -8,6 +8,7 @@ export class BaseProcess {
         this.priority = priority
         this.state = state
 
+        console.log(`DEBUG constructor for ${this.label} reached`)
         if (!Memory.processesMemory[this.label]){
             Memory.processesMemory[this.label]= {}
         }
