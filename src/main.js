@@ -1,6 +1,6 @@
-import {OSKernel} from "./os.kernel";
+const OSKernel = require("os.kernel")
 
-export function loop() {
+module.exports.loop = function()  {
     console.log('Tick begin:',Game.time)
     console.log(`DEBUG at main loop begining`)
 

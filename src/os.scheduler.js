@@ -1,8 +1,8 @@
 'use strict'
-import ProcessState from "os.processState"
-import processClassMap from "os.processClassMap"
+const ProcessState = require("os.processState")
+const processClassMap = require("os.processClassMap")
 
-export class OSScheduler {
+module.exports = class OSScheduler {
     _getFreePid() {
         let lastPid = 0
 

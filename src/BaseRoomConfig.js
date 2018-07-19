@@ -1,4 +1,3 @@
-import {CreepRoleQuantityInRoom} from './rules'
 
 class Tower {
     constructor(struct) {

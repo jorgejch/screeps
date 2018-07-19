@@ -1,10 +1,5 @@
-import {getRandomArrayElement, getRoom} from './util.general'
-import {BaseRoomConfig} from "./BaseRoomConfig";
-import {TaskTicket} from "./creep.tasks"
-import tasks from "./creep.tasks"
 
-
-export default class extends BaseRoomConfig {
+class E47S16 extends BaseRoomConfig {
     constructor() {
         super(
             /* room      */   getRoom("E47S16"),

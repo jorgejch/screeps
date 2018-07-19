@@ -1,4 +1,4 @@
-export default {
+module.exports = {
     SLEEP: "sleep",
     DEAD: "dead",
     ACTIVE: "active",

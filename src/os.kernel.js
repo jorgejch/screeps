@@ -1,10 +1,10 @@
 'use strict'
 
-import {OSScheduler} from "os.scheduler"
-import ProcessState from "os.processState"
-import {Init} from "process.init";
+const OSScheduler = require("os.scheduler")
+const ProcessState = require("os.processState")
+const init =  require("process.init")
 
-export class OSKernel {
+module.exports = class OSKernel {
     constructor() {
         this.scheduler = new OSScheduler()
         this.processTable = {}
@@ -35,6 +35,7 @@ export class OSKernel {
             const label = rawProcess[3]
             const priority = rawProcess[4]
             const state = rawProcess[5]
+
             this.processTable[pid] = new processClass(pid, parentPid, label, priority, state)
             console.log(`DEBUG2: Loaded process with pid ${pid} from memory: \n`
                 + ` ${JSON.stringify({
@@ -77,7 +78,7 @@ export class OSKernel {
 
         // init should be the first process to run
         if (Object.keys(this.processTable).length === 0){
-            this.scheduler.launchProcess(Init, "init", null, 0)
+            this.scheduler.launchProcess(init.Init, "init", null, 0)
         }
     }
 

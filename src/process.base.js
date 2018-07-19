@@ -1,6 +1,6 @@
-import ProcessState from "os.processState"
+const ProcessState = require("os.processState")
 
-export class BaseProcess {
+module.exports = class BaseProcess {
     constructor(pid, parentPid, label, priority, state) {
         this.pid = pid
         this.parentPid = parentPid
