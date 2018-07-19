@@ -1,6 +1,7 @@
 import {OSKernel} from "./os.kernel";
 
 export function loop() {
+    console.log('Tick begin:',Game.time)
     console.log(`DEBUG at main loop begining`)
 
     if (Game.cpu.bucket < 500) {
@@ -13,4 +14,5 @@ export function loop() {
     // add event manager process if non-existent
     Kernel.run()
     console.log(`DEBUG after kernel run`)
+    console.log('Tick end:',Game.time)
 }
