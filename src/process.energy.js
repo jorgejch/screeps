@@ -41,7 +41,6 @@ module.exports = {
         }
 
         run() {
-            console.log(`DEBUG BEGINING SourceHastManager`)
             if (this.isLocal()) {
                 if (!this.source) {
                     throw `Invalid source id ${this.sourceId}`
@@ -50,19 +49,20 @@ module.exports = {
                 if (this.source.room.controller.level === 1) {
                     // filter out dead processes
                     this.harvestersProcLabels = this.harvestersProcLabels
-                        .filter(label => Kernel.scheduler.getProcessByLabel(label))
+                        .filter(label => Kernel.getProcessByLabel(label))
 
 
                     // there should be 3 basic workers harvesting at this level
                     while (this.harvestersProcLabels.length < 3) {
-                        const label = `creep_manager_${Game.time}`
-                        console.log(`DEBUG label ${label}`)
+                        const label = `creep_manager_${Game.time}_${this.harvestersProcLabels.length + 1}`
 
                         try {
-                            console.log(`DEBUG PRE`)
-                            const process = Kernel.scheduler.launchProcess(creeps.CreepManager, label, this.pid)
-                            console.log(`DEBUG POST`)
-                            process.creepName = `BasicHarvester${Game.time}`
+                            const process = Kernel.scheduler.launchProcess(
+                                Kernel.availableProcessClasses.CreepManager,
+                                label,
+                                this.pid
+                            )
+                            process.creepName = `BasicHarvester${Game.time}_${this.harvestersProcLabels.length + 1}`
                             process.creepType = "BASIC_WORKER_1"
                             process.ownerRoomName = this.ownerRoomName
                             process.spawningPriority = 0
@@ -78,7 +78,7 @@ module.exports = {
                             this.harvestersProcLabels.push(process.label)
                         }
                         catch (e) {
-                            console.log(`Failed to lunch harvester process due to; ${e.stack}`)
+                            console.log(`Failed to lunch harvester process due to: ${e.stack}`)
                         }
                     }
                 }

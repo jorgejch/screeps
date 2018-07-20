@@ -1,6 +1,6 @@
 module.exports = {
     performNextTask: function(creep) {
-        const queue = creep.memory.initialTaskTicketQueue
+        const queue = creep.memory.taskTicketQueue
         const nextTicket = queue.shift()
         if (nextTicket) {
             creep.memory.currentTaskTicket = nextTicket
@@ -10,7 +10,7 @@ module.exports = {
         }
     },
     addCurrentTaskToTopOfQueueAndPerformNextTask: function(creep, task) {
-        const queue = creep.memory.initialTaskTicketQueue
+        const queue = creep.memory.taskTicketQueue
         queue.push(task)
         this.performNextTask(creep)
     }

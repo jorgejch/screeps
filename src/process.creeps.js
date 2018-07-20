@@ -1,3 +1,4 @@
+'use strict'
 const BaseProcess = require("process.base")
 const processStates = require("os.processState")
 const tasks = require("creep.tasks")
@@ -54,7 +55,7 @@ module.exports = {
             if (!this.creep.memory.currentTaskTicket) {
                 if (this.initialTaskTicketQueue.length > 0) {
                     console.log(`Picking up next task ticket for creep ${this.creep.name}`)
-                    this.creep.memory.currentTaskTicket = this.creep.memory.initialTaskTicketQueue.shift()
+                    this.creep.memory.currentTaskTicket = this.creep.memory.taskTicketQueue.shift()
                 }
                 else {
                     console.log(`No tasks for ${this.creep.name}. Creep  Idle.`)
@@ -64,7 +65,7 @@ module.exports = {
         }
 
         executeCurrentTask() {
-            const taskFunc = tasks.tasks[Creep.getCurrentTaskTicket(this.creep).taskName].taskFunc
+            const taskFunc = tasks.tasks[this.getCurrentTaskTicket(this.creep).taskName].taskFunc
             taskFunc(this.creep)
         }
 
@@ -74,9 +75,7 @@ module.exports = {
         }
 
         run() {
-
-            console.log(`DEBUG ${JSON.stringify(this.creep)}`)
-            if (!this.creep) {
+            if (this.creep) {
                 try {
                     this.executeCurrentTask()
                 }
@@ -85,7 +84,7 @@ module.exports = {
                 }
             } else {
                 const ownerManagerLabel = `${this.ownerRoomName}_manager`
-                const ownerManager = Kernel.scheduler.getProcessByLabel(ownerManagerLabel)
+                const ownerManager = Kernel.getProcessByLabel(ownerManagerLabel)
 
                 if (!ownerManager) {
                     throw `${ownerManagerLabel} process does not exist.`
@@ -97,7 +96,7 @@ module.exports = {
                             this.creepType,
                             this.creepName,
                             this.initialTaskTicketQueue,
-                            0
+                            this.spawningPriority
                         )
                     )
                 }

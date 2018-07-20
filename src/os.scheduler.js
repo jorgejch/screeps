@@ -1,6 +1,5 @@
 'use strict'
 const ProcessState = require("os.processState")
-const processClassMap = require("os.processClassMap")
 
 module.exports = class OSScheduler {
     _getFreePid() {
@@ -14,10 +13,6 @@ module.exports = class OSScheduler {
                 return candidate
             }
         }
-    }
-
-    static getProcessClass(className){
-        return processClassMap[className]
     }
 
     setProcessTable(table) {
@@ -50,7 +45,4 @@ module.exports = class OSScheduler {
         return process
     }
 
-    getProcessByLabel(label) {
-        return _.find(Object.keys(this.processTable), pid => this.processTable[pid].label === label)
-    }
 }

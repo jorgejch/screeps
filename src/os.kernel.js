@@ -4,6 +4,14 @@ const OSScheduler = require("os.scheduler")
 const ProcessState = require("os.processState")
 const init =  require("process.init")
 
+// process modules
+const energy = require("process.energy")
+const empire = require("process.empire")
+const rooms = require("process.rooms")
+const events = require("process.events")
+const creeps = require("process.creeps");
+
+
 module.exports = class OSKernel {
     constructor() {
         this.scheduler = new OSScheduler()
@@ -19,35 +27,38 @@ module.exports = class OSKernel {
         if (!Memory.processesMemory) {
             Memory.processesMemory = {}
         }
-    }
 
-    getProcessData(process){
-        // not static so it can be accessed only of procs mem init.
-        return Memory.processesMemory[process.label]
+        this.availableProcessClasses = {}
+        this.availableProcessClasses.EmpireManager = empire.EmpireManager
+        this.availableProcessClasses.FlagEventListener = events.FlagEventListener
+        this.availableProcessClasses.SourceHarvestManager = energy.SourceHarvestManager
+        this.availableProcessClasses.Init = init.Init
+        this.availableProcessClasses.CreepManager = creeps.CreepManager
+        this.availableProcessClasses.OwnedRoomManager = rooms.OwnedRoomManager
+        this.availableProcessClasses.ControllerUpgradeManager = rooms.ControllerUpgradeManager
     }
 
     _loadProcessTableFromMemory() {
-        console.log(`DEBUG1: Loading processes from memory`)
+        // console.log(`DEBUG Loading processes from memory`)
         this.rawProcessTable.forEach(rawProcess => {
-            const processClass = OSScheduler.getProcessClass(rawProcess[2])
-            const pid = rawProcess[0]
-            const parentPid = rawProcess[1]
-            const label = rawProcess[3]
-            const priority = rawProcess[4]
-            const state = rawProcess[5]
-
-            this.processTable[pid] = new processClass(pid, parentPid, label, priority, state)
-            console.log(`DEBUG2: Loaded process with pid ${pid} from memory: \n`
-                + ` ${JSON.stringify({
-                    parentPid: parentPid,
-                    processLabel: label,
-                    processClass: processClass
-                })} to process table`)
+            let processClass
+            try{
+                processClass = this.availableProcessClasses[rawProcess[2]]
+                const pid = rawProcess[0]
+                const parentPid = rawProcess[1]
+                const label = rawProcess[3]
+                const priority = rawProcess[4]
+                const state = rawProcess[5]
+                this.processTable[pid] = new processClass(pid, parentPid, label, priority, state)
+            }
+            catch (e) {
+                console.log(`Failed to load process ${JSON.stringify(rawProcess)} due to ${e.stack}.`)
+            }
         })
     }
 
     _saveProcessTableToMemory() {
-        console.log(`DEBUG Saving processes from memory`)
+        // console.log(`DEBUG Saving processes from memory`)
         this.rawProcessTable.length = 0  // reset
         Object.keys(this.processTable).forEach(pid => {
                 const process = this.processTable[pid]
@@ -59,19 +70,23 @@ module.exports = class OSKernel {
                     const priority = process.priority
                     const state = process.state
                     this.rawProcessTable.push([pid, parentPid , processClassName , label, priority, state])
-                    console.log(`DEBUG: Saved process with pid ${pid} to memory: \n`
-                        + ` ${JSON.stringify({
-                            parentPid: parentPid,
-                            processLabel: label,
-                            processClassName: processClassName
-                        })} to process table`)
+                    // console.log(`DEBUG Saved process with pid ${pid} to memory: \n`
+                    //     + ` ${JSON.stringify({
+                    //         parentPid: parentPid,
+                    //         processLabel: label,
+                    //         processClassName: processClassName
+                    //     })} to process table`)
                 }
             }
         )
     }
 
+    getProcessByLabel(label) {
+        return _.find(Object.values(this.processTable), proc => proc.label === label)
+    }
+
     init() {
-        // console.log(`DEBUG1 Initializing kernel`)
+        // console.log(`DEBUG Initializing kernel`)
         this._loadProcessTableFromMemory()
         // able to add jobs after setting process table on scheduler
         this.scheduler.setProcessTable(this.processTable)
@@ -83,7 +98,7 @@ module.exports = class OSKernel {
     }
 
     run() {
-        console.log(`DEBUG at beggining  kernel run`)
+        console.log(`DEBUG at beginning of kernel run`)
         // order processes to run
         this.scheduler.init()
 
@@ -102,5 +117,4 @@ module.exports = class OSKernel {
 
         console.log(`DEBUG at end of kernel run`)
     }
-
 }

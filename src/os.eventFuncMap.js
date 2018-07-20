@@ -1,7 +1,9 @@
-const testEvents = require("event.test")
-const energyEvents = require("event.energyEvents")
+const test = require("event.test")
+const source = require("event.source")
+const controller = require("event.controller")
 
 module.exports = {
-    "1_1" /*RED_RED*/    : testEvents.sayHelloWorld,
-    "2_1" /*PURPLE_RED*/ : energyEvents.harvestSourceUnderFlagForOwnRoom
+    "1_1" /*RED_RED*/    : test.sayHelloWorld,
+    "2_1" /*PURPLE_RED*/ : source.harvestSourceUnderFlagForOwnRoom,
+    "4_1" /*CYAN_RED*/   : controller.upgradeControllerUnderFlag
 }

@@ -3,7 +3,7 @@ const processStates = require("os.processState")
 const eventFlagMap = require("os.eventFuncMap")
 module.exports = {
     FlagEventListener: class extends BaseProcess {
-        static _getEventFuncForFlag(flag) {
+        _getEventFuncForFlag(flag) {
             return eventFlagMap[`${flag.color}_${flag.secondaryColor}`]
         }
 
@@ -11,7 +11,7 @@ module.exports = {
             Object.values(Game.flags)
                 .filter(flag => flag.color !== COLOR_WHITE)
                 .forEach(flag => {
-                    const eventFunction = FlagEventListener._getEventFuncForFlag(flag)
+                    const eventFunction = this._getEventFuncForFlag(flag)
                     if (eventFunction) {
                         try {
                             eventFunction(flag)

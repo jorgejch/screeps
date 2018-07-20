@@ -1,18 +1,16 @@
-const SourceHarvestManager = require("process.energy")
-
-function processLabel(sourceId) {
-    return `harvest_manager_of_source_${sourceId}`
-}
-
 module.exports = {
     harvestSourceUnderFlagForOwnRoom: function (flag) {
         const source = flag.pos.lookFor(LOOK_SOURCES)[0]
+        const label = `harvest_manager_of_source_${source.id}`
         const visual = new RoomVisual(flag.roomName)
-        if (Kernel.scheduler.getProcessByLabel(processLabel(source.id))) {
+        if (Kernel.getProcessByLabel(label)) {
             visual.text(`Process to harvest source ${source.id} already exists.`, flag.pos)
             return
         }
-        const process = Kernel.scheduler.launchProcess(SourceHarvestManager, processLabel(source.id), 0)
+        const process = Kernel.scheduler.launchProcess(
+            Kernel.availableProcessClasses.SourceHarvestManager,
+            label
+        )
         visual.text(`Launched process ${process.label}.`, flag.pos)
         process.sourceId = source.id
         process.ownerRoomName = source.room.name

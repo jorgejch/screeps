@@ -23,8 +23,12 @@ module.exports = {
         const creepName = order.name
         console.log(`Executing order for ${order.name} in room ${spawn.room.name}'s ${spawn.name} spawn.`)
         const creepBody = creepTypes[order.type]
-        const creepTaskTicketQueue = this.taskTicketQueue
-        const res = spawn.spawnCreep(creepBody, creepName, {memory: {taskTicketQueue: creepTaskTicketQueue}})
+        const creepOpt = {
+            memory: {
+                taskTicketQueue: order.taskTicketQueue
+            }
+        }
+        const res = spawn.spawnCreep(creepBody, creepName, creepOpt)
 
         switch (res) {
             case OK:
@@ -33,10 +37,11 @@ module.exports = {
                     + `\n  Name: ${creepName}`
                     + `\n  Body: ${creepBody}`
                     + `\n  Type: ${order.type}`
-                    + `\n  Opts: ${JSON.stringify(creepTaskTicketQueue)}`
+                    + `\n  Opts: ${JSON.stringify(creepOpt)}`
                 )
-                console.log(`Deleting order for ${order.name}`)
-                orderBook.splice(orderBook.indexOf(order), 1)
+                const index = orderBook.indexOf(order)
+                console.log(`Deleting order for ${order.name} with index ${index}`)
+                orderBook.splice(index, 1)
                 break;
             default:
                 console.log(`Spawn ${spawn.name} unable to spawn creep ${order.name} `
