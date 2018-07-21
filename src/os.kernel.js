@@ -36,6 +36,7 @@ module.exports = class OSKernel {
         this.availableProcessClasses.CreepManager = creeps.CreepManager
         this.availableProcessClasses.OwnedRoomManager = rooms.OwnedRoomManager
         this.availableProcessClasses.ControllerUpgradeManager = rooms.ControllerUpgradeManager
+        this.availableProcessClasses.ConstructionManager = rooms.ConstructionManager
     }
 
     _loadProcessTableFromMemory() {
