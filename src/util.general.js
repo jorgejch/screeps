@@ -1,22 +1,4 @@
 module.exports = {
-    suffleArray: function (array) {
-        let currentIndex = array.length, temporaryValue, randomIndex;
-
-        // While there remain elements to shuffle...
-        while (0 !== currentIndex) {
-
-            // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex -= 1;
-
-            // And swap it with the current element.
-            temporaryValue = array[currentIndex];
-            array[currentIndex] = array[randomIndex];
-            array[randomIndex] = temporaryValue;
-        }
-
-        return array;
-    },
     clearDeadScreepsFromMemory: function () {
         let i;
         for (i in Memory.creeps) {
@@ -40,21 +22,13 @@ module.exports = {
         return array[Math.floor(Math.random() * size)]
     },
 
-    updateRoomCreepInventory: function (type, inventory) {
-        if (type in inventory) {
-            inventory[type] += 1
-        }
-        else {
-            inventory[type] = 1
-        }
-    },
 
     getRoomFlag: function (roomName) {
         return Game.flags[`${roomName}_RALLY`]
     },
 
     getClosestUnassignedContainerInRoom: function (creep, roomName, key) {
-        const room = getRoom(roomName)
+        const room = this.getRoom(roomName)
         return creep.pos.findClosestByRange(
             room.find(
                 FIND_STRUCTURES,
@@ -67,18 +41,9 @@ module.exports = {
             )
         )
     },
-
     getClosestUnassignedTargetContainerInRoom: function (creep, roomName) {
         const key = "assignedTargetContainerId"
-        return getClosestUnassignedContainerInRoom(creep, roomName, key)
+        return this.getClosestUnassignedContainerInRoom(creep, roomName, key)
     },
 
-    getClosestUnassignedSourceContainerInRoomu: function (creep, roomName) {
-        const key = "assignedSourceContainerId"
-        return getClosestUnassignedContainerInRoom(creep, roomName, key)
-    },
-
-    checkDroppedResourceUnassigned: function (droppedResource) {
-        return Object.values(Game.creeps).find(creep => creep.memory)
-    }
 }

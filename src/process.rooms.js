@@ -1,56 +1,8 @@
 const BaseProcess = require("process.base")
 const creepSpawner = require("util.creepSpawner")
 const energyCapacityLevels = require("util.energyCapacityLevels")
-const obtainEnergyOptions = require("util.obtainEnergyOptions")
 const tasks = require("creep.tasks");
-
-function checkContainerExists(room) {
-    return room.find(FIND_MY_STRUCTURES)
-        .filter(struct => struct.structureType === STRUCTURE_CONTAINER)
-        .length > 0
-}
-
-function checkStorageExists(room) {
-    return room.find(FIND_MY_STRUCTURES)
-        .filter(struct => struct.structureType === STRUCTURE_CONTAINER)
-        .length > 0
-}
-
-function determineEnergyObtentionMethod(room) {
-    if (checkStorageExists(room)) {
-        return obtainEnergyOptions.FROM_STORAGE
-    }
-    else if (checkContainerExists(room)) {
-        return obtainEnergyOptions.FROM_CONTAINER
-    }
-    else {
-        return obtainEnergyOptions.HARVEST
-    }
-}
-
-function getEnergySourcingTaskTicket(sourceOption, roomName){
-    let sourceEnergyTaskTicket
-    switch (sourceOption) {
-        case obtainEnergyOptions.HARVEST:
-            sourceEnergyTaskTicket = new tasks.TaskTicket(
-                tasks.tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {roomName: roomName}
-            )
-            break
-        case obtainEnergyOptions.FROM_CONTAINER:
-            sourceEnergyTaskTicket = new tasks.TaskTicket(
-                tasks.tasks.CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM.name,
-                {roomName: roomName, resourceType: RESOURCE_ENERGY, amount: null}
-            )
-            break
-        case obtainEnergyOptions.FROM_STORAGE:
-            sourceEnergyTaskTicket = new tasks.TaskTicket(
-                tasks.tasks.CYCLIC_LEECH_FROM_ROOM_STORAGE.name,
-                {roomName: roomName, resourceType: RESOURCE_ENERGY, amount: null}
-            )
-            break
-    }
-    return sourceEnergyTaskTicket
-}
+const processUtils = require('util.process')
 
 module.exports = {
     ConstructionManager: class extends BaseProcess {
@@ -88,8 +40,8 @@ module.exports = {
             if (targetRoomConstructionSites.length > 0) {
                 let numOfBuilders
 
-                const sourceOption = determineEnergyObtentionMethod(this.ownerRoom)
-                const sourceEnergyTaskTicket = getEnergySourcingTaskTicket(sourceOption, this.ownerRoomName)
+                const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
+                const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, this.ownerRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 let bodyType
 
@@ -177,8 +129,8 @@ module.exports = {
 
             let upgraderbodyType, numberOfUpgraders = 3
 
-            const sourceOption = determineEnergyObtentionMethod(this.room)
-            const sourceEnergyTaskTicket = getEnergySourcingTaskTicket(sourceOption, this.room.name)
+            const sourceOption = processUtils.determineEnergyObtentionMethod(this.room)
+            const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, this.room.name)
             const energyCapacityAvailable = this.room.energyCapacityAvailable
 
             if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
