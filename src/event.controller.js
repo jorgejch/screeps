@@ -2,7 +2,7 @@ module.exports = {
     upgradeControllerUnderFlag: function (flag) {
         const controller = flag.pos.lookFor(LOOK_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_CONTROLLER)[0]
-        const visual = new RoomVisual(flag.roomName)
+        const visual = new RoomVisual(flag.room.name)
 
         const CONTROLLER_UPGRADE_MANAGER_PROC_LABEL = `upgrade_manager_of_${controller.room.name}`
         if (Kernel.getProcessByLabel(CONTROLLER_UPGRADE_MANAGER_PROC_LABEL)) {
@@ -16,6 +16,7 @@ module.exports = {
                 Kernel.availableProcessClasses.ControllerUpgradeManager,
                 CONTROLLER_UPGRADE_MANAGER_PROC_LABEL
             )
+            visual.text(`Launched process ${process.label}.`, flag.pos)
             process.controllerId = controller.id
         }
         catch (ex) {

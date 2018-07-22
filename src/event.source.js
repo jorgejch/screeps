@@ -2,7 +2,7 @@ module.exports = {
     harvestSourceUnderFlagForOwnRoom: function (flag) {
         const source = flag.pos.lookFor(LOOK_SOURCES)[0]
         const label = `harvest_manager_of_source_${source.id}`
-        const visual = new RoomVisual(flag.roomName)
+        const visual = new RoomVisual(flag.room.name)
         if (Kernel.getProcessByLabel(label)) {
             visual.text(`Process to harvest source ${source.id} already exists.`, flag.pos)
             return

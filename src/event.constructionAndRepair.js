@@ -1,18 +1,26 @@
+const config = require("config")
+const processUtils = require("util.process")
+
 module.exports = {
-    cons: function (flag) {
-        const source = flag.pos.lookFor(LOOK_SOURCES)[0]
-        const label = `harvest_manager_of_source_${source.id}`
-        const visual = new RoomVisual(flag.roomName)
+    constructRemoteRoomUnderFlag: function (flag) {
+        const visual = new RoomVisual(flag.room.name)
+        const targetRoom = flag.room
+        const ownerRoomName = flag.name
+        if (processUtils.checkRoomExistsAndItsMine(ownerRoomName)) {
+            visual.text(`Room ${ownerRoomName} doesn't exist or it's not mine.`, flag.pos)
+            return
+        }
+        const label = `construction_manager_of_room_${targetRoom.name}`
         if (Kernel.getProcessByLabel(label)) {
-            visual.text(`Process to harvest source ${source.id} already exists.`, flag.pos)
+            visual.text(`Process to construct room ${targetRoom.name} already exists.`, flag.pos)
             return
         }
         const process = Kernel.scheduler.launchProcess(
-            Kernel.availableProcessClasses.SourceHarvestManager,
+            Kernel.availableProcessClasses.ConstructionManager,
             label
         )
         visual.text(`Launched process ${process.label}.`, flag.pos)
-        process.sourceId = source.id
-        process.ownerRoomName = source.room.name
+        process.ownerRoomName = ownerRoomName
+        process.targetRoomName = flag.room.name
     }
 }

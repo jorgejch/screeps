@@ -1,7 +1,6 @@
 'use strict'
 const BaseProcess = require("process.base")
-
-const PLAYER_NAME = "JorgeJCH"
+const config = require("config")
 
 module.exports = {
     EmpireManager: class extends BaseProcess {
@@ -12,7 +11,11 @@ module.exports = {
 
             Object.keys(Game.rooms).forEach(roomName => {
                 const room = Game.rooms[roomName]
-                if (room.controller && room.controller.owner.username === PLAYER_NAME && !this.data.ownRooms[roomName]) {
+                if (
+                    room.controller
+                    && room.controller.owner.username === config.PLAYER_NAME
+                    && !this.data.ownRooms[roomName]
+                ) {
                     const label = `${roomName}_manager`
                     const process = Kernel.scheduler.launchProcess(
                         Kernel.availableProcessClasses.OwnedRoomManager,
