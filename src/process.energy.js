@@ -40,6 +40,16 @@ module.exports = {
             }
             return this.data.harvestersProcLabels
         }
+        get harvesterCounter() {
+            if (!this.data.harvesterCounter) {
+                this.data.harvesterCounter = 0
+            }
+            return this.data.harvesterCounter
+        }
+
+        incrementHarvesterCounter() {
+            this.data.harvesterCounter += 1
+        }
 
         isLocal() {
             return this.ownerRoomName === this.source.room.name
@@ -63,7 +73,8 @@ module.exports = {
 
                     // there should be 3 basic workers harvesting at this level
                     while (this.harvestersProcLabels.length < 3) {
-                        const label = `creep_manager_${Game.time}_${this.harvestersProcLabels.length + 1}`
+                        const label = `harvester_creep_manager_${this.harvesterCounter}_of_${this.source.room.name}`
+                            +`_from_${this.ownerRoomName}`
 
                         try {
                             const process = Kernel.scheduler.launchProcess(
@@ -71,7 +82,7 @@ module.exports = {
                                 label,
                                 this.pid
                             )
-                            process.creepName = `BasicHarvester${Game.time}_${this.harvestersProcLabels.length + 1}`
+                            process.creepName = `BasicHarvester${this.harvesterCounter}Of${this.source.room.name}` + ``
                             process.creepType = "BASIC_WORKER_1"
                             process.ownerRoomName = this.ownerRoomName
                             process.spawningPriority = 0
@@ -84,6 +95,7 @@ module.exports = {
                                     {roomName: this.ownerRoomName}
                                 )
                             ]
+                            this.incrementHarvesterCounter()
                             this.harvestersProcLabels.push(process.label)
                         }
                         catch (e) {
