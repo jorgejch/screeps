@@ -2,6 +2,7 @@ const BaseProcess = require("process.base")
 const processStates = require("os.processState")
 const creeps = require("process.creeps")
 const tasks = require("creep.tasks")
+const energyCapacityLevels = require("util.energyCapacityLevels")
 
 module.exports = {
     SourceHarvestManager: class extends BaseProcess {
@@ -11,6 +12,10 @@ module.exports = {
 
         get ownerRoomName() {
             return this.data.ownerRoomName
+        }
+
+        get ownerRoom(){
+            return Game.rooms[this.ownerRoomName]
         }
 
         set sourceId(sourceId) {
@@ -46,7 +51,11 @@ module.exports = {
                     throw `Invalid source id ${this.sourceId}`
                 }
 
-                if (this.source.room.controller.level === 1) {
+                // TODO: no harvester + no Feeder + incomplete spawns and exts === emergency
+                const emergency = this.ownerRoom.find(FIND_MY_CREEPS).length === 0
+                    && this.ownerRoom.energyAvailable < this.ownerRoom.energyCapacityAvailable
+
+                if (emergency || this.ownerRoom.energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
                     // filter out dead processes
                     this.harvestersProcLabels = this.harvestersProcLabels
                         .filter(label => Kernel.getProcessByLabel(label))

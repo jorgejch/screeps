@@ -34,6 +34,17 @@ module.exports = {
             return this.data.childLabels
         }
 
+        get constructorCounter() {
+            if (!this.data.constructorCounter) {
+                this.data.constructorCounter = 0
+            }
+            return this.data.constructorCounter
+        }
+
+        incrementConstructorCounter() {
+            this.data.constructorCounter += 1
+        }
+
         run() {
             const targetRoomConstructionSites = Object.values(Game.constructionSites)
                 .filter(cs => cs.room.name === this.targetRoomName)
@@ -72,14 +83,16 @@ module.exports = {
                 }
 
                 while (this.childLabels.length < numOfBuilders) {
-                    const label = `constructor_creep_manager_${Game.time}_${this.childLabels.length + 1}`
+                    const label = `constructor_creep_manager_${this.constructorCounter}`
+                        + `_of_${this.targetRoomName}_from_${this.ownerRoomName}`
                     try {
                         const process = Kernel.scheduler.launchProcess(
                             Kernel.availableProcessClasses.CreepManager,
                             label,
                             this.pid
                         )
-                        process.creepName = `Constructor${Game.time}_${this.childLabels.length + 1}`
+                        process.creepName = `Constructor${this.constructorCounter}Of${this.targetRoomName}`
+                            + `From${this.ownerRoomName}`
                         process.creepType = bodyType
                         process.ownerRoomName = this.ownerRoomName
                         process.spawningPriority = 15
@@ -92,6 +105,7 @@ module.exports = {
                             )
                         ]
                         this.childLabels.push(process.label)
+                        this.incrementConstructorCounter()
                     }
                     catch (e) {
                         console.log(`Failed to launch process for upgrader due to: ${e.stack}`)
@@ -113,7 +127,15 @@ module.exports = {
             return Game.getObjectById(this.controllerId)
         }
 
-        get room() {
+        set ownerRoomName(name){
+            this.data.ownerRoomName = name
+        }
+
+        get ownerRoomName(){
+            return this.data.ownerRoomName
+        }
+
+        get controllerRoom() {
             return this.controller.room
         }
 
@@ -124,19 +146,33 @@ module.exports = {
             return this.data.upgraderProcLabels
         }
 
+        get upgraderCounter() {
+            if (!this.data.upgraderCounter) {
+                this.data.upgraderCounter = 0
+            }
+            return this.data.upgraderCounter
+        }
+
+        incrementUpgraderCounter() {
+            this.data.upgraderCounter += 1
+        }
         run() {
             if (!this.controller) {
                 throw `Invalid controller id ${this.controllerId}.`
             }
 
+            if (!this.ownerRoomName){
+                this.ownerRoomName = this.controllerRoom.name
+            }
+
             let upgraderbodyType
             let numberOfUpgraders = 3  // by default there should be 3 upgraders
 
-            const roomsEnergyCapacityAvailable = this.room.energyCapacityAvailable
-            const energySourcingOption = processUtils.determineEnergyObtentionMethod(this.room)
+            const roomsEnergyCapacityAvailable = this.controllerRoom.energyCapacityAvailable
+            const energySourcingOption = processUtils.determineEnergyObtentionMethod(this.controllerRoom)
             const energySourcingTaskTicket = processUtils.getEnergySourcingTaskTicket(
                 energySourcingOption,
-                this.room.name
+                this.controllerRoom.name
             )
 
             if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
@@ -159,29 +195,254 @@ module.exports = {
             }
 
             while (this.upgraderProcLabels.length < numberOfUpgraders) {
-                const label = `upgrader_creep_manager_${Game.time}_${this.upgraderProcLabels.length + 1}`
+                const label = `upgrader_creep_manager_${this.upgraderCounter}_of_${this.controllerRoom.name}`
+                    +`_from_${this.ownerRoomName}`
                 try {
                     const process = Kernel.scheduler.launchProcess(
                         Kernel.availableProcessClasses.CreepManager,
                         label,
                         this.pid
                     )
-                    process.creepName = `Upgrader${Game.time}_${this.upgraderProcLabels.length + 1}`
+                    process.creepName = `Upgrader${this.upgraderCounter}Of${this.controllerRoom.name}`
+                        +`From${this.ownerRoomName}`
                     process.creepType = upgraderbodyType
-                    process.ownerRoomName = this.room.name
+                    process.ownerRoomName = this.controllerRoom.name
                     process.spawningPriority = 5
 
                     // the upgrader cyclically sources energy and upgrades the room controller
                     process.initialTaskTicketQueue = [
                         energySourcingTaskTicket,
                         new tasks.TaskTicket(
-                            tasks.tasks.CYCLIC_UPGRADE_ROOM_CONTROLLER.name, {roomName: this.room.name}
+                            tasks.tasks.CYCLIC_UPGRADE_ROOM_CONTROLLER.name, {roomName: this.controllerRoom.name}
                         )
                     ]
                     this.upgraderProcLabels.push(process.label)
+                    this.incrementUpgraderCounter()
                 }
                 catch (e) {
                     console.log(`Failed to launch process for upgrader due to: ${e.stack}`)
+                }
+            }
+        }
+    },
+    FeedManager: class extends BaseProcess {
+        set ownerRoomName(name) {
+            this.data.ownerRoomName = name
+        }
+
+        get ownerRoomName() {
+            return this.data.ownerRoomName
+        }
+
+        set targetRoomName(name) {
+            this.data.targetRoomName = name
+        }
+
+        get targetRoomName() {
+            return this.data.targetRoomName
+        }
+
+        get ownerRoom() {
+            return Game.rooms[this.ownerRoomName]
+        }
+
+        get targetRoom() {
+            return Game.rooms[this.targetRoomName]
+        }
+
+        get feedersProcessLabels() {
+            if (!this.data.feedersProcessLabels) {
+                this.data.feedersProcessLabels = []
+            }
+            return this.data.feedersProcessLabels
+        }
+
+        get feederCounter() {
+            if (!this.data.feederCounter) {
+                this.data.feederCounter = 0
+            }
+            return this.data.feederCounter
+        }
+
+        incrementFeederCounter() {
+            this.data.feederCounter += 1
+        }
+
+        run() {
+            if (processUtils.checkContainerExists(this.ownerRoom)) {
+                const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
+                const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(
+                    sourceOption,
+                    this.ownerRoomName
+                )
+                const roomECA = this.targetRoom.energyCapacityAvailable
+                let bodyType
+
+                if (roomECA < energyCapacityLevels.LEVEL_3) {
+                    bodyType = "FREIGHTER_2"
+                }
+                else if (roomECA < energyCapacityLevels.LEVEL_4) {
+                    bodyType = "FREIGHTER_3"
+                }
+                else {
+                    bodyType = "FREIGHTER_4"
+                }
+
+                while (this.feedersProcessLabels.length < config.MIN_NUM_OF_FEEDERS) {
+                    const label = `feeder_creep_manager_${this.feederCounter}_of_room_${this.targetRoomName}`
+                        + `_from_${this.ownerRoomName}`
+                    try {
+                        const process = Kernel.scheduler.launchProcess(
+                            Kernel.availableProcessClasses.CreepManager,
+                            label,
+                            this.pid,
+                            50
+                        )
+                        process.creepName = `Feeder${this.feederCounter}Of${this.targetRoomName}`
+                            + `From${this.ownerRoomName}`
+                        process.creepType = bodyType
+                        process.ownerRoomName = this.ownerRoomName
+                        process.spawningPriority = 1
+
+                        /*
+                        the feeder cyclically sources energy, feeds the spawns/exts,
+                        sources energy again and feeds the emptier tower it finds
+                        */
+                        process.initialTaskTicketQueue = [
+                            sourceEnergyTaskTicket,
+                            new tasks.TaskTicket(
+                                tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
+                                {roomName: this.targetRoom.name}
+                            ),
+                            sourceEnergyTaskTicket,
+                            new tasks.TaskTicket(
+                                tasks.tasks.CYCLIC_FEED_EMPTIER_TOWER.name,
+                                {roomName: this.targetRoom.name, amount: null}
+                            ),
+                        ]
+                        this.feedersProcessLabels.push(process.label)
+                        this.incrementFeederCounter()
+                    }
+                    catch (e) {
+                        console.log(`Failed to launch process ${label} due to: ${e.stack}`)
+                    }
+                }
+            }
+        }
+    },
+    OwnedRoomManager: class extends BaseProcess {
+        set roomName(roomName) {
+            this.data.roomName = roomName
+        }
+
+        get roomName() {
+            return this.data.roomName
+        }
+
+        get room() {
+            return Game.rooms[this.roomName]
+        }
+
+        get orderBook() {
+            if (!this.data.creepOrderBook) {
+                this.data.creepOrderBook = []
+            }
+            return this.data.creepOrderBook
+        }
+
+        get towersIdsToProcessLabels() {
+            if (!this.data.towersIdsToProcessLabels) {
+                this.data.towersIdsToProcessLabels = {}
+            }
+            return this.data.towersIdsToProcessLabels
+        }
+
+        get towers() {
+            return this.room.find(FIND_MY_STRUCTURES).filter(struct => struct.structureType === STRUCTURE_TOWER)
+        }
+
+        get managedTowersLabels() {
+            return Object.keys(this.towersIdsToProcessLabels)
+        }
+
+        addOrderForCreep(order) {
+            creepSpawner.addOrderForCreepInOrderBook(order, this.orderBook)
+        }
+
+        isOrderForCreepNameInOrderBook(creepName) {
+            return !!this.orderBook.find(order => order.name === creepName)
+        }
+
+        _processNextCreepOrder(spawn) {
+            const order = this.orderBook.sort((a, b) => a.priority - b.priority)[0]
+            if (order) {
+                creepSpawner.executeOrder(order, spawn, this.orderBook)
+            }
+        }
+
+        run() {
+            // spawn
+            const spawns = this.room.find(FIND_MY_SPAWNS)
+            spawns.forEach(spawn => {
+                try {
+                    this._processNextCreepOrder(spawn)
+                }
+                catch (e) {
+                    console.log(`Failed to spawn creep on room ${this.roomName}'s `
+                        + `${spawn.name} spawn due to: ${e.stack}`)
+                }
+            })
+
+            // init feed manager when needed
+            if (processUtils.checkContainerExists(this.room)) {
+                const FEED_MANAGER_PROC_LABEL = `feed_manager_of_room_${this.roomName}`
+                if (!Kernel.getProcessByLabel(FEED_MANAGER_PROC_LABEL)) {
+                    console.log(`DEBUG Creating process ${FEED_MANAGER_PROC_LABEL}`)
+                    const process = Kernel.scheduler.launchProcess(
+                        Kernel.availableProcessClasses.FeedManager,
+                        FEED_MANAGER_PROC_LABEL,
+                        this.pid,
+                        10
+                    )
+                    process.ownerRoomName = this.roomName
+                    process.targetRoomName = this.roomName
+                }
+            }
+
+            // init tower managers when needed
+            if (this.towers.length > 0) {
+                const unmanagedTowers = this.towers.filter(tower => this.managedTowersLabels.indexOf(tower.id) < 0)
+                unmanagedTowers.forEach(tower => {
+                    const label = `tower_manager_of_tower_${tower.id}_on_room_${this.roomName}`
+                    try {
+                        const process = Kernel.scheduler.launchProcess(
+                            Kernel.availableProcessClasses.TowerManager,
+                            label,
+                            this.pid,
+                            15
+                        )
+                        process.towerId = tower.id
+                        this.towersIdsToProcessLabels[process.towerId] = process.label
+                    }
+                    catch (e) {
+                        console.log(`Failed to launch process ${label} due to: ${e.stack}.`)
+                    }
+                })
+            }
+
+            // init constructor manager when needed
+            if (this.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
+                const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_room_${this.roomName}`
+                if (!Kernel.getProcessByLabel(CONSTRUCTION_MANAGER_PROC_LABEL)) {
+                    console.log(`DEBUG Creating process ${CONSTRUCTION_MANAGER_PROC_LABEL}`)
+                    const process = Kernel.scheduler.launchProcess(
+                        Kernel.availableProcessClasses.ConstructionManager,
+                        CONSTRUCTION_MANAGER_PROC_LABEL,
+                        this.pid,
+                        20
+                    )
+                    process.ownerRoomName = this.roomName
+                    process.targetRoomName = this.roomName
                 }
             }
         }
@@ -251,7 +512,7 @@ module.exports = {
                     console.log(`DEBUG here ${JSON.stringify(hostileCreeps)}`)
                     const res = this.tower.attack(hostileCreeps[0])
 
-                    switch (res){
+                    switch (res) {
                         case OK:
                             break
                         default:
@@ -265,106 +526,4 @@ module.exports = {
             }
         }
     },
-    OwnedRoomManager: class extends BaseProcess {
-        set roomName(roomName) {
-            this.data.roomName = roomName
-        }
-
-        get roomName() {
-            return this.data.roomName
-        }
-
-        get room() {
-            return Game.rooms[this.roomName]
-        }
-
-        get orderBook() {
-            if (!this.data.creepOrderBook) {
-                this.data.creepOrderBook = []
-            }
-            return this.data.creepOrderBook
-        }
-
-        get towersIdsToProcessLabels() {
-            if (!this.data.towersIdsToProcessLabels) {
-                this.data.towersIdsToProcessLabels = {}
-            }
-            return this.data.towersIdsToProcessLabels
-        }
-
-        get towers() {
-            return this.room.find(FIND_MY_STRUCTURES).filter(struct => struct.structureType === STRUCTURE_TOWER)
-        }
-
-        get managedTowersLabels() {
-            return Object.keys(this.towersIdsToProcessLabels)
-        }
-
-        addOrderForCreep(order) {
-            creepSpawner.addOrderForCreepInOrderBook(order, this.orderBook)
-        }
-
-        isOrderForCreepNameInOrderBook(creepName) {
-            return !!this.orderBook.find(order => order.name === creepName)
-        }
-
-        _processNextCreepOrder(spawn) {
-            const order = this.orderBook.sort((a, b) => a.priority - b.priority)[0]
-            if (order) {
-                creepSpawner.executeOrder(order, spawn, this.orderBook)
-            }
-        }
-
-        run() {
-            const room = Game.rooms[this.roomName]
-
-            // spawn
-            const spawns = room.find(FIND_MY_SPAWNS)
-            spawns.forEach(spawn => {
-                try {
-                    this._processNextCreepOrder(spawn)
-                }
-                catch (e) {
-                    console.log(`Failed to spawn creep on room ${this.roomName}'s ${spawn.name} spawn due to: ${e.stack}`)
-                }
-            })
-
-            // init constructor manager when needed
-            if (room.find(FIND_CONSTRUCTION_SITES).length > 0) {
-                const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_room_${this.roomName}`
-                if (!Kernel.getProcessByLabel(CONSTRUCTION_MANAGER_PROC_LABEL)) {
-                    console.log(`DEBUG Creating process ${CONSTRUCTION_MANAGER_PROC_LABEL}`)
-                    const process = Kernel.scheduler.launchProcess(
-                        Kernel.availableProcessClasses.ConstructionManager,
-                        CONSTRUCTION_MANAGER_PROC_LABEL,
-                        this.pid,
-                        10
-                    )
-                    process.ownerRoomName = this.roomName
-                    process.targetRoomName = this.roomName
-                }
-            }
-
-            // init tower managers when needed
-            if (this.towers.length > 0) {
-                const unmanagedTowers = this.towers.filter(tower => this.managedTowersLabels.indexOf(tower.id) < 0)
-                unmanagedTowers.forEach(tower => {
-                    const label = `tower_manager_of_tower_${tower.id}_on_room_${this.roomName}`
-                    try {
-                        const process = Kernel.scheduler.launchProcess(
-                            Kernel.availableProcessClasses.TowerManager,
-                            label,
-                            this.pid,
-                            50
-                        )
-                        process.towerId = tower.id
-                        this.towersIdsToProcessLabels[process.towerId] = process.label
-                    }
-                    catch(e){
-                        console.log(`Failed to launch process ${label} due to: ${e.stack}.`)
-                    }
-                })
-            }
-        }
-    }
 }

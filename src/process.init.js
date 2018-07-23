@@ -27,7 +27,7 @@ module.exports = {
                     Kernel.availableProcessClasses.EmpireManager,
                     EMPIRE_MANAGER_PROCESS_LABEL,
                     this.pid,
-                    2
+                    1
                 )
             }
         }

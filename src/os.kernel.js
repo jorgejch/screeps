@@ -15,19 +15,22 @@ const creeps = require("process.creeps");
 module.exports = class OSKernel {
     constructor() {
         this.scheduler = new OSScheduler()
-        this.processTable = {}
 
-        // init raw process tables
+        // raw processes table is written at the end of the kernel run and read at the beginning
         if (!Memory.rawProcessTable) {
             Memory.rawProcessTable = []
         }
         this.rawProcessTable = Memory.rawProcessTable
 
-        // init processes memory
+        // raw process table is read into
+        this.processTable = {}
+
+        // container of all processes memory
         if (!Memory.processesMemory) {
             Memory.processesMemory = {}
         }
 
+        // for now all used process classes must be registered
         this.availableProcessClasses = {}
         this.availableProcessClasses.EmpireManager = empire.EmpireManager
         this.availableProcessClasses.FlagEventListener = events.FlagEventListener
@@ -38,6 +41,7 @@ module.exports = class OSKernel {
         this.availableProcessClasses.ControllerUpgradeManager = rooms.ControllerUpgradeManager
         this.availableProcessClasses.ConstructionManager = rooms.ConstructionManager
         this.availableProcessClasses.TowerManager = rooms.TowerManager
+        this.availableProcessClasses.FeedManager = rooms.FeedManager
     }
 
     _loadProcessTableFromMemory() {

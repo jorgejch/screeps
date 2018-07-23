@@ -4,14 +4,14 @@ const config = require("config")
 
 module.exports = {
     checkContainerExists: function (room) {
-        return room.find(FIND_MY_STRUCTURES)
+        return room.find(FIND_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_CONTAINER)
             .length > 0
     },
 
     checkStorageExists: function (room) {
-        return room.find(FIND_MY_STRUCTURES)
-            .filter(struct => struct.structureType === STRUCTURE_CONTAINER)
+        return room.find(FIND_STRUCTURES)
+            .filter(struct => struct.structureType === STRUCTURE_STORAGE)
             .length > 0
     },
     determineEnergyObtentionMethod: function (room) {

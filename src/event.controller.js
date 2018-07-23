@@ -1,5 +1,5 @@
 module.exports = {
-    upgradeControllerUnderFlag: function (flag) {
+    upgradeControllerUnderFlagFromOwnRoom: function (flag) {
         const controller = flag.pos.lookFor(LOOK_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_CONTROLLER)[0]
         const visual = new RoomVisual(flag.room.name)

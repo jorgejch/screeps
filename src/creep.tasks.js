@@ -510,13 +510,14 @@ module.exports = {
                     conclusions.performNextTask(creep)
                 }
         },
-        CYCLIC_STORE_TOWER_TO_LOAD: {
-            name: "CYCLIC_STORE_TOWER_TO_LOAD",
+        CYCLIC_FEED_EMPTIER_TOWER: {
+            name: "CYCLIC_FEED_EMPTIER_TOWER",
             taskFunc:
                 (creep) => {
                     const currentTaskTicket = getCurrentTaskTicket(creep)
-                    const room = generalUtils.getRoom(currentTaskTicket.taskParams.roomName)
-                    const struct = room.find(
+                    const amount = currentTaskTicket.taskParams.amount
+                    const room = Game.rooms[currentTaskTicket.taskParams.roomName]
+                    const tower = room.find(
                         FIND_STRUCTURES,
                         {
                             filter: s => {
@@ -524,45 +525,14 @@ module.exports = {
                             }
                         }
                     ).sort((a, b) => a.energy - b.energy)[0]
-                    if (!struct) {
-                        // job done
-                        activities.storeTargetId(creep, null)
-                        if (criterias.creepHasNoStoredTargetId(creep)) {
-                            conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                        }
-                    }
-                    else {
-                        activities.storeTargetId(creep, struct.id)
-                        if (criterias.creepHasStoredTargetId(creep)) {
-                            conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                        }
-                    }
-                }
-        },
-        CYCLIC_TRANSFER_RESOURCE_TO_STORED_TARGET_STRUCTURE: {
-            name: "CYCLIC_TRANSFER_RESOURCE_TO_STORED_TARGET_STRUCTURE",
-            /**
-             *
-             * @param creep Creep performing the task
-             */
-            taskFunc:
-                (creep) => {
-                    const currentTaskTicket = getCurrentTaskTicket(creep)
-                    const resourceType = currentTaskTicket.taskParams.resourceType
-                    const amount = currentTaskTicket.taskParams.amount
-                    const targetId = creep.memory.storedTargetId
-                    let target
-                    if (targetId) {
-                        target = generalUtils.getGameObjectById(targetId)
-                    }
 
-                    if (!target) {
-                        // job done
+                    if (!tower) {
+                        // job done, next.
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
                     else {
-                        activities.transferResourceTypeToTarget(creep, target, resourceType, amount)
-                        if (criterias.targetIsNotEmpty(creep, target, resourceType)) {
+                        activities.transferResourceTypeToTarget(creep, tower, RESOURCE_ENERGY, amount)
+                        if (criterias.targetIsNotEmpty(creep, tower, RESOURCE_ENERGY)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                         }
                     }
@@ -616,17 +586,21 @@ module.exports = {
                             filter: dr => {
                                 /* this https://screeps.com/forum/topic/2211/document-pathfinding/4  hints roads are
                                  * included in the default cost matrix */
-                                const estimatedCostToResource = PathFinder.search(creep.pos, dr.pos).cost // back and forth
-                                // adopting twice the estimated tick cost plus estimated decay as penalty
+                                const estimatedCostToResource = PathFinder.search(creep.pos, dr.pos).cost
+                                // adopting three times the estimated tick cost plus estimated decay as penalty
                                 const ammountWithPenalty = dr.amount - estimatedCostToResource
-                                    * (2 + Math.ceil(dr.amount / 1000))
+                                    * (3 + Math.ceil(dr.amount / 1000))
                                 return ammountWithPenalty > 0
-                                    && creep.ticksToLive > 2 * estimatedCostToResource  // assuming creep balanced amt of M
-                                    // an arbitrary value
-                                    && creep.carryCapacity - _.sum(creep.carry) >= 2 * estimatedCostToResource
+                                    // balanced creep can hopefully pickup the resource and come back
+                                    && creep.ticksToLive > 2 * estimatedCostToResource
+                                    // creep is able to pickup at least 3 times the estimated cost to the resource
+                                    && creep.carryCapacity - _.sum(creep.carry) >= 3 * estimatedCostToResource
                             }
-                        }))
+                        })
+                )
+
                 if (!droppedResource || _.sum(creep.carry) === creep.carryCapacity) {
+                    // done, next.
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
                 }
                 else {

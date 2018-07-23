@@ -2,34 +2,24 @@ module.exports = {
     BASIC_WORKER_1: [MOVE, MOVE, CARRY, CARRY, WORK],                                          // Total: 300
     BASIC_WORKER_2: [MOVE, MOVE, MOVE, CARRY, CARRY, WORK, WORK, WORK],                        // Total: 550
     BASIC_WORKER_3: [                                                                          // Total: 800
-        MOVE, MOVE, MOVE, MOVE,
-        CARRY, CARRY, CARRY, CARRY,
-        WORK, WORK, WORK, WORK,
+        MOVE, MOVE, MOVE, MOVE,                                                                     // 200
+        CARRY, CARRY, CARRY, CARRY,                                                                 // 200
+        WORK, WORK, WORK, WORK                                                                      // 200
     ],
     BASIC_WORKER_4: [                                                                          // Total: 1300
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                                                   //350
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                                            //350
-        WORK, WORK, WORK, WORK, WORK, WORK                                                          //600
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                                                   // 350
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                                            // 350
+        WORK, WORK, WORK, WORK, WORK, WORK                                                          // 600
     ],
     BASIC_WORKER_5: [                                                                          // Total: 1800
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                                       //450
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                              //450
-        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                        //900
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                                       // 450
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                              // 450
+        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                        // 900
     ],
     BASIC_WORKER_6: [                                                                          // Total: 2300
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                     //450
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,         //450
-        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                            //1100
-    ],
-    BASIC_WORKER_7: [                                                                          // Total: 2300
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                     //450
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,         //450
-        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                            //1100
-    ],
-    BASIC_WORKER_8: [                                                                          // Total: 2300
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                     //450
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,         //450
-        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                            //1100
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                     // 600
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,         // 600
+        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                            // 1100
     ],
     COMMUTER_WORKER_1: [MOVE, CARRY, WORK],                                                    // Total: 200
     COMMUTER_WORKER_2: [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, WORK],       // Total: 550
@@ -43,19 +33,26 @@ module.exports = {
         CARRY, CARRY, CARRY, CARRY, CARRY,
         WORK, WORK, WORK, WORK, WORK
     ],
-    LOADER_2: [                                                                                // Total: 500
-        MOVE, MOVE, MOVE, MOVE, MOVE,
-        CARRY, CARRY, CARRY, CARRY, CARRY
+    FREIGHTER_2: [                                                                                // Total: 450
+        MOVE, MOVE, MOVE,                                                                           // 150
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY                                                    // 300
     ],
-    LOADER_3: [                                                                                // Total: 1000
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
-    ],
-    LOADER_4: [                                                                                // Total: 1700
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+    FREIGHTER_3: [                                                                                // Total: 1300
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                                       // 450
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                       // 850
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
+    ],
+    FREIGHTER_4: [                                                                                // Total: 1800
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                      // 600
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,          // 1200
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
+    ],
+    FREIGHTER_5: [                                                                                // Total: 2300
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,          // 800
+        MOVE, MOVE,
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,          // 1500
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
     ],
     STATIONARY_WORKER_3: [                                                                     // Total: 700
         MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,

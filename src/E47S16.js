@@ -35,7 +35,7 @@ class E47S16 extends BaseRoomConfig {
             //// Storage Loader
             this.addCreepRoleQuantityInRoomRule(
                 "STORAGE_LOADER",
-                "LOADER_4",
+                "FREIGHTER_4",
                 1,
                 {
                     taskTicketQueue: [
@@ -57,7 +57,7 @@ class E47S16 extends BaseRoomConfig {
             //// Leech Loader
             this.addCreepRoleQuantityInRoomRule(
                 "SPAWN_AND_EXTENSION_LOADER",
-                "LOADER_3",
+                "FREIGHTER_3",
                 2,
                 {
                     taskTicketQueue: [
@@ -80,7 +80,7 @@ class E47S16 extends BaseRoomConfig {
                             {roomName: this.room.name}
                         ),
                         new TaskTicket(
-                            tasks.CYCLIC_TRANSFER_RESOURCE_TO_STORED_TARGET_STRUCTURE.name,
+                            tasks.CYCLIC_FEED_EMPTIER_TOWER.name,
                             {resourceType: RESOURCE_ENERGY, amount: null}
                         ),
                     ]
