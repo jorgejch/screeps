@@ -24,8 +24,8 @@ class E47S16 extends BaseRoomConfig {
                                     tasks.ALLOCATE_SPECIFIC_TARGET_CONTAINER_IN_ROOM.name,
                                     {containerId: container.id}
                                 ),
-                                new TaskTicket(tasks.GOTO_ASSIGNED_TARGET_CONTAINER.name, {}),
-                                new TaskTicket(tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_PLACE.name, {}),
+                                new TaskTicket(tasks.GO_TO_HARVESTING_POSITION.name, {}),
+                                new TaskTicket(tasks.HARVEST_CLOSEST_SOURCE_IN_PLACE.name, {}),
                             ]
                         },
                         1

@@ -93,16 +93,17 @@ module.exports = {
                 }
             }
         },
-        CYCLIC_HARVEST_CLOSEST_SOURCE_IN_PLACE: {
-            name: "CYCLIC_HARVEST_CLOSEST_SOURCE_IN_PLACE",
+        HARVEST_SOURCE: {
+            name: "HARVEST_SOURCE",
             /**
              * @param creep Creep performing the task
              */
             taskFunc: (creep) => {
-                const source = creep.pos.findClosestByRange(FIND_SOURCES)
+                const currentTaskTicket = getCurrentTaskTicket(creep)
+                const source = Game.getObjectById(currentTaskTicket.taskParams.sourceId)
 
                 if (!source) {
-                    throw(`Creep ${creep.name} can't find source for in place harvest.`)
+                    throw(`Invalid source id ${currentTaskTicket.taskParams.sourceId}`)
                 }
                 activities.harvestEnergyFromSource(creep, source)
             }
@@ -538,19 +539,24 @@ module.exports = {
                     }
                 }
         },
-        GOTO_ASSIGNED_TARGET_CONTAINER: {
-            name: "GOTO_ASSIGNED_TARGET_CONTAINER",
+        GO_TO_HARVESTING_POSITION: {
+            name: "GO_TO_HARVESTING_POSITION",
             taskFunc: (creep) => {
-                const container = generalUtils.getGameObjectById(creep.memory.assignedTargetContainerId)
+                const currentTaskTicket = getCurrentTaskTicket(creep)
+                const source = Game.getObjectById(currentTaskTicket.taskParams.sourceId)
 
-                // rally if no target
-                if (!container) {
-                    console.log(`Unable to acquire target container for creep ${creep.name} `
-                        + `to go to. Got ${JSON.stringify(container)}. `)
-                }
-                else {
+                const container = source.pos.findInRange(FIND_STRUCTURES, 1)
+                    .filter(struct => struct.structureType === STRUCTURE_CONTAINER)[0]
+
+                if (container) {
                     activities.goToTarget(creep, container)
                     if (criterias.creepIsOnTarget(creep, container)) {
+                        conclusions.performNextTask(creep)
+                    }
+                }
+                else {
+                    activities.goToTarget(creep, source)
+                    if (criterias.creepIsAtTarget(creep, source, 1)) {
                         conclusions.performNextTask(creep)
                     }
                 }

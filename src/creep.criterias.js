@@ -18,6 +18,9 @@ module.exports = {
     creepIsOnTarget: function (creep, target) {
         return creep.pos.isEqualTo(target.pos)
     },
+    creepIsAtTarget: function (creep, target, range){
+        return creep.pos.getRangeTo(target) === range
+    },
     creepHasUnclaimedTargetContainerAssigned: function (creep) {
         if (!creep.memory.assignedTargetContainerId) {
             return false

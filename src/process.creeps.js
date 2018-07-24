@@ -69,11 +69,6 @@ module.exports = {
             taskFunc(this.creep)
         }
 
-        die() {
-            super.die()
-            delete Memory.creeps[this.creepName]
-        }
-
         run() {
             if (this.creep) {
                 try {
@@ -82,7 +77,8 @@ module.exports = {
                 catch (e) {
                     console.log(`Failed to execute current task for creep ${this.creepName} due to: ${e.stack}`)
                 }
-            } else {
+            }
+            else {
                 const ownerManagerLabel = `${this.ownerRoomName}_manager`
                 const ownerManager = Kernel.getProcessByLabel(ownerManagerLabel)
 

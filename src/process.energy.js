@@ -3,6 +3,7 @@ const processStates = require("os.processState")
 const creeps = require("process.creeps")
 const tasks = require("creep.tasks")
 const energyCapacityLevels = require("util.energyCapacityLevels")
+const processUtils = require("util.process")
 
 module.exports = {
     SourceHarvestManager: class extends BaseProcess {
@@ -14,7 +15,7 @@ module.exports = {
             return this.data.ownerRoomName
         }
 
-        get ownerRoom(){
+        get ownerRoom() {
             return Game.rooms[this.ownerRoomName]
         }
 
@@ -40,6 +41,7 @@ module.exports = {
             }
             return this.data.harvestersProcLabels
         }
+
         get harvesterCounter() {
             if (!this.data.harvesterCounter) {
                 this.data.harvesterCounter = 0
@@ -47,8 +49,20 @@ module.exports = {
             return this.data.harvesterCounter
         }
 
+
         incrementHarvesterCounter() {
             this.data.harvesterCounter += 1
+        }
+
+        get lastLevel(){
+            if (!this.data.lastLevel){
+                this.data.lastLevel = 0
+            }
+            return this.data.lastLevel
+        }
+
+        set lastLevel(level){
+            this.data.lastLevel = level
         }
 
         isLocal() {
@@ -65,42 +79,90 @@ module.exports = {
                 const emergency = this.ownerRoom.find(FIND_MY_CREEPS).length === 0
                     && this.ownerRoom.energyAvailable < this.ownerRoom.energyCapacityAvailable
 
-                if (emergency || this.ownerRoom.energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
-                    // filter out dead processes
-                    this.harvestersProcLabels = this.harvestersProcLabels
-                        .filter(label => Kernel.getProcessByLabel(label))
+                // filter out dead processes
+                this.harvestersProcLabels = this.harvestersProcLabels
+                    .filter(label => Kernel.getProcessByLabel(label))
+
+                const roomEnergyCapacity = this.ownerRoom.energyCapacity
+                let reqNumOfCreeps, bodyType, priority, initialTaskTicketQueue, currentLevel
 
 
+                if (emergency || roomEnergyCapacity < energyCapacityLevels.LEVEL_2) {
+                    currentLevel = 1  // to track when level goes up
                     // there should be 3 basic workers harvesting at this level
-                    while (this.harvestersProcLabels.length < 3) {
-                        const label = `harvester_creep_manager_${this.harvesterCounter}_of_${this.source.room.name}`
-                            +`_from_${this.ownerRoomName}`
+                    reqNumOfCreeps = 3
+                    bodyType = "BASIC_WORKER_1"
+                    priority = 0
+                    initialTaskTicketQueue = [
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_HARVEST_SOURCE.name, {sourceId: this.sourceId}
+                        ),
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
+                            {roomName: this.ownerRoomName}
+                        )]
+                }
+                else if (roomEnergyCapacity < energyCapacityLevels.LEVEL_3) {
+                    currentLevel = 2
 
-                        try {
-                            const process = Kernel.scheduler.launchProcess(
-                                Kernel.availableProcessClasses.CreepManager,
-                                label,
-                                this.pid
-                            )
-                            process.creepName = `BasicHarvester${this.harvesterCounter}Of${this.source.room.name}` + ``
-                            process.creepType = "BASIC_WORKER_1"
-                            process.ownerRoomName = this.ownerRoomName
-                            process.spawningPriority = 0
-                            process.initialTaskTicketQueue = [
-                                new tasks.TaskTicket(
-                                    tasks.tasks.CYCLIC_HARVEST_SOURCE.name, {sourceId: this.sourceId}
-                                ),
-                                new tasks.TaskTicket(
-                                    tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
-                                    {roomName: this.ownerRoomName}
-                                )
-                            ]
-                            this.incrementHarvesterCounter()
-                            this.harvestersProcLabels.push(process.label)
-                        }
-                        catch (e) {
-                            console.log(`Failed to lunch harvester process due to: ${e.stack}`)
-                        }
+                    if (this.lastLevel < currentLevel){
+                        // no old harvester shall be made, a new age has arrived
+                        this.harvestersProcLabels.forEach(proc => proc.die())
+                    }
+
+                    reqNumOfCreeps = 1
+                    bodyType = "STATIONARY_WORKER_2"
+                    priority = 1
+                    initialTaskTicketQueue = [
+                        new tasks.TaskTicket(
+                            tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
+                        ),
+                        new tasks.TaskTicket(
+                            tasks.tasks.HARVEST_SOURCE.name, {sourceId: this.sourceId}
+                        ),
+                    ]
+                }
+                else  {
+                    currentLevel = 3
+
+                    if (this.lastLevel < currentLevel){
+                        // no old harvester shall be made, a new age has arrived
+                        this.harvestersProcLabels.forEach(proc => proc.die())
+                    }
+                    reqNumOfCreeps = 1
+                    bodyType = "STATIONARY_WORKER_3"
+                    priority = 1
+                    initialTaskTicketQueue = [
+                        new tasks.TaskTicket(
+                            tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
+                        ),
+                        new tasks.TaskTicket(
+                            tasks.tasks.HARVEST_SOURCE.name, {sourceId: this.sourceId}
+                        ),
+                    ]
+                }
+
+                while (this.harvestersProcLabels.length < reqNumOfCreeps) {
+                    const label = `harvester_creep_manager_${this.harvesterCounter}_of_${this.source.room.name}`
+                        + `_from_${this.ownerRoomName}`
+                    try {
+                        const process = Kernel.scheduler.launchProcess(
+                            Kernel.availableProcessClasses.CreepManager,
+                            label,
+                            this.pid
+                        )
+                        process.creepName = `Harvester${this.harvesterCounter}Of${this.source.room.name}`
+                            + `From${this.ownerRoomName}`
+                        process.creepType = bodyType
+                        process.ownerRoomName = this.ownerRoomName
+                        process.spawningPriority = priority
+                        process.initialTaskTicketQueue = initialTaskTicketQueue
+                        this.incrementHarvesterCounter()
+                        this.harvestersProcLabels.push(process.label)
+                        this.lastLevel = currentLevel
+                    }
+                    catch (e) {
+                        console.log(`Failed to lunch harvester process due to: ${e.stack}`)
                     }
                 }
             }
