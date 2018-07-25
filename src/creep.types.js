@@ -33,21 +33,25 @@ module.exports = {
         CARRY, CARRY, CARRY, CARRY, CARRY,
         WORK, WORK, WORK, WORK, WORK
     ],
-    FREIGHTER_2: [                                                                                  // Total: 450
-        MOVE, MOVE, MOVE,                                                                               // 150
-        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY                                                        // 300
+    FREIGHTER_2: [                                                                                  // Total: 550
+        MOVE, MOVE, MOVE, MOVE,                                                                         // 200
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                                                // 350
     ],
-    FREIGHTER_3: [                                                                                  // Total: 1300
+    FREIGHTER_3: [                                                                                  // Total: 750
+        MOVE, MOVE, MOVE, MOVE, MOVE,                                                                   // 250
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY                            // 500
+    ],
+    FREIGHTER_4: [                                                                                  // Total: 1300
         MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                                           // 450
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                           // 850
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
     ],
-    FREIGHTER_4: [                                                                                  // Total: 1800
+    FREIGHTER_5: [                                                                                  // Total: 1800
         MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,                         // 600
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,             // 1200
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
     ],
-    FREIGHTER_5: [                                                                                  // Total: 2300
+    FREIGHTER_6: [                                                                                  // Total: 2300
         MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,             // 800
         MOVE, MOVE,
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,             // 1500
@@ -61,8 +65,8 @@ module.exports = {
         MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,
     ],
     STATIONARY_WORKER_4: [                                                                          // Total: 1300
-        MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,
-        WORK, WORK, WORK, WORK, WORK, WORK
+        MOVE, MOVE, MOVE, MOVE,                                                                         // 200
+        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                // 1100
     ],
     FARREACH_STATIONARY_WORKER_3: [                                                                 // Total: 1000
         MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK

@@ -49,9 +49,30 @@ module.exports = {
             return this.data.harvesterCounter
         }
 
-
         incrementHarvesterCounter() {
             this.data.harvesterCounter += 1
+        }
+
+        set freightersProcLabels(labelArray) {
+            this.data.freightersProcLabels = labelArray
+        }
+
+        get freightersProcLabels() {
+            if (!this.data.freightersProcLabels) {
+                this.data.freightersProcLabels = []
+            }
+            return this.data.freightersProcLabels
+        }
+
+        get freighterCounter() {
+            if (!this.data.freighterCounter) {
+                this.data.freighterCounter = 0
+            }
+            return this.data.freighterCounter
+        }
+
+        incrementFreighterCounter() {
+            this.data.freighterCounter += 1
         }
 
         get lastLevel(){
@@ -83,17 +104,26 @@ module.exports = {
                 this.harvestersProcLabels = this.harvestersProcLabels
                     .filter(label => Kernel.getProcessByLabel(label))
 
-                const roomEnergyCapacity = this.ownerRoom.energyCapacity
-                let reqNumOfCreeps, bodyType, priority, initialTaskTicketQueue, currentLevel
-
+                const roomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
+                let currentLevel,
+                    reqNumOfHarvesters,
+                    harvesterBodyType,
+                    harvesterPriority,
+                    reqNumOfFreighters,
+                    harvesterInitialTaskTicketQueue,
+                    freighterBodyType,
+                    freighterPriority,
+                    freighterInitialTaskTicketQueue
 
                 if (emergency || roomEnergyCapacity < energyCapacityLevels.LEVEL_2) {
                     currentLevel = 1  // to track when level goes up
+                    // basic harvesters feed
+                    reqNumOfFreighters = 0
                     // there should be 3 basic workers harvesting at this level
-                    reqNumOfCreeps = 3
-                    bodyType = "BASIC_WORKER_1"
-                    priority = 0
-                    initialTaskTicketQueue = [
+                    reqNumOfHarvesters =3
+                    harvesterBodyType = "BASIC_WORKER_1"
+                    harvesterPriority = 0
+                    harvesterInitialTaskTicketQueue = [
                         new tasks.TaskTicket(
                             tasks.tasks.CYCLIC_HARVEST_SOURCE.name, {sourceId: this.sourceId}
                         ),
@@ -104,16 +134,21 @@ module.exports = {
                 }
                 else if (roomEnergyCapacity < energyCapacityLevels.LEVEL_3) {
                     currentLevel = 2
+                    // at this level creeps source from the resource pile or container
+                    reqNumOfFreighters = 0
 
                     if (this.lastLevel < currentLevel){
+                        console.log(`Next harvester order placed by ${this.label} will be at new level ${currentLevel}.`)
                         // no old harvester shall be made, a new age has arrived
-                        this.harvestersProcLabels.forEach(proc => proc.die())
+                        this.harvestersProcLabels.forEach(
+                            procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
+                        )
                     }
 
-                    reqNumOfCreeps = 1
-                    bodyType = "STATIONARY_WORKER_2"
-                    priority = 1
-                    initialTaskTicketQueue = [
+                    reqNumOfHarvesters = 1
+                    harvesterBodyType = "STATIONARY_WORKER_2"
+                    harvesterPriority = 1
+                    harvesterInitialTaskTicketQueue = [
                         new tasks.TaskTicket(
                             tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
                         ),
@@ -126,13 +161,27 @@ module.exports = {
                     currentLevel = 3
 
                     if (this.lastLevel < currentLevel){
+                        console.log(`Next harvester order for ${this.label} will be at new level ${currentLevel}.`)
                         // no old harvester shall be made, a new age has arrived
-                        this.harvestersProcLabels.forEach(proc => proc.die())
+                        this.harvestersProcLabels.forEach(
+                            procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
+                        )
                     }
-                    reqNumOfCreeps = 1
-                    bodyType = "STATIONARY_WORKER_3"
-                    priority = 1
-                    initialTaskTicketQueue = [
+                    reqNumOfFreighters = 1
+                    freighterBodyType = "FREIGHTER_3"
+                    freighterPriority = 0
+                    freighterInitialTaskTicketQueue = [
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_L.name, {sourceId: this.sourceId}
+                        ),
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
+                            {roomName: this.ownerRoomName}
+                        )]
+                    reqNumOfHarvesters = 1
+                    harvesterBodyType = "STATIONARY_WORKER_3"
+                    harvesterPriority = 1
+                    harvesterInitialTaskTicketQueue = [
                         new tasks.TaskTicket(
                             tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
                         ),
@@ -142,8 +191,8 @@ module.exports = {
                     ]
                 }
 
-                while (this.harvestersProcLabels.length < reqNumOfCreeps) {
-                    const label = `harvester_creep_manager_${this.harvesterCounter}_of_${this.source.room.name}`
+                while (this.harvestersProcLabels.length < reqNumOfHarvesters) {
+                    const label = `harvester_creep_manager_${this.harvesterCounter}_of_${this.sourceId}`
                         + `_from_${this.ownerRoomName}`
                     try {
                         const process = Kernel.scheduler.launchProcess(
@@ -151,12 +200,12 @@ module.exports = {
                             label,
                             this.pid
                         )
-                        process.creepName = `Harvester${this.harvesterCounter}Of${this.source.room.name}`
+                        process.creepName = `Harvester${this.harvesterCounter}Of${this.sourceId}`
                             + `From${this.ownerRoomName}`
-                        process.creepType = bodyType
+                        process.creepType = harvesterBodyType
                         process.ownerRoomName = this.ownerRoomName
-                        process.spawningPriority = priority
-                        process.initialTaskTicketQueue = initialTaskTicketQueue
+                        process.spawningPriority = harvesterPriority
+                        process.initialTaskTicketQueue = harvesterInitialTaskTicketQueue
                         this.incrementHarvesterCounter()
                         this.harvestersProcLabels.push(process.label)
                         this.lastLevel = currentLevel
@@ -166,7 +215,6 @@ module.exports = {
                     }
                 }
             }
-            this.state = processStates.WAIT
         }
     }
 }

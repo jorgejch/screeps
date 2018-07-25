@@ -69,16 +69,40 @@ module.exports = {
             taskFunc(this.creep)
         }
 
+        dieAfterCreep() {
+            this.data.dieAfterCreep = true
+        }
+
+        isDieAfterCreep(){
+            return this.data.dieAfterCreep
+        }
+
+        set creepBorn(bl){
+            this.data.creepBorn = bl
+        }
+
+        isCreepBorn(){
+            return this.data.creepBorn
+        }
+
         run() {
             if (this.creep) {
-                try {
-                    this.executeCurrentTask()
-                }
-                catch (e) {
-                    console.log(`Failed to execute current task for creep ${this.creepName} due to: ${e.stack}`)
+                if (!this.creep.spawning){
+                    this.creepBorn = true
+
+                    try {
+                        this.executeCurrentTask()
+                    }
+                    catch (e) {
+                        console.log(`Failed to execute current task for creep ${this.creepName} due to: ${e.stack}`)
+                    }
                 }
             }
+            else if(this.isDieAfterCreep() && this.isCreepBorn()){
+                this.die()
+            }
             else {
+                this.creepBorn = false
                 const ownerManagerLabel = `${this.ownerRoomName}_manager`
                 const ownerManager = Kernel.getProcessByLabel(ownerManagerLabel)
 
@@ -97,7 +121,6 @@ module.exports = {
                     )
                 }
             }
-            this.state = processStates.WAIT
         }
     }
 }

@@ -395,7 +395,7 @@ module.exports = {
 
             // init feed manager when needed
             if (processUtils.checkContainerExists(this.room)) {
-                const FEED_MANAGER_PROC_LABEL = `feed_manager_of_room_${this.roomName}`
+                const FEED_MANAGER_PROC_LABEL = `feed_manager_of_room_${this.roomName}_${Game.time}`
                 if (!Kernel.getProcessByLabel(FEED_MANAGER_PROC_LABEL)) {
                     console.log(`DEBUG Creating process ${FEED_MANAGER_PROC_LABEL}`)
                     const process = Kernel.scheduler.launchProcess(
@@ -413,7 +413,7 @@ module.exports = {
             if (this.towers.length > 0) {
                 const unmanagedTowers = this.towers.filter(tower => this.managedTowersLabels.indexOf(tower.id) < 0)
                 unmanagedTowers.forEach(tower => {
-                    const label = `tower_manager_of_tower_${tower.id}_on_room_${this.roomName}`
+                    const label = `tower_manager_of_${tower.id}_from_${this.roomName}`
                     try {
                         const process = Kernel.scheduler.launchProcess(
                             Kernel.availableProcessClasses.TowerManager,
@@ -432,7 +432,7 @@ module.exports = {
 
             // init constructor manager when needed
             if (this.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
-                const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_room_${this.roomName}`
+                const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_${this.roomName}_${Game.time}`
                 if (!Kernel.getProcessByLabel(CONSTRUCTION_MANAGER_PROC_LABEL)) {
                     console.log(`DEBUG Creating process ${CONSTRUCTION_MANAGER_PROC_LABEL}`)
                     const process = Kernel.scheduler.launchProcess(
@@ -509,7 +509,6 @@ module.exports = {
                 }
                 // attack second
                 else if (hostileCreeps.length > 0) {
-                    console.log(`DEBUG here ${JSON.stringify(hostileCreeps)}`)
                     const res = this.tower.attack(hostileCreeps[0])
 
                     switch (res) {
