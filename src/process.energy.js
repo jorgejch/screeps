@@ -134,8 +134,6 @@ module.exports = {
                 }
                 else if (roomEnergyCapacity < energyCapacityLevels.LEVEL_3) {
                     currentLevel = 2
-                    // at this level creeps source from the resource pile or container
-                    reqNumOfFreighters = 0
 
                     if (this.lastLevel < currentLevel){
                         console.log(`Next harvester order placed by ${this.label} will be at new level ${currentLevel}.`)
@@ -144,6 +142,9 @@ module.exports = {
                             procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
                         )
                     }
+
+                    // at this level creeps source from the resource pile or container
+                    reqNumOfFreighters = 0
 
                     reqNumOfHarvesters = 1
                     harvesterBodyType = "STATIONARY_WORKER_2"
