@@ -108,6 +108,25 @@ module.exports = {
                 activities.harvestEnergyFromSource(creep, source)
             }
         },
+        CYCLIC_LEECH_FROM_SOURCE_CONTAINER: {
+            name: "CYCLIC_LEECH_FROM_SOURCE_CONTAINER",
+            taskFunc: (creep) => {
+                const currentTaskTicket = getCurrentTaskTicket(creep)
+                const sourceId = currentTaskTicket.taskParams.sourceId
+                const source = Game.getObjectById(sourceId)
+                const container = source.pos.findInRange(FIND_STRUCTURES, 1)
+                    .filter(struct => struct.structureType === STRUCTURE_CONTAINER)[0]
+
+                if (!container) {
+                    throw `No container for creep ${creep.name} close to source id $ or invalid source id ${sourceId}.`
+                }
+
+                activities.harvestEnergyFromSource(creep, source)
+                if (criterias.creepIsFull(creep)) {
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                }
+            }
+        },
         CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM: {
             name: "CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM",
             taskFunc: (creep) => {
@@ -585,25 +604,25 @@ module.exports = {
                 const taskTicket = getCurrentTaskTicket(creep)
                 const room = generalUtils.getRoom(creep.pos.roomName)
 
-                const droppedResource = creep.pos.findClosestByPath(
-                    room.find(
-                        FIND_DROPPED_RESOURCES,
-                        {
-                            filter: dr => {
-                                /* this https://screeps.com/forum/topic/2211/document-pathfinding/4  hints roads are
-                                 * included in the default cost matrix */
-                                const estimatedCostToResource = PathFinder.search(creep.pos, dr.pos).cost
-                                // adopting three times the estimated tick cost plus estimated decay as penalty
-                                const ammountWithPenalty = dr.amount - estimatedCostToResource
-                                    * (3 + Math.ceil(dr.amount / 1000))
-                                return ammountWithPenalty > 0
-                                    // balanced creep can hopefully pickup the resource and come back
-                                    && creep.ticksToLive > 2 * estimatedCostToResource
-                                    // creep is able to pickup at least 3 times the estimated cost to the resource
-                                    && creep.carryCapacity - _.sum(creep.carry) >= 3 * estimatedCostToResource
-                            }
-                        })
-                )
+                const droppedResource = room.find(FIND_DROPPED_RESOURCES)
+                // only collect worthwhile resources
+                    .filter(dr => {
+                            /* this https://screeps.com/forum/topic/2211/document-pathfinding/4  hints roads are
+                             * included in the default cost matrix */
+                            const estimatedCostToResource = PathFinder.search(creep.pos, dr.pos).cost
+                            // adopting three times the estimated tick cost plus estimated decay as penalty
+                            const ammountWithPenalty = dr.amount - estimatedCostToResource
+                                * (3 + Math.ceil(dr.amount / 1000))
+                            return ammountWithPenalty > 0
+                                // balanced creep can hopefully pickup the resource and come back
+                                && creep.ticksToLive > 2 * estimatedCostToResource
+                                // creep is able to pickup at least 3 times the estimated cost to the resource
+                                && creep.carryCapacity - _.sum(creep.carry) >= 3 * estimatedCostToResource
+                        }
+                    )
+                    // we go for the bigger first but distance weights in.
+                    .sort((a, b) => (b.amount - 10 * creep.pos.getRangeTo(b)
+                        - (a.amount - 10 * creep.pos.getRangeTo(a))))[0]
 
                 if (!droppedResource || _.sum(creep.carry) === creep.carryCapacity) {
                     // done, next.

@@ -147,7 +147,7 @@ module.exports = {
 
                     reqNumOfHarvesters = 1
                     harvesterBodyType = "STATIONARY_WORKER_2"
-                    harvesterPriority = 1
+                    harvesterPriority = 2
                     harvesterInitialTaskTicketQueue = [
                         new tasks.TaskTicket(
                             tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
@@ -169,18 +169,21 @@ module.exports = {
                     }
                     reqNumOfFreighters = 1
                     freighterBodyType = "FREIGHTER_3"
-                    freighterPriority = 0
+                    freighterPriority = 3
                     freighterInitialTaskTicketQueue = [
                         new tasks.TaskTicket(
-                            tasks.tasks.CYCLIC_L.name, {sourceId: this.sourceId}
+                            tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE.name, {}
                         ),
                         new tasks.TaskTicket(
-                            tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
-                            {roomName: this.ownerRoomName}
+                            tasks.tasks.CYCLIC_LEECH_FROM_SOURCE_CONTAINER.name, {sourceId: this.sourceId}
+                        ),
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_TRANSFER_ALL_RESOURCES_TO_ROOM_STORAGE.name,
+                            {roomName: this.room.name}
                         )]
                     reqNumOfHarvesters = 1
                     harvesterBodyType = "STATIONARY_WORKER_3"
-                    harvesterPriority = 1
+                    harvesterPriority = 2
                     harvesterInitialTaskTicketQueue = [
                         new tasks.TaskTicket(
                             tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
@@ -208,6 +211,30 @@ module.exports = {
                         process.initialTaskTicketQueue = harvesterInitialTaskTicketQueue
                         this.incrementHarvesterCounter()
                         this.harvestersProcLabels.push(process.label)
+                        this.lastLevel = currentLevel
+                    }
+                    catch (e) {
+                        console.log(`Failed to lunch harvester process due to: ${e.stack}`)
+                    }
+                }
+
+                while (this.freightersProcLabels.length < reqNumOfFreighters) {
+                    const label = `freighter_creep_manager_${this.freighterCounter}_of_${this.sourceId}`
+                        + `_from_${this.ownerRoomName}`
+                    try {
+                        const process = Kernel.scheduler.launchProcess(
+                            Kernel.availableProcessClasses.CreepManager,
+                            label,
+                            this.pid
+                        )
+                        process.creepName = `Freighter${this.freighterCounter}Of${this.sourceId}`
+                            + `From${this.ownerRoomName}`
+                        process.creepType = freighterBodyType
+                        process.ownerRoomName = this.ownerRoomName
+                        process.spawningPriority = freighterPriority
+                        process.initialTaskTicketQueue = freighterInitialTaskTicketQueue
+                        this.incrementFreighterCounter()
+                        this.freightersProcLabels.push(process.label)
                         this.lastLevel = currentLevel
                     }
                     catch (e) {
