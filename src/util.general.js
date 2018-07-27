@@ -7,26 +7,22 @@ module.exports = {
             }
         }
     },
-
+    capitalize: function (word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    },
     getGameObjectById: function (id) {
         return Game.getObjectById(id)
     },
-
-
     getRoom: function (roomName) {
         return Game.rooms[roomName]
     },
-
     getRandomArrayElement: function (array) {
         const size = array.length
         return array[Math.floor(Math.random() * size)]
     },
-
-
     getRoomFlag: function (roomName) {
         return Game.flags[`${roomName}_RALLY`]
     },
-
     getClosestUnassignedContainerInRoom: function (creep, roomName, key) {
         const room = this.getRoom(roomName)
         return creep.pos.findClosestByRange(

@@ -7,18 +7,6 @@ const config = require("config")
 
 module.exports = {
     ConstructionManager: class extends BaseProcess {
-        set ownerRoomName(name) {
-            this.data.ownerRoomName = name
-        }
-
-        get ownerRoomName() {
-            return this.data.ownerRoomName
-        }
-
-        get ownerRoom() {
-            return Game.rooms[this.ownerRoomName]
-        }
-
         set targetRoomName(name) {
             this.data.targetRoomName = name
         }

@@ -4,21 +4,10 @@ const creeps = require("process.creeps")
 const tasks = require("creep.tasks")
 const energyCapacityLevels = require("util.energyCapacityLevels")
 const processUtils = require("util.process")
+const mixins = require("process.mixins")
 
 module.exports = {
-    SourceHarvestManager: class extends BaseProcess {
-        set ownerRoomName(name) {
-            this.data.ownerRoomName = name
-        }
-
-        get ownerRoomName() {
-            return this.data.ownerRoomName
-        }
-
-        get ownerRoom() {
-            return Game.rooms[this.ownerRoomName]
-        }
-
+    SourceHarvestManager: class extends mixins.ActivityDirector(BaseProcess) {
         set sourceId(sourceId) {
             this.data.sourceId = sourceId
         }
@@ -29,61 +18,6 @@ module.exports = {
 
         get source() {
             return Game.getObjectById(this.sourceId)
-        }
-
-        set harvestersProcLabels(labelArray) {
-            this.data.harvestersProcLabels = labelArray
-        }
-
-        get harvestersProcLabels() {
-            if (!this.data.harvestersProcLabels) {
-                this.data.harvestersProcLabels = []
-            }
-            return this.data.harvestersProcLabels
-        }
-
-        get harvesterCounter() {
-            if (!this.data.harvesterCounter) {
-                this.data.harvesterCounter = 0
-            }
-            return this.data.harvesterCounter
-        }
-
-        incrementHarvesterCounter() {
-            this.data.harvesterCounter += 1
-        }
-
-        set freightersProcLabels(labelArray) {
-            this.data.freightersProcLabels = labelArray
-        }
-
-        get freightersProcLabels() {
-            if (!this.data.freightersProcLabels) {
-                this.data.freightersProcLabels = []
-            }
-            return this.data.freightersProcLabels
-        }
-
-        get freighterCounter() {
-            if (!this.data.freighterCounter) {
-                this.data.freighterCounter = 0
-            }
-            return this.data.freighterCounter
-        }
-
-        incrementFreighterCounter() {
-            this.data.freighterCounter += 1
-        }
-
-        get lastLevel(){
-            if (!this.data.lastLevel){
-                this.data.lastLevel = 0
-            }
-            return this.data.lastLevel
-        }
-
-        set lastLevel(level){
-            this.data.lastLevel = level
         }
 
         isLocal() {
@@ -134,17 +68,10 @@ module.exports = {
                 }
                 else if (roomEnergyCapacity < energyCapacityLevels.LEVEL_3) {
                     currentLevel = 2
+                    this.resolveLevelForRole("freighter", currentLevel)
+                    this.resolveLevelForRole("harvester", currentLevel)
                     // at this level creeps source from the resource pile or container
                     reqNumOfFreighters = 0
-
-                    if (this.lastLevel < currentLevel){
-                        console.log(`Next harvester order placed by ${this.label} will be at new level ${currentLevel}.`)
-                        // no old harvester shall be made, a new age has arrived
-                        this.harvestersProcLabels.forEach(
-                            procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
-                        )
-                    }
-
                     reqNumOfHarvesters = 1
                     harvesterBodyType = "STATIONARY_WORKER_2"
                     harvesterPriority = 2
@@ -160,13 +87,8 @@ module.exports = {
                 else  {
                     currentLevel = 3
 
-                    if (this.lastLevel < currentLevel){
-                        console.log(`Next harvester order for ${this.label} will be at new level ${currentLevel}.`)
-                        // no old harvester shall be made, a new age has arrived
-                        this.harvestersProcLabels.forEach(
-                            procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
-                        )
-                    }
+                    this.resolveLevelForRole("freighter", currentLevel)
+                    this.resolveLevelForRole("harvester", currentLevel)
                     reqNumOfFreighters = 1
                     freighterBodyType = "FREIGHTER_3"
                     freighterPriority = 3
