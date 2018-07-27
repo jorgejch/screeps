@@ -33,6 +33,28 @@ module.exports = {
             this.data.constructorCounter += 1
         }
 
+        get lastLevel(){
+            if (!this.data.lastLevel){
+                this.data.lastLevel = 0
+            }
+            return this.data.lastLevel
+        }
+
+        set lastLevel(level){
+            this.data.lastLevel = level
+        }
+
+        resolveLevel(currentLevel){
+            if (this.lastLevel < currentLevel){
+                console.log(`Next construction order placed by ${this.label} `
+                    + `will be at new level ${currentLevel}.`)
+                // no old creep shall be made, a new age has arrived
+                this.childLabels.forEach(
+                    procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
+                )
+            }
+        }
+
         run() {
             const targetRoomConstructionSites = Object.values(Game.constructionSites)
                 .filter(cs => cs.room.name === this.targetRoomName)
@@ -50,23 +72,23 @@ module.exports = {
                     numOfBuilders = targetRoomConstructionSites.length > 3 ? 3 : 1
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
+                    this.resolveLevel(2)
                     bodyType = "BASIC_WORKER_2"
                     numOfBuilders = targetRoomConstructionSites.length > 3 ? 3 : 1
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
+                    this.resolveLevel(3)
                     bodyType = "BASIC_WORKER_3"
-                    numOfBuilders = targetRoomConstructionSites.length > 3 ? 3 : 1
+                    numOfBuilders = targetRoomConstructionSites.length > 3 ? 2 : 1
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
+                    this.resolveLevel(4)
                     bodyType = "BASIC_WORKER_4"
                     numOfBuilders = 1
                 }
-                else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_6) {
-                    bodyType = "BASIC_WORKER_5"
-                    numOfBuilders = 1
-                }
                 else {
-                    bodyType = "BASIC_WORKER_6"
+                    this.resolveLevel(5)
+                    bodyType = "BASIC_WORKER_5"
                     numOfBuilders = 1
                 }
 
@@ -94,6 +116,7 @@ module.exports = {
                         ]
                         this.childLabels.push(process.label)
                         this.incrementConstructorCounter()
+
                     }
                     catch (e) {
                         console.log(`Failed to launch process for upgrader due to: ${e.stack}`)
