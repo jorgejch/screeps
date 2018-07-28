@@ -14,7 +14,7 @@ module.exports = {
         }
 
     },
-    ActivityDirector: Base => class extends this.LevelTransitioningProcess(Base) {
+    ActivityDirectorProcess: Base => class extends this.LevelTransitioningProcess(Base) {
         set ownerRoomName(name) {
             this.data.ownerRoomName = name
         }
@@ -78,11 +78,11 @@ module.exports = {
                                      bodyType,
                                      priority,
                                      initialTaskTicket,
-                                     targetId,
+                                     targetdesc,
                                      currentLevel) {
 
             while (this.getRoleProcessesLabels(role).length < reqNumber) {
-                const label = `${role}_creep_manager_${this.getRoleCount(role)}_of_${targetId}`
+                const label = `${role}_creep_manager_${this.getRoleCount(role)}_of_${targetdesc}`
                     + `_from_${this.ownerRoomName}`
                 try {
                     const process = Kernel.scheduler.launchProcess(
@@ -90,7 +90,7 @@ module.exports = {
                         label,
                         this.pid
                     )
-                    process.creepName = `${generalUtils.capitalize(role)}${this.getRoleCount(role)}Of${targetId}`
+                    process.creepName = `${generalUtils.capitalize(role)}${this.getRoleCount(role)}Of${targetdesc}`
                         + `From${this.ownerRoomName}`
                     process.creepType = bodyType
                     process.ownerRoomName = this.ownerRoomName

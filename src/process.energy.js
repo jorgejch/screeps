@@ -7,7 +7,7 @@ const processUtils = require("util.process")
 const mixins = require("process.mixins")
 
 module.exports = {
-    SourceHarvestManager: class extends mixins.ActivityDirector(BaseProcess) {
+    SourceHarvestManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
         set sourceId(sourceId) {
             this.data.sourceId = sourceId
         }

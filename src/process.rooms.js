@@ -4,9 +4,10 @@ const energyCapacityLevels = require("util.energyCapacityLevels")
 const tasks = require("creep.tasks");
 const processUtils = require('util.process')
 const config = require("config")
+const mixins = require("process.mixins")
 
 module.exports = {
-    ConstructionManager: class extends BaseProcess {
+    ConstructionManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
         set targetRoomName(name) {
             this.data.targetRoomName = name
         }
@@ -15,113 +16,61 @@ module.exports = {
             return this.data.targetRoomName
         }
 
-        get childLabels() {
-            if (!this.data.childLabels) {
-                this.data.childLabels = []
-            }
-            return this.data.childLabels
-        }
-
-        get constructorCounter() {
-            if (!this.data.constructorCounter) {
-                this.data.constructorCounter = 0
-            }
-            return this.data.constructorCounter
-        }
-
-        incrementConstructorCounter() {
-            this.data.constructorCounter += 1
-        }
-
-        get lastLevel(){
-            if (!this.data.lastLevel){
-                this.data.lastLevel = 0
-            }
-            return this.data.lastLevel
-        }
-
-        set lastLevel(level){
-            this.data.lastLevel = level
-        }
-
-        resolveLevel(currentLevel){
-            if (this.lastLevel < currentLevel){
-                console.log(`Next construction order placed by ${this.label} `
-                    + `will be at new level ${currentLevel}.`)
-                // no old creep shall be made, a new age has arrived
-                this.childLabels.forEach(
-                    procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
-                )
-            }
-        }
-
         run() {
             const targetRoomConstructionSites = Object.values(Game.constructionSites)
                 .filter(cs => cs.room.name === this.targetRoomName)
 
             if (targetRoomConstructionSites.length > 0) {
-                let numOfBuilders
-
+                const role = "builder"
                 const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
                 const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, this.ownerRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
-                let bodyType
+                let bodyType, currentLevel, numOfBuilders
 
                 if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
                     bodyType = "BASIC_WORKER_1"
+                    currentLevel = 1
                     numOfBuilders = targetRoomConstructionSites.length > 3 ? 3 : 1
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
-                    this.resolveLevel(2)
+                    currentLevel = 2
+                    this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_2"
                     numOfBuilders = targetRoomConstructionSites.length > 3 ? 3 : 1
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
-                    this.resolveLevel(3)
+                    currentLevel = 3
+                    this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_3"
                     numOfBuilders = targetRoomConstructionSites.length > 3 ? 2 : 1
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
-                    this.resolveLevel(4)
+                    currentLevel = 4
+                    this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_4"
                     numOfBuilders = 1
                 }
                 else {
-                    this.resolveLevel(5)
+                    currentLevel = 5
+                    this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_5"
                     numOfBuilders = 1
                 }
 
-                while (this.childLabels.length < numOfBuilders) {
-                    const label = `constructor_creep_manager_${this.constructorCounter}`
-                        + `_of_${this.targetRoomName}_from_${this.ownerRoomName}`
-                    try {
-                        const process = Kernel.scheduler.launchProcess(
-                            Kernel.availableProcessClasses.CreepManager,
-                            label,
-                            this.pid
+                this.resolveRoleProcessesQuantity(
+                    role,
+                    numOfBuilders,
+                    bodyType,
+                    15,
+                    [
+                        sourceEnergyTaskTicket,
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_BUILD_ROOM.name, {roomName: this.targetRoomName}
                         )
-                        process.creepName = `Constructor${this.constructorCounter}Of${this.targetRoomName}`
-                            + `From${this.ownerRoomName}`
-                        process.creepType = bodyType
-                        process.ownerRoomName = this.ownerRoomName
-                        process.spawningPriority = 15
-
-                        // the constructor cyclically sources energy and builds the target room
-                        process.initialTaskTicketQueue = [
-                            sourceEnergyTaskTicket,
-                            new tasks.TaskTicket(
-                                tasks.tasks.CYCLIC_BUILD_ROOM.name, {roomName: this.targetRoomName}
-                            )
-                        ]
-                        this.childLabels.push(process.label)
-                        this.incrementConstructorCounter()
-
-                    }
-                    catch (e) {
-                        console.log(`Failed to launch process for upgrader due to: ${e.stack}`)
-                    }
-                }
+                    ],
+                    this.targetRoomName,
+                    currentLevel
+                )
             }
         }
     },
@@ -138,47 +87,24 @@ module.exports = {
             return Game.getObjectById(this.controllerId)
         }
 
-        set ownerRoomName(name){
-            this.data.ownerRoomName = name
-        }
-
-        get ownerRoomName(){
-            return this.data.ownerRoomName
-        }
-
         get controllerRoom() {
             return this.controller.room
         }
 
-        get upgraderProcLabels() {
-            if (!this.data.upgraderProcLabels) {
-                this.data.upgraderProcLabels = []
-            }
-            return this.data.upgraderProcLabels
-        }
 
-        get upgraderCounter() {
-            if (!this.data.upgraderCounter) {
-                this.data.upgraderCounter = 0
-            }
-            return this.data.upgraderCounter
-        }
-
-        incrementUpgraderCounter() {
-            this.data.upgraderCounter += 1
-        }
         run() {
             if (!this.controller) {
                 throw `Invalid controller id ${this.controllerId}.`
             }
 
-            if (!this.ownerRoomName){
+            if (!this.ownerRoomName) {
                 this.ownerRoomName = this.controllerRoom.name
             }
 
-            let upgraderbodyType
+            let bodyType, currentLevel
             let numberOfUpgraders = 3  // by default there should be 3 upgraders
 
+            const role = "upgrader"
             const roomsEnergyCapacityAvailable = this.controllerRoom.energyCapacityAvailable
             const energySourcingOption = processUtils.determineEnergyObtentionMethod(this.controllerRoom)
             const energySourcingTaskTicket = processUtils.getEnergySourcingTaskTicket(
@@ -187,64 +113,53 @@ module.exports = {
             )
 
             if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
-                upgraderbodyType = "BASIC_WORKER_1"
+                currentLevel = 1
+                bodyType = "BASIC_WORKER_1"
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
-                upgraderbodyType = "BASIC_WORKER_2"
+                currentLevel = 2
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_2"
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
-                upgraderbodyType = "BASIC_WORKER_3"
+                currentLevel = 3
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_3"
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
-                upgraderbodyType = "BASIC_WORKER_4"
+                currentLevel = 4
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_4"
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_6) {
-                upgraderbodyType = "BASIC_WORKER_5"
+                currentLevel = 5
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_5"
             }
             else {
-                upgraderbodyType = "BASIC_WORKER_6"
+                currentLevel = 6
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_6"
             }
 
-            while (this.upgraderProcLabels.length < numberOfUpgraders) {
-                const label = `upgrader_creep_manager_${this.upgraderCounter}_of_${this.controllerRoom.name}`
-                    +`_from_${this.ownerRoomName}`
-                try {
-                    const process = Kernel.scheduler.launchProcess(
-                        Kernel.availableProcessClasses.CreepManager,
-                        label,
-                        this.pid
+
+            this.resolveRoleProcessesQuantity(
+                role,
+                numberOfUpgraders,
+                bodyType,
+                5,
+                [
+                    energySourcingTaskTicket,
+                    new tasks.TaskTicket(
+                        tasks.tasks.CYCLIC_UPGRADE_ROOM_CONTROLLER.name, {roomName: this.controllerRoom.name}
                     )
-                    process.creepName = `Upgrader${this.upgraderCounter}Of${this.controllerRoom.name}`
-                        +`From${this.ownerRoomName}`
-                    process.creepType = upgraderbodyType
-                    process.ownerRoomName = this.controllerRoom.name
-                    process.spawningPriority = 5
-
-                    // the upgrader cyclically sources energy and upgrades the room controller
-                    process.initialTaskTicketQueue = [
-                        energySourcingTaskTicket,
-                        new tasks.TaskTicket(
-                            tasks.tasks.CYCLIC_UPGRADE_ROOM_CONTROLLER.name, {roomName: this.controllerRoom.name}
-                        )
-                    ]
-                    this.upgraderProcLabels.push(process.label)
-                    this.incrementUpgraderCounter()
-                }
-                catch (e) {
-                    console.log(`Failed to launch process for upgrader due to: ${e.stack}`)
-                }
-            }
+                ],
+                this.controllerId,
+                currentLevel
+            )
         }
     },
     FeedManager: class extends BaseProcess {
-        set ownerRoomName(name) {
-            this.data.ownerRoomName = name
-        }
-
-        get ownerRoomName() {
-            return this.data.ownerRoomName
-        }
-
         set targetRoomName(name) {
             this.data.targetRoomName = name
         }
@@ -253,30 +168,9 @@ module.exports = {
             return this.data.targetRoomName
         }
 
-        get ownerRoom() {
-            return Game.rooms[this.ownerRoomName]
-        }
 
         get targetRoom() {
             return Game.rooms[this.targetRoomName]
-        }
-
-        get feedersProcessLabels() {
-            if (!this.data.feedersProcessLabels) {
-                this.data.feedersProcessLabels = []
-            }
-            return this.data.feedersProcessLabels
-        }
-
-        get feederCounter() {
-            if (!this.data.feederCounter) {
-                this.data.feederCounter = 0
-            }
-            return this.data.feederCounter
-        }
-
-        incrementFeederCounter() {
-            this.data.feederCounter += 1
         }
 
         run() {
@@ -286,58 +180,48 @@ module.exports = {
                     sourceOption,
                     this.ownerRoomName
                 )
+
+                const role = "feeder"
                 const roomECA = this.targetRoom.energyCapacityAvailable
-                let bodyType
+                let bodyType, currentLevel
 
                 if (roomECA < energyCapacityLevels.LEVEL_3) {
+                    currentLevel = 1
+                    this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_2"
                 }
                 else if (roomECA < energyCapacityLevels.LEVEL_4) {
+                    currentLevel = 2
+                    this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_3"
                 }
                 else {
+                    currentLevel = 3
+                    this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_4"
                 }
 
-                while (this.feedersProcessLabels.length < config.MIN_NUM_OF_FEEDERS) {
-                    const label = `feeder_creep_manager_${this.feederCounter}_of_room_${this.targetRoomName}`
-                        + `_from_${this.ownerRoomName}`
-                    try {
-                        const process = Kernel.scheduler.launchProcess(
-                            Kernel.availableProcessClasses.CreepManager,
-                            label,
-                            this.pid,
-                            50
-                        )
-                        process.creepName = `Feeder${this.feederCounter}Of${this.targetRoomName}`
-                            + `From${this.ownerRoomName}`
-                        process.creepType = bodyType
-                        process.ownerRoomName = this.ownerRoomName
-                        process.spawningPriority = 1
 
-                        /*
-                        the feeder cyclically sources energy, feeds the spawns/exts,
-                        sources energy again and feeds the emptier tower it finds
-                        */
-                        process.initialTaskTicketQueue = [
-                            sourceEnergyTaskTicket,
-                            new tasks.TaskTicket(
-                                tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
-                                {roomName: this.targetRoom.name}
-                            ),
-                            sourceEnergyTaskTicket,
-                            new tasks.TaskTicket(
-                                tasks.tasks.CYCLIC_FEED_EMPTIER_TOWER.name,
-                                {roomName: this.targetRoom.name, amount: null}
-                            ),
-                        ]
-                        this.feedersProcessLabels.push(process.label)
-                        this.incrementFeederCounter()
-                    }
-                    catch (e) {
-                        console.log(`Failed to launch process ${label} due to: ${e.stack}`)
-                    }
-                }
+                this.resolveRoleProcessesQuantity(
+                    role,
+                    config.MIN_NUM_OF_FEEDERS,
+                    bodyType,
+                    50,
+                    [
+                        sourceEnergyTaskTicket,
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
+                            {roomName: this.targetRoom.name}
+                        ),
+                        sourceEnergyTaskTicket,
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_FEED_EMPTIER_TOWER.name,
+                            {roomName: this.targetRoom.name, amount: null}
+                        ),
+                    ],
+                    this.targetRoomName,
+                    currentLevel
+                )
             }
         }
     },
