@@ -5,7 +5,9 @@ const constructionAnbRepair = require("event.constructionAndRepair")
 
 module.exports = {
     "1_1" /*RED_RED*/    : test.sayHelloWorld,
-    "2_1" /*PURPLE_RED*/ : source.harvestSourceUnderFlagForOwnRoom,
+    "2_1" /*PURPLE_RED*/ : source.harvestSourceUnderFlagOnOwnedRoom,
+    "2_2" /*PURPLE_PURPLE*/ : source.harvestSourceUnderFlagOnRemoteRoom,
     "4_1" /*CYAN_RED*/   : controller.upgradeControllerUnderFlagFromOwnRoom,
+    "4_2" /*CYAN_PURPLE*/   : controller.reserveControllerUnderFlag,
     "5_1" /*GREEN_RED*/  :constructionAnbRepair.constructRemoteRoomUnderFlag
 }

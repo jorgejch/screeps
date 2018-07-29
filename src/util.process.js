@@ -48,13 +48,15 @@ module.exports = {
         }
         return sourceEnergyTaskTicket
     },
+    checkRoomExists: function (roomName) {
+        return !!Game.rooms[roomName]
+    },
     checkRoomExistsAndItsMine: function (roomName) {
         // room exists and it's mine
-        return !!(Game.rooms[roomName]
+        return this.checkRoomExists(roomName)
             && (
                 Game.rooms[roomName].controller
                 && Game.rooms[roomName].controller.owner.username === config.PLAYER_NAME
             )
-        );
     }
 }

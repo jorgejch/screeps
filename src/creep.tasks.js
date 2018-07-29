@@ -71,28 +71,6 @@ module.exports = {
                 }
             }
         },
-        CYCLIC_HARVEST_CLOSEST_SOURCE: {
-            name: "CYCLIC_HARVEST_CLOSEST_SOURCE",
-            /**
-             *
-             * @param creep Creep performing the task
-             */
-            taskFunc: (creep) => {
-                const currentTaskTicket = getCurrentTaskTicket(creep)
-                const roomName = creep.pos.roomName
-                const source = creep.pos.findClosestByPath(generalUtils.getRoom(roomName).find(FIND_SOURCES_ACTIVE))
-
-                if (!source) {
-                    const flag = Game.flags[`${roomName}_RALLY`]
-                    activities.goToTarget(creep, flag)
-                } else {
-                    activities.harvestEnergyFromSource(creep, source)
-                    if (criterias.creepIsFull(creep)) {
-                        conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                    }
-                }
-            }
-        },
         HARVEST_SOURCE: {
             name: "HARVEST_SOURCE",
             /**
@@ -122,7 +100,7 @@ module.exports = {
                 }
 
                 activities.withdrawResourceFromTarget(creep, container)
-                if (criterias.creepIsFull(creep)) {
+                if (criterias.creepResourceIsNotEmpty(creep, RESOURCE_ENERGY)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
@@ -198,26 +176,6 @@ module.exports = {
                 if (!container) {
                     const flag = Game.flags[`${roomName}_RALLY`]
                     activities.goToTarget(creep, flag)
-                } else {
-                    activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
-                    if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
-                        conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                    }
-                }
-            }
-        },
-        CYCLIC_LEECH_FROM_ASSIGNED_CONTAINER_IN_ROOM: {
-            name: "CYCLIC_LEECH_FROM_ASSIGNED_CONTAINER_IN_ROOM",
-            taskFunc: (creep) => {
-                const currentTaskTicket = getCurrentTaskTicket(creep)
-                const resourceType = currentTaskTicket.taskParams.resourceType
-                const amount = currentTaskTicket.taskParams.amount
-                const roomName = currentTaskTicket.taskParams.roomName
-                const container = generalUtils.getGameObjectById(creep.memory.assignedSourceContainerId)
-
-                if (!container) {
-                    const flag = Game.flags[`${roomName}_RALLY`]
-                    activities.goToTarget(flag)
                 } else {
                     activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
                     if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
@@ -314,43 +272,6 @@ module.exports = {
                     }
                 }
         },
-        CYCLIC_DROP_RESOURCE_ON_TOP_ASSIGNED_CONTAINER: {
-            name: "CYCLIC_DROP_RESOURCE_ON_TOP_ASSIGNED_CONTAINER",
-            /**
-             *
-             * @param creep Creep performing the task
-             *  container: The container to drop on top of
-             *
-             */
-            taskFunc:
-                (creep) => {
-                    const currentTaskTicket = getCurrentTaskTicket(creep)
-                    const resourceType = currentTaskTicket.taskParams.resourceType
-                    const roomName = currentTaskTicket.taskParams.roomName
-                    const target = generalUtils.getGameObjectById(creep.memory.assignedTargetContainerId)
-
-                    // rally if no target
-                    if (!target) {
-                        const flag = generalUtils.getRoomFlag(roomName)
-                        activities.goToTarget(creep, flag)
-                    }
-                    else {
-                        if (creep.pos.isEqualTo(target.pos)) {
-                            if ("amount" in currentTaskTicket.taskParams) {
-                                const amount = currentTaskTicket.taskParams.amount
-                                activities.dropResourceAmount(creep, resourceType, amount)
-                            }
-                            else {
-                                activities.dropResourceAmount(creep, resourceType)
-                            }
-                            conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                        }
-                        else {
-                            activities.goToTarget(creep, target)
-                        }
-                    }
-                }
-        },
         CYCLIC_UPGRADE_ROOM_CONTROLLER: {
             name: "CYCLIC_UPGRADE_ROOM_CONTROLLER",
             /**
@@ -407,40 +328,6 @@ module.exports = {
                     }
                 }
         },
-        CYCLIC_BUILD_ALL: {
-            name: "CYCLIC_BUILD_ALL",
-            taskFunc:
-                (creep) => {
-                    let target
-                    const currentTaskTicket = getCurrentTaskTicket(creep)
-                    const constructionSites = Object.values(Game.constructionSites)
-                    const wallAndRampartCs = constructionSites
-                        .filter(cs => cs.structureType === STRUCTURE_WALL || cs.structureType === STRUCTURE_RAMPART)
-
-                    // wall and Ramparts get priority
-                    if (wallAndRampartCs.length > 0) {
-                        target = creep.pos.findClosestByPath(wallAndRampartCs)
-                    } else {
-                        target = creep.pos.findClosestByPath(constructionSites)
-                    }
-
-                    // rally if no target
-                    if (!target && constructionSites.length > 0) {
-                        const pathObj = findCheapestPath(creep.pos, constructionSites)
-                        activities.followPath(creep, pathObj.path)
-                    }
-                    else if (!target) {
-                        const flag = Game.flags[`${creep.memory.ownerRoomName}_RALLY`]
-                        activities.goToTarget(creep, flag)
-                    }
-                    else {
-                        activities.buildConstructionSite(creep, target)
-                        if (criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
-                            conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                        }
-                    }
-                }
-        },
         CYCLIC_REPAIR_ROOM_STRUCTURES: {
             name: "CYCLIC_REPAIR_ROOM_STRUCTURES",
             /**
@@ -478,58 +365,6 @@ module.exports = {
                     }
                 }
         },
-        ALLOCATE_FREE_TARGET_CONTAINER_IN_ROOM: {
-            name: "ALLOCATE_FREE_TARGET_CONTAINER_IN_ROOM",
-            taskFunc:
-                (creep) => {
-                    const currentTaskTicket = getCurrentTaskTicket(creep)
-                    const roomName = currentTaskTicket.taskParams.roomName
-                    let target = generalUtils.getClosestUnassignedTargetContainerInRoom(creep, roomName)
-
-                    if (!target && !("assignedTargetContainerId" in creep.memory)) {
-                        console.log(`No available container on room ${roomName} for creep ${creep.name}.`)
-                        return
-                    } else if ("assignedTargetContainerId" in creep.memory) {
-                        target = generalUtils.getGameObjectById(creep.memory.assignedTargetContainerId)
-                    }
-                    activities.setAssignedTargetContainer(creep, target.id)
-                    conclusions.performNextTask(creep)
-                }
-        },
-        ALLOCATE_SPECIFIC_TARGET_CONTAINER_IN_ROOM: {
-            name: "ALLOCATE_SPECIFIC_TARGET_CONTAINER_IN_ROOM",
-            taskFunc:
-                (creep) => {
-                    const currentTaskTicket = getCurrentTaskTicket(creep)
-                    const containerId = currentTaskTicket.taskParams.containerId
-
-                    if (!containerId) {
-                        throw(`Invalid containerId ${JSON.stringify(containerId)} for creep ${creep.name}.`)
-                    } else {
-                        activities.setAssignedTargetContainer(creep, containerId)
-                        conclusions.performNextTask(creep)
-                    }
-                }
-        },
-        ALLOCATE_FREE_SOURCE_CONTAINER_IN_ROOM: {
-            name: "ALLOCATE_FREE_SOURCE_CONTAINER_IN_ROOM",
-            taskFunc:
-                (creep) => {
-                    const currentTaskTicket = getCurrentTaskTicket(creep)
-                    const roomName = currentTaskTicket.taskParams.roomName
-                    let target = generalUtils.getClosestUnassignedSourceContainerInRoom(creep, roomName)
-
-                    if (!target && !creep.memory.assignedSourceContainerId) {
-                        console.log(`No available container on room ${roomName} for creep ${creep.name}.`)
-                        return
-                    } else if (!target) {
-                        target = generalUtils.getGameObjectById(creep.memory.assignedSourceContainerId)
-                    }
-
-                    activities.setAssignedSourceContainer(creep, target.id)
-                    conclusions.performNextTask(creep)
-                }
-        },
         CYCLIC_FEED_EMPTIER_TOWER: {
             name: "CYCLIC_FEED_EMPTIER_TOWER",
             taskFunc:
@@ -552,8 +387,7 @@ module.exports = {
                     }
                     else {
                         activities.transferResourceTypeToTarget(creep, tower, RESOURCE_ENERGY, amount)
-                        if (criterias.targetIsNotEmpty(creep, tower, RESOURCE_ENERGY)
-                            || criterias.creepIsEmpty(creep)) {
+                        if (criterias.targetIsFull(creep, tower, RESOURCE_ENERGY) || criterias.creepIsEmpty(creep)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                         }
                     }
@@ -579,6 +413,20 @@ module.exports = {
                     if (criterias.creepIsAtTarget(creep, source, 1)) {
                         conclusions.performNextTask(creep)
                     }
+                }
+            }
+        },
+        GO_CLOSE_TO_TARGET: {
+            name: "GO_CLOSE_TO_TARGET",
+            taskFunc: (creep) => {
+                const currentTaskTicket = getCurrentTaskTicket(creep)
+                const range = currentTaskTicket.taskParams.range
+                const targetPosParams = currentTaskTicket.taskParams.targetPosParams
+                const targetPos = new RoomPosition(targetPosParams.x, targetPosParams.y, targetPosParams.roomName)
+
+                activities.goToTarget(creep,targetPosParams)
+                if (criterias.creepIsInRangeOfTarget(creep, targetPosParams, range)){
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
         },

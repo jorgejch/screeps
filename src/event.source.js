@@ -1,5 +1,6 @@
+const processUtils = require("./util.process");
 module.exports = {
-    harvestSourceUnderFlagForOwnRoom: function (flag) {
+    harvestSourceUnderFlagOnOwnedRoom: function (flag) {
         const source = flag.pos.lookFor(LOOK_SOURCES)[0]
         const label = `harvest_manager_of_source_${source.id}`
         const visual = new RoomVisual(flag.room.name)
@@ -15,5 +16,28 @@ module.exports = {
         process.sourceId = source.id
         process.ownerRoomName = source.room.name
         console.log(`DEBUG Here X6`)
+    },
+    harvestSourceUnderFlagOnRemoteRoom: function(flag){
+        const source = flag.pos.lookFor(LOOK_SOURCES)[0]
+        const visual = new RoomVisual(flag.room.name)
+
+        const ownerRoomName = flag.name
+        if (processUtils.checkRoomExists(ownerRoomName)) {
+            visual.text(`Room ${ownerRoomName} doesn't exist or it's not mine.`, flag.pos)
+            return
+        }
+        const label = `harvest_manager_of_source_${source.id}_from_${ownerRoomName}`
+        if (Kernel.getProcessByLabel(label)) {
+            visual.text(`Process to harvest source ${source.id} from ${ownerRoomName} already exists.`, flag.pos)
+            return
+        }
+        const process = Kernel.scheduler.launchProcess(
+            Kernel.availableProcessClasses.SourceHarvestManager,
+            label
+        )
+        visual.text(`Launched process ${process.label}.`, flag.pos)
+        process.sourceId = source.id
+        process.ownerRoomName = ownerRoomName
+
     }
 }

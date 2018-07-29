@@ -133,5 +133,43 @@ module.exports = {
                 currentLevel
             )
         }
+    },
+    RoomReservationManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
+        set controllerPosition(pos){
+            this.data.controllerPositionProps = pos
+        }
+        get controllerPosition(){
+            const posProps = this.data.controllerPositionProps
+            return new RoomPosition(posProps.x, posProps.y, posProps.roomName)
+        }
+
+        run(){
+            const role = "reserver"
+            const ownerRoomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
+            let currentLevel, bodyType
+
+            if (ownerRoomEnergyCapacity < energyCapacityLevels.LEVEL_4){
+                currentLevel = 1
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "CLAIMER_3"
+            }
+            else {
+                currentLevel = 2
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "CLAIMER_4"
+            }
+
+            this.resolveRoleProcessesQuantity(
+                role,
+                1,
+                bodyType,
+                15,
+                [
+                    tasks.tasks.GO_CLOSE_TO_TARGET
+                ],
+                this.controllerPosition.roomName,
+                currentLevel
+            )
+        }
     }
 }

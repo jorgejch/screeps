@@ -60,5 +60,16 @@ module.exports = {
         else {
             return target.energy > 0
         }
+    },
+    targetIsFull: function (creep, target, resourceType) {
+        if (target.store) {
+            return target.store[resourceType] === target.storeCapacity
+        }
+        else {
+            return target.energy === target.energyCapacity
+        }
+    },
+    creepIsInRangeOfTarget: function(creep, target, range) {
+        return creep.pos.getRangeTo(target) <= range
     }
 }

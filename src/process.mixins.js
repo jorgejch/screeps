@@ -122,7 +122,6 @@ module.exports = {
                     console.log(`Failed to lunch harvester process due to: ${e.stack}`)
                 }
             }
-
         }
     }
 }

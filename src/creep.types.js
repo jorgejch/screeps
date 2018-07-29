@@ -71,7 +71,10 @@ module.exports = {
     FARREACH_STATIONARY_WORKER_3: [                                                                 // Total: 1000
         MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK
     ],
-    CLAIMER_2: [                                                                                    // Total: 1300
+    CLAIMER_3: [                                                                                    // Total: 650
+        MOVE, CLAIM
+    ],
+    CLAIMER_4: [                                                                                    // Total: 1300
         MOVE, MOVE, CLAIM, CLAIM
     ]
 }

@@ -111,7 +111,7 @@ module.exports = {
             }
 
             let bodyType, currentLevel
-            let numberOfUpgraders = 3  // by default there should be 3 upgraders
+            let numberOfUpgraders = 2  // by default there should be this much upgraders
 
             const roomsEnergyCapacityAvailable = this.controllerRoom.energyCapacityAvailable
             const energySourcingOption = processUtils.determineEnergyObtentionMethod(this.controllerRoom)
@@ -200,16 +200,16 @@ module.exports = {
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_2"
                 }
-                else if (roomECA < energyCapacityLevels.LEVEL_4) {
+                else {
                     currentLevel = 2
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_3"
                 }
-                else {
-                    currentLevel = 3
-                    this.resolveLevelForRole(role, currentLevel)
-                    bodyType = "FREIGHTER_4"
-                }
+                // else {
+                //     currentLevel = 3
+                //     this.resolveLevelForRole(role, currentLevel)
+                //     bodyType = "FREIGHTER_4"
+                // }
 
 
                 this.resolveRoleProcessesQuantity(
