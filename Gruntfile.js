@@ -1,35 +1,18 @@
 module.exports = function (grunt) {
-    require('load-grunt-tasks')(grunt);
+    const config = require('./.screeps.json')
     grunt.loadNpmTasks('grunt-screeps');
 
     grunt.initConfig({
-        babel: {
-            options: {
-                sourceMap: true,
-                presets: ["react", "es2015", "stage-2"]
-            },
-            dist: {
-                files: [{
-                    expand: true,
-                    src: ['src/**/*.js'],
-                    dest: 'lib',
-                    ext: '.js'
-                }]
-            }
-        },
         screeps: {
             options: {
-                email: 'jorgejch@gmail.com',
-                password: '***REMOVED***',
-                branch: 'default',
-                // branch: 'tutorial-1',
-                ptr: false
+                email: config.email,
+                password: config.password,
+                branch: config.branch,
+                ptr: config.ptr
             },
             dist: {
-                src: ['lib/src/*.js']
+                src: ['src/*.js']
             }
         },
     });
-
-    grunt.registerTask("transpileAndDeploy", "Transpile with babel and deploy to screeps", ["babel", "screeps"])
 };
