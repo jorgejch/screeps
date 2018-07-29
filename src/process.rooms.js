@@ -17,11 +17,12 @@ module.exports = {
         }
 
         run() {
+            const role = "builder"
+            this.cleanRoleDeadProcesses(role)
             const targetRoomConstructionSites = Object.values(Game.constructionSites)
                 .filter(cs => cs.room.name === this.targetRoomName)
 
             if (targetRoomConstructionSites.length > 0) {
-                const role = "builder"
                 const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
                 const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, this.ownerRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
@@ -72,9 +73,14 @@ module.exports = {
                     currentLevel
                 )
             }
+            else {
+                if (this.getRoleProcessesLabels(role).length > 0){
+                    this.setAllRoleProcessesToDieAfterCreep(role)
+                }
+            }
         }
     },
-    ControllerUpgradeManager: class extends BaseProcess {
+    ControllerUpgradeManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
         set controllerId(id) {
             this.data.controllerId = id
         }
@@ -93,6 +99,9 @@ module.exports = {
 
 
         run() {
+            const role = "upgrader"
+            this.cleanRoleDeadProcesses(role)
+
             if (!this.controller) {
                 throw `Invalid controller id ${this.controllerId}.`
             }
@@ -104,7 +113,6 @@ module.exports = {
             let bodyType, currentLevel
             let numberOfUpgraders = 3  // by default there should be 3 upgraders
 
-            const role = "upgrader"
             const roomsEnergyCapacityAvailable = this.controllerRoom.energyCapacityAvailable
             const energySourcingOption = processUtils.determineEnergyObtentionMethod(this.controllerRoom)
             const energySourcingTaskTicket = processUtils.getEnergySourcingTaskTicket(
@@ -159,7 +167,7 @@ module.exports = {
             )
         }
     },
-    FeedManager: class extends BaseProcess {
+    FeedManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
         set targetRoomName(name) {
             this.data.targetRoomName = name
         }
@@ -174,6 +182,9 @@ module.exports = {
         }
 
         run() {
+            const role = "feeder"
+            this.cleanRoleDeadProcesses(role)
+
             if (processUtils.checkContainerExists(this.ownerRoom)) {
                 const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
                 const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(
@@ -181,7 +192,6 @@ module.exports = {
                     this.ownerRoomName
                 )
 
-                const role = "feeder"
                 const roomECA = this.targetRoom.energyCapacityAvailable
                 let bodyType, currentLevel
 
@@ -206,7 +216,7 @@ module.exports = {
                     role,
                     config.MIN_NUM_OF_FEEDERS,
                     bodyType,
-                    50,
+                    0,
                     [
                         sourceEnergyTaskTicket,
                         new tasks.TaskTicket(
@@ -289,8 +299,8 @@ module.exports = {
             })
 
             // init feed manager when needed
-            if (processUtils.checkContainerExists(this.room)) {
-                const FEED_MANAGER_PROC_LABEL = `feed_manager_of_room_${this.roomName}_${Game.time}`
+            if (this.room.energyCapacityAvailable > energyCapacityLevels.LEVEL_2) {
+                const FEED_MANAGER_PROC_LABEL = `feed_manager_of_room_${this.roomName}_from_${this.roomName}`
                 if (!Kernel.getProcessByLabel(FEED_MANAGER_PROC_LABEL)) {
                     console.log(`DEBUG Creating process ${FEED_MANAGER_PROC_LABEL}`)
                     const process = Kernel.scheduler.launchProcess(
@@ -308,7 +318,7 @@ module.exports = {
             if (this.towers.length > 0) {
                 const unmanagedTowers = this.towers.filter(tower => this.managedTowersLabels.indexOf(tower.id) < 0)
                 unmanagedTowers.forEach(tower => {
-                    const label = `tower_manager_of_${tower.id}_from_${this.roomName}`
+                    const label = `tower_manager_of_${tower.id}_on_${this.roomName}`
                     try {
                         const process = Kernel.scheduler.launchProcess(
                             Kernel.availableProcessClasses.TowerManager,
@@ -327,7 +337,7 @@ module.exports = {
 
             // init constructor manager when needed
             if (this.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
-                const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_${this.roomName}_${Game.time}`
+                const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_${this.roomName}_from_${this.roomName}`
                 if (!Kernel.getProcessByLabel(CONSTRUCTION_MANAGER_PROC_LABEL)) {
                     console.log(`DEBUG Creating process ${CONSTRUCTION_MANAGER_PROC_LABEL}`)
                     const process = Kernel.scheduler.launchProcess(
@@ -382,13 +392,15 @@ module.exports = {
                     .filter(
                         struct => {
                             if (struct.hits < struct.hitsMax) {
-                                if (struct.structureType === STRUCTURE_TOWER) {
+                                if (struct.structureType === STRUCTURE_WALL) {
                                     return struct.hits < config.MAX_WALL_HITS_LIMIT
                                 }
                                 else if (struct.structureType === STRUCTURE_RAMPART) {
                                     return struct.hits < config.MAX_RAMPART_HITS_LIMIT
                                 }
-                                return true
+                                else{
+                                    return true
+                                }
                             }
                         }
                     )

@@ -1,20 +1,10 @@
-import generalUtils from "util.general"
+
+function capitalize (word) {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+}
 
 module.exports = {
-    LevelTransitioningProcess: Base => class extends Base {
-        get lastLevel() {
-            if (!this.data.lastLevel) {
-                this.data.lastLevel = 0
-            }
-            return this.data.lastLevel
-        }
-
-        set lastLevel(level) {
-            this.data.lastLevel = level
-        }
-
-    },
-    ActivityDirectorProcess: Base => class extends this.LevelTransitioningProcess(Base) {
+    ActivityDirectorProcess: Base => class extends Base {
         set ownerRoomName(name) {
             this.data.ownerRoomName = name
         }
@@ -27,6 +17,17 @@ module.exports = {
             return Game.rooms[this.ownerRoomName]
         }
 
+        get lastLevel() {
+            if (!this.data.lastLevel) {
+                this.data.lastLevel = 0
+            }
+            return this.data.lastLevel
+        }
+
+        set lastLevel(level) {
+            this.data.lastLevel = level
+        }
+
         getRoleProcessesLabels(role) {
             if (!this.data.roleProcessesLabels) {
                 this.data.roleProcessesLabels = {}
@@ -37,6 +38,19 @@ module.exports = {
             }
 
             return this.data.roleProcessesLabels[role]
+        }
+
+        setRoleProcessesLabels(role, labels){
+            if (!this.data.roleProcessesLabels) {
+                this.data.roleProcessesLabels = {}
+            }
+            this.data.roleProcessesLabels[role] = labels
+        }
+
+        cleanRoleDeadProcesses(role){
+            // filter out dead processes
+            const roleProcesses = this.getRoleProcessesLabels(role)
+            this.setRoleProcessesLabels(role, roleProcesses.filter(label => Kernel.getProcessByLabel(label)))
         }
 
         getRoleCount(role) {
@@ -63,13 +77,17 @@ module.exports = {
             this.data.roleCounters[role] += 1
         }
 
+        setAllRoleProcessesToDieAfterCreep(role){
+            this.getRoleProcessesLabels(role).forEach(
+                procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
+            )
+        }
+
         resolveLevelForRole(role, currentLevel) {
             if (this.lastLevel < currentLevel) {
                 console.log(`Next ${role} order placed by ${this.label} will be at new level ${currentLevel}.`)
                 // no creep shall be made, a new age has arrived
-                this.getRoleProcessesLabels(role).forEach(
-                    procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep()
-                )
+                this.setAllRoleProcessesToDieAfterCreep(role)
             }
         }
 
@@ -77,7 +95,7 @@ module.exports = {
                                      reqNumber,
                                      bodyType,
                                      priority,
-                                     initialTaskTicket,
+                                     initialTaskTicketQueue,
                                      targetdesc,
                                      currentLevel) {
 
@@ -90,7 +108,7 @@ module.exports = {
                         label,
                         this.pid
                     )
-                    process.creepName = `${generalUtils.capitalize(role)}${this.getRoleCount(role)}Of${targetdesc}`
+                    process.creepName = `${capitalize(role)}${this.getRoleCount(role)}Of${targetdesc}`
                         + `From${this.ownerRoomName}`
                     process.creepType = bodyType
                     process.ownerRoomName = this.ownerRoomName
@@ -104,6 +122,7 @@ module.exports = {
                     console.log(`Failed to lunch harvester process due to: ${e.stack}`)
                 }
             }
+
         }
     }
 }

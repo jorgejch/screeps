@@ -121,7 +121,7 @@ module.exports = {
                     throw `No container for creep ${creep.name} close to source id $ or invalid source id ${sourceId}.`
                 }
 
-                activities.harvestEnergyFromSource(creep, source)
+                activities.withdrawResourceFromTarget(creep, container)
                 if (criterias.creepIsFull(creep)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
@@ -552,7 +552,8 @@ module.exports = {
                     }
                     else {
                         activities.transferResourceTypeToTarget(creep, tower, RESOURCE_ENERGY, amount)
-                        if (criterias.targetIsNotEmpty(creep, tower, RESOURCE_ENERGY)) {
+                        if (criterias.targetIsNotEmpty(creep, tower, RESOURCE_ENERGY)
+                            || criterias.creepIsEmpty(creep)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                         }
                     }

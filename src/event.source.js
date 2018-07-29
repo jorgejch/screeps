@@ -14,5 +14,6 @@ module.exports = {
         visual.text(`Launched process ${process.label}.`, flag.pos)
         process.sourceId = source.id
         process.ownerRoomName = source.room.name
+        console.log(`DEBUG Here X6`)
     }
 }
