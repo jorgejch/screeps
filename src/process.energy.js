@@ -160,7 +160,7 @@ module.exports = {
         }
     },
     RoomReservationManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
-        set controllerPosition(pos){
+        set controllerPositionProps(pos){
             this.data.controllerPositionProps = pos
         }
         get controllerPosition(){
@@ -190,7 +190,14 @@ module.exports = {
                 bodyType,
                 15,
                 [
-                    tasks.tasks.GO_CLOSE_TO_TARGET
+                    new tasks.TaskTicket(
+                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
+                        {range: 1, targetPosParams: this.controllerPosition}
+                    ),
+                    new tasks.TaskTicket(
+                        tasks.tasks.RESERVE_ROOM_CONTROLLER.name,
+                        {roomName: this.controllerPosition.roomName}
+                    )
                 ],
                 this.controllerPosition.roomName,
                 currentLevel

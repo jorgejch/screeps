@@ -432,8 +432,8 @@ module.exports = {
                 }
             }
         },
-        RESERVE_STORED_ROOM_CONTROLLER: {
-            name: "RESERVE_STORED_ROOM_CONTROLLER",
+        RESERVE_ROOM_CONTROLLER: {
+            name: "RESERVE_ROOM_CONTROLLER",
             taskFunc: (creep) => {
                 const taskTicket = getCurrentTaskTicket(creep)
                 const roomName = taskTicket.taskParams.roomName
@@ -444,8 +444,7 @@ module.exports = {
                     activities.goToTarget(creep, flag)
                 }
                 else {
-                    const controller = Game.rooms[roomName].controller
-                    activities.reserveRoomController(creep, controller)
+                    activities.reserveRoomController(creep, room.controller)
                 }
             }
         },

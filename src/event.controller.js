@@ -46,7 +46,7 @@ module.exports = {
                 CONTROLLER_RESERVE_MANAGER_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)
-            process.controllerPositionProperties = controllerPos
+            process.controllerPositionProps = controllerPos
             process.ownerRoomName = ownerRoomName
         }
         catch (ex) {
