@@ -1,6 +1,5 @@
 'use strict'
 const BaseProcess = require("process.base")
-const processStates = require("os.processState")
 const tasks = require("creep.tasks")
 const creepSpawner = require("util.creepSpawner")
 
@@ -122,5 +121,5 @@ module.exports = {
                 }
             }
         }
-    }
+    },
 }

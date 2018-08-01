@@ -17,7 +17,7 @@ module.exports = {
         const size = array.length
         return array[Math.floor(Math.random() * size)]
     },
-    getRoomFlag: function (roomName) {
+    getRoomRallyFlag: function (roomName) {
         return Game.flags[`${roomName}_RALLY`]
     },
     getClosestUnassignedContainerInRoom: function (creep, roomName, key) {

@@ -15,15 +15,15 @@ module.exports = {
         visual.text(`Launched process ${process.label}.`, flag.pos)
         process.sourceId = source.id
         process.ownerRoomName = source.room.name
-        console.log(`DEBUG Here X6`)
+        process.targetRoomName = source.room.name
     },
     harvestSourceUnderFlagOnRemoteRoom: function(flag){
         const source = flag.pos.lookFor(LOOK_SOURCES)[0]
         const visual = new RoomVisual(flag.room.name)
 
         const ownerRoomName = flag.name
-        if (processUtils.checkRoomExists(ownerRoomName)) {
-            visual.text(`Room ${ownerRoomName} doesn't exist or it's not mine.`, flag.pos)
+        if (!processUtils.checkRoomExists(ownerRoomName)) {
+            visual.text(`Room ${ownerRoomName} doesn't exist.`, flag.pos)
             return
         }
         const label = `harvest_manager_of_source_${source.id}_from_${ownerRoomName}`
@@ -38,6 +38,6 @@ module.exports = {
         visual.text(`Launched process ${process.label}.`, flag.pos)
         process.sourceId = source.id
         process.ownerRoomName = ownerRoomName
-
+        process.targetRoomName = flag.pos.roomName
     }
 }

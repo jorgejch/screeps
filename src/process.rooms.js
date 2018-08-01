@@ -168,19 +168,6 @@ module.exports = {
         }
     },
     FeedManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
-        set targetRoomName(name) {
-            this.data.targetRoomName = name
-        }
-
-        get targetRoomName() {
-            return this.data.targetRoomName
-        }
-
-
-        get targetRoom() {
-            return Game.rooms[this.targetRoomName]
-        }
-
         run() {
             const role = "feeder"
             this.cleanRoleDeadProcesses(role)

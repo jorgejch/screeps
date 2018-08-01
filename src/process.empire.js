@@ -13,6 +13,7 @@ module.exports = {
                 const room = Game.rooms[roomName]
                 if (
                     room.controller
+                    && room.controller.owner
                     && room.controller.owner.username === config.PLAYER_NAME
                     && !this.data.ownRooms[roomName]
                 ) {

@@ -96,7 +96,10 @@ module.exports = {
                     .filter(struct => struct.structureType === STRUCTURE_CONTAINER)[0]
 
                 if (!container) {
-                    throw `No container for creep ${creep.name} close to source id $ or invalid source id ${sourceId}.`
+                    console.log(`No container for creep ${creep.name} close to source id ${sourceId}. `
+                        + ` Going to next task.`)
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                    return
                 }
 
                 activities.withdrawResourceFromTarget(creep, container)
@@ -423,9 +426,8 @@ module.exports = {
                 const range = currentTaskTicket.taskParams.range
                 const targetPosParams = currentTaskTicket.taskParams.targetPosParams
                 const targetPos = new RoomPosition(targetPosParams.x, targetPosParams.y, targetPosParams.roomName)
-
-                activities.goToTarget(creep,targetPosParams)
-                if (criterias.creepIsInRangeOfTarget(creep, targetPosParams, range)){
+                activities.goToTarget(creep,targetPos)
+                if (criterias.creepIsInRangeOfTarget(creep, targetPos, range)){
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
@@ -438,7 +440,7 @@ module.exports = {
                 const room = Game.rooms[roomName]
 
                 if (!room) {
-                    const flag = generalUtils.getRoomFlag(roomName)
+                    const flag = generalUtils.getRoomRallyFlag(roomName)
                     activities.goToTarget(creep, flag)
                 }
                 else {
@@ -447,11 +449,11 @@ module.exports = {
                 }
             }
         },
-        CYCLIC_PICKUP_DROPPED_RESOURCE: {
-            name: "CYCLIC_PICKUP_DROPPED_RESOURCE",
+        CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM: {
+            name: "CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM",
             taskFunc: (creep) => {
                 const taskTicket = getCurrentTaskTicket(creep)
-                const room = generalUtils.getRoom(creep.pos.roomName)
+                const room = generalUtils.getRoom(taskTicket.taskParams.roomName)
 
                 const droppedResource = room.find(FIND_DROPPED_RESOURCES)
                 // only collect worthwhile resources

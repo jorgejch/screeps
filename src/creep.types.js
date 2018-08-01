@@ -1,4 +1,5 @@
 module.exports = {
+    SCOUT_1: [MOVE],                                                                                // Total: 50
     BASIC_WORKER_1: [MOVE, MOVE, CARRY, CARRY, WORK],                                               // Total: 300
     BASIC_WORKER_2: [MOVE, MOVE, MOVE, CARRY, CARRY, WORK, WORK, WORK],                             // Total: 550
     BASIC_WORKER_3: [                                                                               // Total: 800

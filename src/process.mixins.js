@@ -17,6 +17,18 @@ module.exports = {
             return Game.rooms[this.ownerRoomName]
         }
 
+        set targetRoomName(name){
+            this.data.targetRoomName = name
+        }
+
+        get targetRoomName(){
+            return this.data.targetRoomName
+        }
+
+        get targetRoom() {
+            return Game.rooms[this.targetRoomName]
+        }
+
         get lastLevel() {
             if (!this.data.lastLevel) {
                 this.data.lastLevel = 0

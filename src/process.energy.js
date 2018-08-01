@@ -2,6 +2,7 @@ const BaseProcess = require("process.base")
 const tasks = require("creep.tasks")
 const energyCapacityLevels = require("util.energyCapacityLevels")
 const mixins = require("process.mixins")
+const generalUtils = require("./util.general");
 
 module.exports = {
     SourceHarvestManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
@@ -24,9 +25,33 @@ module.exports = {
         run() {
             const harvesterRole = "harvester"
             const freighterRole = "freighter"
+            const scoutRole = "scout"
 
             this.cleanRoleDeadProcesses(harvesterRole)
             this.cleanRoleDeadProcesses(freighterRole)
+            this.cleanRoleDeadProcesses(scoutRole)
+
+            // send scout if target room is not visible
+            if (!Game.rooms[this.targetRoomName]){
+                const rallyFlag = generalUtils.getRoomRallyFlag(this.targetRoomName)
+                const scoutBodyType = "SCOUT_1"
+
+                this.resolveRoleProcessesQuantity(
+                    scoutRole,
+                    1,
+                    scoutBodyType,
+                    2,
+                    [new tasks.TaskTicket(
+                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
+                        {range: 1, targetPosParams:rallyFlag.pos}
+                    )],
+                    this.targetRoomName,
+                    1
+                )
+                this.setAllRoleProcessesToDieAfterCreep(scoutRole)
+                console.log(`Target room ${this.targetRoomName} is not visible. Sending scout.`)
+                return
+            }
 
             if (!this.source) {
                 throw `Invalid source id ${this.sourceId}`
@@ -91,7 +116,7 @@ module.exports = {
                 freighterPriority = 3
                 freighterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
-                        tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE.name, {}
+                        tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM.name, {roomName: this.targetRoomName}
                     ),
                     new tasks.TaskTicket(
                         tasks.tasks.CYCLIC_LEECH_FROM_SOURCE_CONTAINER.name, {sourceId: this.sourceId}

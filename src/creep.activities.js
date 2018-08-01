@@ -69,8 +69,7 @@ module.exports = {
                 break
             default:
                 console.log(`Creep ${creep.name} is unable to go to target id ${JSON.stringify(target)} `
-                    + `at position ${JSON.stringify(target.pos)}`
-                    + ` on room ${target.pos.roomName} due to err # ${res}`)
+                    + `due to err # ${res}`)
         }
     },
     followPath: function (creep, path) {
