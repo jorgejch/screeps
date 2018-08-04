@@ -2,7 +2,8 @@ const BaseProcess = require("process.base")
 const tasks = require("creep.tasks")
 const energyCapacityLevels = require("util.energyCapacityLevels")
 const mixins = require("process.mixins")
-const generalUtils = require("./util.general");
+const generalUtils = require("util.general")
+const processUtils = require("util.process")
 
 module.exports = {
     SourceHarvestManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
@@ -25,33 +26,9 @@ module.exports = {
         run() {
             const harvesterRole = "harvester"
             const freighterRole = "freighter"
-            const scoutRole = "scout"
 
             this.cleanRoleDeadProcesses(harvesterRole)
             this.cleanRoleDeadProcesses(freighterRole)
-            this.cleanRoleDeadProcesses(scoutRole)
-
-            // send scout if target room is not visible
-            if (!Game.rooms[this.targetRoomName]){
-                const rallyFlag = generalUtils.getRoomRallyFlag(this.targetRoomName)
-                const scoutBodyType = "SCOUT_1"
-
-                this.resolveRoleProcessesQuantity(
-                    scoutRole,
-                    1,
-                    scoutBodyType,
-                    2,
-                    [new tasks.TaskTicket(
-                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
-                        {range: 1, targetPosParams:rallyFlag.pos}
-                    )],
-                    this.targetRoomName,
-                    1
-                )
-                this.setAllRoleProcessesToDieAfterCreep(scoutRole)
-                console.log(`Target room ${this.targetRoomName} is not visible. Sending scout.`)
-                return
-            }
 
             if (!this.source) {
                 throw `Invalid source id ${this.sourceId}`
@@ -62,7 +39,8 @@ module.exports = {
                 && this.ownerRoom.energyAvailable < this.ownerRoom.energyCapacityAvailable
 
             const roomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
-            let currentLevel,
+            let harvesterCurrentLevel = 0,
+                freighterCurrentLevel = 0,
                 reqNumOfHarvesters,
                 harvesterBodyType,
                 harvesterPriority,
@@ -73,7 +51,7 @@ module.exports = {
                 freighterInitialTaskTicketQueue
 
             if (emergency || roomEnergyCapacity < energyCapacityLevels.LEVEL_2) {
-                currentLevel = 1  // to track when level goes up
+                harvesterCurrentLevel = 1  // to track when level goes up
                 // basic harvesters feed
                 reqNumOfFreighters = 0
                 // there should be 3 basic workers harvesting at this level
@@ -90,9 +68,8 @@ module.exports = {
                     )]
             }
             else if (roomEnergyCapacity < energyCapacityLevels.LEVEL_3) {
-                currentLevel = 2
-                this.resolveLevelForRole(freighterRole, currentLevel)
-                this.resolveLevelForRole(harvesterRole, currentLevel)
+                harvesterCurrentLevel = 2
+                this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
                 // at this level creeps source from the resource pile or container
                 reqNumOfFreighters = 0
                 reqNumOfHarvesters = 1
@@ -107,11 +84,11 @@ module.exports = {
                     ),
                 ]
             }
-            else {
-                currentLevel = 3
-                this.resolveLevelForRole(freighterRole, currentLevel)
-                this.resolveLevelForRole(harvesterRole, currentLevel)
-                reqNumOfFreighters = this.isLocal() ? 1 : 2
+            else if (processUtils.checkStorageExists(this.ownerRoom)) {
+                harvesterCurrentLevel = 3
+                this.resolveLevelForRole(freighterRole, harvesterCurrentLevel)
+                this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
+                reqNumOfFreighters = this.isLocal() ? 1 : 3
                 freighterBodyType = "FREIGHTER_3"
                 freighterPriority = 3
                 freighterInitialTaskTicketQueue = [
@@ -137,6 +114,9 @@ module.exports = {
                     ),
                 ]
             }
+            else{
+                throw `Could not resolve source harvest.`
+            }
 
             this.resolveRoleProcessesQuantity(
                 harvesterRole,
@@ -145,7 +125,7 @@ module.exports = {
                 harvesterPriority,
                 harvesterInitialTaskTicketQueue,
                 this.sourceId,
-                currentLevel
+                harvesterCurrentLevel
             )
 
             this.resolveRoleProcessesQuantity(
@@ -155,7 +135,7 @@ module.exports = {
                 freighterPriority,
                 freighterInitialTaskTicketQueue,
                 this.sourceId,
-                currentLevel
+                harvesterCurrentLevel
             )
         }
     },
@@ -173,6 +153,7 @@ module.exports = {
             const ownerRoomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
             let currentLevel, bodyType
 
+            this.cleanRoleDeadProcesses(role)
             if (ownerRoomEnergyCapacity < energyCapacityLevels.LEVEL_4){
                 currentLevel = 1
                 this.resolveLevelForRole(role, currentLevel)

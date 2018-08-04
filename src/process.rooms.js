@@ -5,6 +5,7 @@ const tasks = require("creep.tasks");
 const processUtils = require('util.process')
 const config = require("config")
 const mixins = require("process.mixins")
+const generalUtils = require("./util.general");
 
 module.exports = {
     ConstructionManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
@@ -20,7 +21,7 @@ module.exports = {
             const role = "builder"
             this.cleanRoleDeadProcesses(role)
             const targetRoomConstructionSites = Object.values(Game.constructionSites)
-                .filter(cs => cs.room.name === this.targetRoomName)
+                .filter(cs => cs.pos.roomName === this.targetRoomName)
 
             if (targetRoomConstructionSites.length > 0) {
                 const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
@@ -64,6 +65,10 @@ module.exports = {
                     bodyType,
                     15,
                     [
+                        new tasks.TaskTicket(
+                            tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM.name,
+                            {roomName: this.targetRoomName}
+                        ),
                         sourceEnergyTaskTicket,
                         new tasks.TaskTicket(
                             tasks.tasks.CYCLIC_BUILD_ROOM.name, {roomName: this.targetRoomName}
@@ -74,7 +79,7 @@ module.exports = {
                 )
             }
             else {
-                if (this.getRoleProcessesLabels(role).length > 0){
+                if (this._getRoleProcessesLabels(role).length > 0) {
                     this.setAllRoleProcessesToDieAfterCreep(role)
                 }
             }
@@ -222,6 +227,57 @@ module.exports = {
             }
         }
     },
+    GuardManager: class extends mixins.ActivityDirectorProcess(BaseProcess){
+        run(){
+            const guardRole = "guard"
+            const scoutRole = "scout"
+            this.cleanRoleDeadProcesses(guardRole)
+            this.cleanRoleDeadProcesses(scoutRole)
+
+            // send scout if target room is not visible
+            if (!Game.rooms[this.targetRoomName]){
+                const rallyFlag = generalUtils.getRoomRallyFlag(this.targetRoomName)
+                const scoutBodyType = "SCOUT_1"
+
+                this.resolveRoleProcessesQuantity(
+                    scoutRole,
+                    1,
+                    scoutBodyType,
+                    0,
+                    [new tasks.TaskTicket(
+                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
+                        {range: 1, targetPosParams:rallyFlag.pos}
+                    )],
+                    this.targetRoomName,
+                    1
+                )
+                this.setAllRoleProcessesToDieAfterCreep(scoutRole)
+                console.log(`Target room ${this.targetRoomName} is not visible. Sending scout.`)
+                return
+            }
+
+            const hostiles = generalUtils.findHostiles(this.targetRoom)
+            // send guard if hostile in room
+            if (hostiles.length > 0){
+                console.log(`DEBUG !!!! these are my hostiles ${JSON.stringify(hostiles)}`)
+                const guardBodyType = "ATTACKER_3"
+
+                this.resolveRoleProcessesQuantity(
+                    guardRole,
+                    1,
+                    guardBodyType,
+                    2,
+                    [new tasks.TaskTicket(
+                        tasks.tasks.GUARD_ROOM.name,
+                        {roomName: this.targetRoomName}
+                    )],
+                    this.targetRoomName,
+                    1
+                )
+                this.setAllRoleProcessesToDieAfterCreep(guardRole)
+            }
+        }
+    },
     OwnedRoomManager: class extends BaseProcess {
         set roomName(roomName) {
             this.data.roomName = roomName
@@ -358,7 +414,8 @@ module.exports = {
 
         run() {
             if (!this.tower) {
-                throw `Invalid tower id ${this.towerId}.`
+                this.die()
+                return
             }
 
             if (this.tower.energy > 0) {
@@ -385,7 +442,11 @@ module.exports = {
                                 else if (struct.structureType === STRUCTURE_RAMPART) {
                                     return struct.hits < config.MAX_RAMPART_HITS_LIMIT
                                 }
-                                else{
+                                // stop repairing roads so that they exist based on demand
+                                else if (struct.structureType === STRUCTURE_ROAD) {
+                                    return false
+                                }
+                                else {
                                     return true
                                 }
                             }

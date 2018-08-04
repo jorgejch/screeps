@@ -39,4 +39,12 @@ module.exports = {
         return this.getClosestUnassignedContainerInRoom(creep, roomName, key)
     },
 
+    findHostiles: (room) => {
+        return room.find(FIND_HOSTILE_CREEPS).filter(creep => {
+            return creep.body.indexOf("attack") >= 0 || creep.body.indexOf("ranged_attack") >= 0;
+        })
+    },
+    capitalize: (word) => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }
 }

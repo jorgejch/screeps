@@ -95,9 +95,9 @@ module.exports = {
                 const container = source.pos.findInRange(FIND_STRUCTURES, 1)
                     .filter(struct => struct.structureType === STRUCTURE_CONTAINER)[0]
 
-                if (!container) {
-                    console.log(`No container for creep ${creep.name} close to source id ${sourceId}. `
-                        + ` Going to next task.`)
+                if (!container || criterias.creepIsFull(creep)) {
+                    console.log(`Creep ${creep.name} is full or no container `
+                        + `close to source id ${sourceId}. Going to next task.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     return
                 }
@@ -122,14 +122,14 @@ module.exports = {
                     })
                 )
 
-                if (!container) {
-                    const flag = Game.flags[`${roomName}_RALLY`]
-                    activities.goToTarget(creep, flag)
-                } else {
-                    activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
-                    if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
-                        conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                    }
+                if (!container || criterias.creepIsFull(creep)) {
+                    console.log(`Creep ${creep.name} is full or no container. Going to next task.`)
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                    return
+                }
+                activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
+                if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
         },
@@ -147,18 +147,19 @@ module.exports = {
                         return _.sum(b.store) - _.sum(a.store)
                     })[0]
 
-                if (!container) {
-                    const flag = Game.flags[`${roomName}_RALLY`]
-                    activities.goToTarget(creep, flag)
-                } else {
-                    for (const storedResource in container.store) {
-                        if (_.sum(creep.carry) === creep.carryCapacity) {
-                            break
-                        }
-                        activities.withdrawResourceFromTarget(creep, container, storedResource, amount)
-                    }
+                if (!container || criterias.creepIsFull(creep)) {
+                    console.log(`Creep ${creep.name} is full or no container. Going to next task.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                    return
                 }
+
+                for (const storedResource in container.store) {
+                    if (_.sum(creep.carry) === creep.carryCapacity) {
+                        break
+                    }
+                    activities.withdrawResourceFromTarget(creep, container, storedResource, amount)
+                }
+                conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
             }
         },
         CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM: {
@@ -176,14 +177,14 @@ module.exports = {
                         return _.sum(b.store) - _.sum(a.store)
                     })[0]
 
-                if (!container) {
-                    const flag = Game.flags[`${roomName}_RALLY`]
-                    activities.goToTarget(creep, flag)
-                } else {
-                    activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
-                    if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
-                        conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                    }
+                if (!container || criterias.creepIsFull(creep)) {
+                    console.log(`Creep ${creep.name} is full or no container. Going to next task.`)
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                    return
+                }
+                activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
+                if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
         },
@@ -203,11 +204,8 @@ module.exports = {
                         }
                     )[0]
 
-                if (!storage && creep.energy === 0) {
-                    const flag = Game.flags[`${roomName}_RALLY`]
-                    activities.goToTarget(creep, flag)
-                }
-                else if (!storage) {
+                if (!storage || criterias.creepIsFull(creep)) {
+                    console.log(`Creep ${creep.name} is full or no storage in room ${roomName}. Going to next task.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
                 else {
@@ -231,9 +229,9 @@ module.exports = {
                 )[0]
 
                 // no target is job done
-                if (!storage) {
-                    const flag = Game.flags[`${room.name}_RALLY`]
-                    activities.goToTarget(creep, flag)
+                if (!storage || criterias.creepIsEmpty(creep)) {
+                    console.log(`Creep ${creep.name} is empty or no storage. Going to next task.`)
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
                 else {
                     Object.keys(creep.carry).forEach(resourceType => {
@@ -384,8 +382,7 @@ module.exports = {
                         }
                     ).sort((a, b) => a.energy - b.energy)[0]
 
-                    if (!tower) {
-                        // job done, next.
+                    if (!tower || criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
                     else {
@@ -426,8 +423,8 @@ module.exports = {
                 const range = currentTaskTicket.taskParams.range
                 const targetPosParams = currentTaskTicket.taskParams.targetPosParams
                 const targetPos = new RoomPosition(targetPosParams.x, targetPosParams.y, targetPosParams.roomName)
-                activities.goToTarget(creep,targetPos)
-                if (criterias.creepIsInRangeOfTarget(creep, targetPos, range)){
+                activities.goToTarget(creep, targetPos)
+                if (criterias.creepIsInRangeOfTarget(creep, targetPos, range)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
@@ -482,6 +479,26 @@ module.exports = {
                     if (activities.pickupDroppedResource(creep, droppedResource)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
                     }
+                }
+            }
+        },
+        GUARD_ROOM:{
+            name: "GUARD_ROOM",
+            taskFunc: (creep) => {
+                const taskTicket = getCurrentTaskTicket(creep)
+                const roomName = taskTicket.taskParams.roomName
+                const room = Game.rooms[roomName]
+
+                if (!room){
+                    const rallyFlag = generalUtils.getRoomRallyFlag(roomName)
+                    activities.goToTarget(rallyFlag)
+                    return
+                }
+
+                const hostiles = generalUtils.findHostiles(room)
+
+                if (hostiles.length > 0){
+                    activities.attackTarget(creep, hostiles[0])
                 }
             }
         }

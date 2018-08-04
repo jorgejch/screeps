@@ -2,6 +2,19 @@ function moveCreepTo(creep, destination) {
     creep.moveTo(destination, {visualizePathStyle: {}})
 }
 
+function placeRoadIfNeeded(creep) {
+    const roads = creep.pos.lookFor(LOOK_STRUCTURES).filter(struct => struct.structureType === STRUCTURE_ROAD)
+
+    if (roads.length === 0) {
+        const roadCSs = creep.pos.lookFor(LOOK_CONSTRUCTION_SITES).filter(cs => cs.structureType === STRUCTURE_ROAD)
+
+        if (roadCSs.length === 0 && Object.keys(Game.constructionSites).length < 98)  {
+            const room = creep.room
+            room.createConstructionSite(creep.pos, STRUCTURE_ROAD)
+        }
+    }
+}
+
 module.exports = {
     harvestEnergyFromSource: function (creep, source, inPlace = false) {
         const res = creep.harvest(source)
@@ -10,12 +23,8 @@ module.exports = {
             case OK:
                 break;
             case ERR_NOT_IN_RANGE:
-                if (!inPlace) {
-                    moveCreepTo(creep, source)
-                }
-                else {
-                    console.log(`Source ${source.id}`)
-                }
+                moveCreepTo(creep, source)
+                placeRoadIfNeeded(creep)
                 break;
             default:
                 console.log(`Creep ${creep.name} unable to harvest source id ${source.id} due to err # ${res}`)
@@ -55,6 +64,7 @@ module.exports = {
                 break
             case ERR_NOT_IN_RANGE:
                 moveCreepTo(creep, target)
+                placeRoadIfNeeded(creep)
                 break
             default:
                 console.log(`Unable to transfer ${resourceType} ` +
@@ -108,6 +118,7 @@ module.exports = {
                 break
             case ERR_NOT_IN_RANGE:
                 moveCreepTo(creep, controller)
+                placeRoadIfNeeded(creep)
                 break
             default:
                 console.log(`Unable to upgrade rooms ${controller.room.name} due to err # ${res}`)
@@ -177,8 +188,20 @@ module.exports = {
                 break
             default:
                 console.log(`Unable to pickup resource id ${resource.id} due to err # ${res}`)
-
         }
         return false
+    },
+    attackTarget: function (creep, target) {
+        const res = creep.attack(target)
+
+        switch (res) {
+            case OK:
+                return true
+            case ERR_NOT_IN_RANGE:
+                moveCreepTo(creep, target)
+                break
+            default:
+                console.log(`Creep ${creep.name} is unable to attack target due to err # ${res}`)
+        }
     }
 }

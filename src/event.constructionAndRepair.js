@@ -6,8 +6,8 @@ module.exports = {
         const visual = new RoomVisual(flag.room.name)
         const targetRoom = flag.room
         const ownerRoomName = flag.name
-        if (processUtils.checkRoomExistsAndItsMine(ownerRoomName)) {
-            visual.text(`Room ${ownerRoomName} doesn't exist or it's not mine.`, flag.pos)
+        if (!processUtils.checkRoomExists(ownerRoomName)) {
+            visual.text(`Room ${ownerRoomName} doesn't exist.`, flag.pos)
             return
         }
         const label = `construction_manager_of_room_${targetRoom.name}`

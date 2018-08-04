@@ -68,8 +68,8 @@ module.exports = {
             taskFunc(this.creep)
         }
 
-        dieAfterCreep() {
-            this.data.dieAfterCreep = true
+        set dieAfterCreep(val) {
+            this.data.dieAfterCreep = val
         }
 
         isDieAfterCreep(){

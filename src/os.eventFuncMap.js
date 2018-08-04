@@ -11,5 +11,6 @@ module.exports = {
     "4_1" /*CYAN_RED*/   : controller.upgradeControllerUnderFlagFromOwnRoom,
     "4_2" /*CYAN_PURPLE*/   : controller.reserveControllerUnderFlag,
     "5_1" /*GREEN_RED*/  : constructionAnbRepair.constructRemoteRoomUnderFlag,
-    "6_1" /*YELLOW_RED*/ : foreignRelations.sendScoutToFlagPosition
+    "6_1" /*YELLOW_RED*/ : foreignRelations.sendScoutToFlagPosition,
+    "6_2" /*YELLOW_PURPLE*/ : foreignRelations.guardRoomUnderFlag
 }
