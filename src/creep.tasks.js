@@ -407,18 +407,18 @@ module.exports = {
                 const container = source.pos.findInRange(FIND_STRUCTURES, 1)
                     .filter(struct => struct.structureType === STRUCTURE_CONTAINER)[0]
 
-                let target
 
                 if (container) {
-                    target =  container
+                    activities.goToTarget(creep, container)
+                    if (criterias.creepIsOnTarget(creep, container)) {
+                        conclusions.performNextTask(creep)
+                    }
                 }
                 else {
-                    target = source
-                }
-
-                activities.goToTarget(creep, target)
-                if (criterias.creepIsAtTarget(creep, target, 1)) {
-                    conclusions.performNextTask(creep)
+                    activities.goToTarget(creep, source)
+                    if (criterias.creepIsAtTarget(creep, source, 1)) {
+                        conclusions.performNextTask(creep)
+                    }
                 }
                 activities.placeRoadIfNeeded(creep)
             }
@@ -478,7 +478,8 @@ module.exports = {
                     .sort((a, b) => (b.amount - 10 * creep.pos.getRangeTo(b)
                         - (a.amount - 10 * creep.pos.getRangeTo(a))))[0]
 
-                if (!droppedResource || _.sum(creep.carry) === creep.carryCapacity) {
+                if (!droppedResource || criterias.creepIsFull(creep)) {
+
                     // done, next.
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
                 }
