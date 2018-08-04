@@ -3,11 +3,6 @@ const conclusions = require('creep.conclusions')
 const criterias = require('creep.criterias')
 const activities = require('creep.activities')
 
-
-function findCheapestPath(origin, possibleDestinations) {
-    return PathFinder.search(origin, possibleDestinations)
-}
-
 function getCurrentTaskTicket(creep) {
     return creep.memory.currentTaskTicket
 }
@@ -44,6 +39,7 @@ module.exports = {
                     if (criterias.creepIsFull(creep)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
+                    activities.placeRoadIfNeeded(creep)
                 } else {
                     const flag = Game.flags[`${roomName}_RALLY`]
                     activities.goToTarget(creep, flag)
@@ -68,6 +64,7 @@ module.exports = {
                     if (criterias.creepIsFull(creep)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
+                    activities.placeRoadIfNeeded(creep)
                 }
             }
         },
@@ -106,6 +103,7 @@ module.exports = {
                 if (criterias.creepResourceIsNotEmpty(creep, RESOURCE_ENERGY)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
+                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM: {
@@ -131,6 +129,7 @@ module.exports = {
                 if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
+                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_ALL_FROM_FULLEST_CONTAINER_IN_ROOM: {
@@ -160,6 +159,7 @@ module.exports = {
                     activities.withdrawResourceFromTarget(creep, container, storedResource, amount)
                 }
                 conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM: {
@@ -186,6 +186,7 @@ module.exports = {
                 if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
+                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_FROM_ROOM_STORAGE: {
@@ -213,6 +214,7 @@ module.exports = {
                     if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
+                    activities.placeRoadIfNeeded(creep)
                 }
             }
         },
@@ -270,6 +272,7 @@ module.exports = {
                     }
                     else {
                         activities.transferResourceTypeToTarget(creep, target, RESOURCE_ENERGY)
+                        activities.placeRoadIfNeeded(creep)
                     }
                 }
         },
@@ -290,6 +293,7 @@ module.exports = {
                     if (criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
+                    activities.placeRoadIfNeeded(creep)
                 }
         },
         CYCLIC_BUILD_ROOM: {
@@ -390,6 +394,7 @@ module.exports = {
                         if (criterias.targetIsFull(creep, tower, RESOURCE_ENERGY) || criterias.creepIsEmpty(creep)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                         }
+                        activities.placeRoadIfNeeded(creep)
                     }
                 }
         },
@@ -402,18 +407,20 @@ module.exports = {
                 const container = source.pos.findInRange(FIND_STRUCTURES, 1)
                     .filter(struct => struct.structureType === STRUCTURE_CONTAINER)[0]
 
+                let target
+
                 if (container) {
-                    activities.goToTarget(creep, container)
-                    if (criterias.creepIsOnTarget(creep, container)) {
-                        conclusions.performNextTask(creep)
-                    }
+                    target =  container
                 }
                 else {
-                    activities.goToTarget(creep, source)
-                    if (criterias.creepIsAtTarget(creep, source, 1)) {
-                        conclusions.performNextTask(creep)
-                    }
+                    target = source
                 }
+
+                activities.goToTarget(creep, target)
+                if (criterias.creepIsAtTarget(creep, target, 1)) {
+                    conclusions.performNextTask(creep)
+                }
+                activities.placeRoadIfNeeded(creep)
             }
         },
         GO_CLOSE_TO_TARGET: {

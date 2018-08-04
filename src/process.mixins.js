@@ -104,7 +104,7 @@ module.exports = {
         resolveLevelForRole(role, currentLevel) {
             if (this._getRoleLastLevel(role) < currentLevel) {
                 console.log(`Next ${role} order placed by ${this.label} will be at new level ${currentLevel}.`)
-                // no creep shall be made, a new age has arrived
+                // a new age has arrived, old processes produced their last creeps
                 this.setAllRoleProcessesToDieAfterCreep(role)
             }
         }
