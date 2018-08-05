@@ -22,18 +22,6 @@ module.exports = {
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,             // 600
         WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                // 1100
     ],
-    COMMUTER_WORKER_1: [MOVE, CARRY, WORK],                                                         // Total: 200
-    COMMUTER_WORKER_2: [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, WORK],            // Total: 550
-    COMMUTER_WORKER_3: [                                                                            // Total: 950
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        CARRY, CARRY, CARRY, CARRY, CARRY,
-        WORK, WORK, WORK
-    ],
-    COMMUTER_WORKER_4: [                                                                            // Total: 1250
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        CARRY, CARRY, CARRY, CARRY, CARRY,
-        WORK, WORK, WORK, WORK, WORK
-    ],
     FREIGHTER_2: [                                                                                  // Total: 550
         MOVE, MOVE, MOVE, MOVE,                                                                         // 200
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                                                // 350
