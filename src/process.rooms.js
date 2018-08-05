@@ -5,7 +5,8 @@ const tasks = require("creep.tasks");
 const processUtils = require('util.process')
 const config = require("config")
 const mixins = require("process.mixins")
-const generalUtils = require("./util.general");
+const generalUtils = require("util.general");
+const obtainEnergyOptions = require("util.obtainEnergyOptions")
 
 module.exports = {
     ConstructionManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
@@ -19,13 +20,29 @@ module.exports = {
 
         run() {
             const role = "builder"
+            this.setAllRoleProcessesToDieAfterCreep(role)
             this.cleanRoleDeadProcesses(role)
             const targetRoomConstructionSites = Object.values(Game.constructionSites)
                 .filter(cs => cs.pos.roomName === this.targetRoomName)
 
             if (targetRoomConstructionSites.length > 0) {
-                const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
-                const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, this.ownerRoomName)
+                const ownerRoomSourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
+                const targetRoomSourceOption = processUtils.determineEnergyObtentionMethod(this.targetRoom)
+                let sourceOption, sourceRoomName
+
+                // rather than harvest on the target leech from owner
+                if (
+                    targetRoomSourceOption === obtainEnergyOptions.HARVEST
+                    && ownerRoomSourceOption !== obtainEnergyOptions.HARVEST
+                ) {
+                    sourceOption = ownerRoomSourceOption
+                    sourceRoomName = this.ownerRoomName
+                } else {
+                    sourceOption = targetRoomSourceOption
+                    sourceRoomName = this.targetRoomName
+                }
+
+                const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 let bodyType, currentLevel, numOfBuilders
 
@@ -227,15 +244,15 @@ module.exports = {
             }
         }
     },
-    GuardManager: class extends mixins.ActivityDirectorProcess(BaseProcess){
-        run(){
+    GuardManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
+        run() {
             const guardRole = "guard"
             const scoutRole = "scout"
             this.cleanRoleDeadProcesses(guardRole)
             this.cleanRoleDeadProcesses(scoutRole)
 
             // send scout if target room is not visible
-            if (!Game.rooms[this.targetRoomName]){
+            if (!Game.rooms[this.targetRoomName]) {
                 const rallyFlag = generalUtils.getRoomRallyFlag(this.targetRoomName)
                 const scoutBodyType = "SCOUT_1"
 
@@ -246,7 +263,7 @@ module.exports = {
                     0,
                     [new tasks.TaskTicket(
                         tasks.tasks.GO_CLOSE_TO_TARGET.name,
-                        {range: 1, targetPosParams:rallyFlag.pos}
+                        {range: 1, targetPosParams: rallyFlag.pos}
                     )],
                     this.targetRoomName,
                     1
@@ -258,8 +275,7 @@ module.exports = {
 
             const hostiles = generalUtils.findHostiles(this.targetRoom)
             // send guard if hostile in room
-            if (hostiles.length > 0){
-                console.log(`DEBUG !!!! these are my hostiles ${JSON.stringify(hostiles)}`)
+            if (hostiles.length > 0) {
                 const guardBodyType = "ATTACKER_3"
 
                 this.resolveRoleProcessesQuantity(
@@ -313,19 +329,35 @@ module.exports = {
             return Object.keys(this.towersIdsToProcessLabels)
         }
 
+        _processNextCreepOrder(spawn) {
+            const order = this.orderBook.sort((a, b) => a.priority - b.priority)[0]
+            if (order) {
+                creepSpawner.executeOrder(order, spawn, this.orderBook)
+            }
+        }
+
+        _printStats() {
+            const idnt = "    "
+            let message = `\n*** ${this.roomName} Stats ***\n${idnt}spawns and exts energy avail/capacity:`
+                + ` ${this.room.energyAvailable}/${this.room.energyCapacityAvailable}\n`
+
+            if (processUtils.checkStorageExists(this.room)) {
+                const storage = this.room.find(FIND_STRUCTURES).filter(s => s.structureType === STRUCTURE_STORAGE)[0]
+                message = message + `${idnt}storage total consumed/capacity: `
+                    + `${_.sum(storage.store)}/${storage.storeCapacity}\n`
+                Object.keys(storage.store).forEach(resourceKey => {
+                    message = message + `${idnt}${idnt}${resourceKey} amount: ${storage.store[resourceKey]}\n`
+                })
+            }
+            console.log(message)
+        }
+
         addOrderForCreep(order) {
             creepSpawner.addOrderForCreepInOrderBook(order, this.orderBook)
         }
 
         isOrderForCreepNameInOrderBook(creepName) {
             return !!this.orderBook.find(order => order.name === creepName)
-        }
-
-        _processNextCreepOrder(spawn) {
-            const order = this.orderBook.sort((a, b) => a.priority - b.priority)[0]
-            if (order) {
-                creepSpawner.executeOrder(order, spawn, this.orderBook)
-            }
         }
 
         run() {
@@ -393,6 +425,8 @@ module.exports = {
                     process.targetRoomName = this.roomName
                 }
             }
+
+            this._printStats()
         }
     },
     TowerManager: class extends BaseProcess {
