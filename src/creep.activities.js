@@ -65,7 +65,7 @@ module.exports = {
                 break
             default:
                 console.log(`Creep ${creep.name} is unable to go to target id ${JSON.stringify(target)} `
-                    + `due to err # ${res}`)
+                    + `due to err # ${res}.`)
         }
     },
     followPath: function (creep, path) {
@@ -133,21 +133,9 @@ module.exports = {
                 moveCreepTo(creep, target)
                 break
             default:
-                console.log(`Unable to repair structure id ${target.id}` +
-                    `on room ${target.room.name} due to err # ${res}`)
+                console.log(`Creep ${creep.name} is unable to repair structure id ${target.id}` +
+                    `on room ${creep.pos.roomName} due to err # ${res}`)
         }
-    },
-    setAssignedTargetContainer: function (creep, containerId) {
-        creep.memory.assignedTargetContainerId = containerId
-    },
-    setAssignedSourceContainer: function (creep, containerId) {
-        creep.memory.assignedSourceContainerId = containerId
-    },
-    storeTargetId: function (creep, targetId) {
-        creep.memory.storedTargetId = targetId
-    },
-    removeAnyStoredTarget: function (creep) {
-        delete creep.memory.storedTargetId
     },
     reserveRoomController: function (creep, controller) {
         const res = creep.reserveController(controller)
@@ -190,14 +178,14 @@ module.exports = {
         }
     },
     placeRoadIfNeeded: function(creep)  {
-        const roads = creep.pos.lookFor(LOOK_STRUCTURES).filter(struct => struct.structureType === STRUCTURE_ROAD)
+        const pos = creep.pos
+        const roads = pos.lookFor(LOOK_STRUCTURES).filter(struct => struct.structureType === STRUCTURE_ROAD)
 
         if (roads.length === 0) {
-            const roadCSs = creep.pos.lookFor(LOOK_CONSTRUCTION_SITES).filter(cs => cs.structureType === STRUCTURE_ROAD)
+            const roadCSs = pos.lookFor(LOOK_CONSTRUCTION_SITES).filter(cs => cs.structureType === STRUCTURE_ROAD)
 
-            if (roadCSs.length === 0 && Object.keys(Game.constructionSites).length < 98) {
-                const room = creep.room
-                room.createConstructionSite(creep.pos, STRUCTURE_ROAD)
+            if (roadCSs.length === 0 && Object.keys(Game.constructionSites).length < 98 /* 2 reserved for manual */) {
+                pos.createConstructionSite(STRUCTURE_ROAD)
             }
         }
     }
