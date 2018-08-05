@@ -365,7 +365,9 @@ module.exports = {
 
                     // rally if no target
                     if (!target) {
-                        const flag = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
+                        const flag = Game.flags[`${room.name}_RALLY`]
+                            ? Game.flags[`${room.name}_RALLY`]
+                            : room.controller
                         activities.goToTarget(creep, flag)
                     }
                     else {
