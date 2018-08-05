@@ -20,7 +20,6 @@ module.exports = {
 
         run() {
             const role = "builder"
-            this.setAllRoleProcessesToDieAfterCreep(role)
             this.cleanRoleDeadProcesses(role)
             const targetRoomConstructionSites = Object.values(Game.constructionSites)
                 .filter(cs => cs.pos.roomName === this.targetRoomName)
