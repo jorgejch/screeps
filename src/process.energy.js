@@ -2,7 +2,6 @@ const BaseProcess = require("process.base")
 const tasks = require("creep.tasks")
 const energyCapacityLevels = require("util.energyCapacityLevels")
 const mixins = require("process.mixins")
-const generalUtils = require("util.general")
 const processUtils = require("util.process")
 
 module.exports = {
@@ -67,7 +66,7 @@ module.exports = {
                         {roomName: this.ownerRoomName}
                     )]
             }
-            else if (roomEnergyCapacity < energyCapacityLevels.LEVEL_3) {
+            else if (!processUtils.checkStorageExists(this.ownerRoom)) {
                 harvesterCurrentLevel = 2
                 this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
                 // at this level creeps source from the resource pile or container
@@ -84,12 +83,39 @@ module.exports = {
                     ),
                 ]
             }
-            else if (processUtils.checkStorageExists(this.ownerRoom)) {
+            else  {
                 harvesterCurrentLevel = 3
-                this.resolveLevelForRole(freighterRole, harvesterCurrentLevel)
                 this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
-                reqNumOfFreighters = this.isLocal() ? 1 : 3
-                freighterBodyType = "FREIGHTER_3"
+                reqNumOfHarvesters = 1
+                harvesterBodyType = "STATIONARY_WORKER_3"
+                harvesterPriority = 2
+                harvesterInitialTaskTicketQueue = [
+                    new tasks.TaskTicket(
+                        tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
+                    ),
+                    new tasks.TaskTicket(
+                        tasks.tasks.HARVEST_SOURCE.name, {sourceId: this.sourceId}
+                    ),
+                ]
+
+                if (roomEnergyCapacity < energyCapacityLevels.LEVEL_4 || this.isLocal()){
+                    freighterCurrentLevel = 3
+                    freighterBodyType = "FREIGHTER_3"
+                    reqNumOfFreighters = this.isLocal() ? 1 : 3
+                }
+                else if(roomEnergyCapacity < energyCapacityLevels.LEVEL_5 ){
+                    freighterCurrentLevel = 4
+                    freighterBodyType = "FREIGHTER_4"
+                    reqNumOfFreighters = 2
+
+                }
+                else {
+                    freighterCurrentLevel = 5
+                    freighterBodyType = "FREIGHTER_5"
+                    reqNumOfFreighters = 1
+                }
+
+                this.resolveLevelForRole(freighterRole, freighterCurrentLevel)
                 freighterPriority = 3
                 freighterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
@@ -102,20 +128,6 @@ module.exports = {
                         tasks.tasks.CYCLIC_TRANSFER_ALL_RESOURCES_TO_ROOM_STORAGE.name,
                         {roomName: this.ownerRoomName}
                     )]
-                reqNumOfHarvesters = 1
-                harvesterBodyType = "STATIONARY_WORKER_3"
-                harvesterPriority = 2
-                harvesterInitialTaskTicketQueue = [
-                    new tasks.TaskTicket(
-                        tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
-                    ),
-                    new tasks.TaskTicket(
-                        tasks.tasks.HARVEST_SOURCE.name, {sourceId: this.sourceId}
-                    ),
-                ]
-            }
-            else{
-                throw `Could not resolve source harvest.`
             }
 
             this.resolveRoleProcessesQuantity(
@@ -140,21 +152,22 @@ module.exports = {
         }
     },
     RoomReservationManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
-        set controllerPositionProps(pos){
+        set controllerPositionProps(pos) {
             this.data.controllerPositionProps = pos
         }
-        get controllerPosition(){
+
+        get controllerPosition() {
             const posProps = this.data.controllerPositionProps
             return new RoomPosition(posProps.x, posProps.y, posProps.roomName)
         }
 
-        run(){
+        run() {
             const role = "reserver"
             const ownerRoomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
             let currentLevel, bodyType
 
             this.cleanRoleDeadProcesses(role)
-            if (ownerRoomEnergyCapacity < energyCapacityLevels.LEVEL_4){
+            if (ownerRoomEnergyCapacity < energyCapacityLevels.LEVEL_4) {
                 currentLevel = 1
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "CLAIMER_3"
@@ -169,7 +182,7 @@ module.exports = {
                 role,
                 1,
                 bodyType,
-                15,
+                100,
                 [
                     new tasks.TaskTicket(
                         tasks.tasks.GO_CLOSE_TO_TARGET.name,
