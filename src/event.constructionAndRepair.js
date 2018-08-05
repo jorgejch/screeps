@@ -10,7 +10,7 @@ module.exports = {
             visual.text(`Room ${ownerRoomName} doesn't exist.`, flag.pos)
             return
         }
-        const label = `construction_manager_of_room_${targetRoom.name}`
+        const label = `construction_manager_of_room_${targetRoom.name}_from_${ownerRoomName}`
         if (Kernel.getProcessByLabel(label)) {
             visual.text(`Process to construct room ${targetRoom.name} already exists.`, flag.pos)
             return
