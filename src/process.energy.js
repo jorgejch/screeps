@@ -106,12 +106,17 @@ module.exports = {
                 else if(roomEnergyCapacity < energyCapacityLevels.LEVEL_5 ){
                     freighterCurrentLevel = 4
                     freighterBodyType = "FREIGHTER_4"
-                    reqNumOfFreighters = 2
+                    reqNumOfFreighters = 3
 
                 }
-                else {
+                else if(roomEnergyCapacity < energyCapacityLevels.LEVEL_6 ){
                     freighterCurrentLevel = 5
                     freighterBodyType = "FREIGHTER_5"
+                    reqNumOfFreighters = 2
+                }
+                else {
+                    freighterCurrentLevel = 6
+                    freighterBodyType = "FREIGHTER_6"
                     reqNumOfFreighters = 1
                 }
 
@@ -147,7 +152,7 @@ module.exports = {
                 freighterPriority,
                 freighterInitialTaskTicketQueue,
                 this.sourceId,
-                harvesterCurrentLevel
+                freighterCurrentLevel
             )
         }
     },
