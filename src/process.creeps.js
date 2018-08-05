@@ -72,21 +72,28 @@ module.exports = {
             this.data.dieAfterCreep = val
         }
 
-        isDieAfterCreep(){
+        isDieAfterCreep() {
             return this.data.dieAfterCreep
         }
 
-        set creepBorn(bl){
+        set creepBorn(bl) {
             this.data.creepBorn = bl
         }
 
-        isCreepBorn(){
+        isCreepBorn() {
             return this.data.creepBorn
+        }
+
+        die() {
+            if (this.creep) {
+                this.creep.suicide()
+            }
+            super.die()
         }
 
         run() {
             if (this.creep) {
-                if (!this.creep.spawning){
+                if (!this.creep.spawning) {
                     this.creepBorn = true
 
                     try {
@@ -97,7 +104,7 @@ module.exports = {
                     }
                 }
             }
-            else if(this.isDieAfterCreep() && this.isCreepBorn()){
+            else if (this.isDieAfterCreep() && this.isCreepBorn()) {
                 this.die()
             }
             else {
