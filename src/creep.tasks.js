@@ -80,6 +80,21 @@ module.exports = {
                 if (!source) {
                     throw(`Invalid source id ${currentTaskTicket.taskParams.sourceId}`)
                 }
+
+                const containers = creep.pos
+                    .lookFor(LOOK_STRUCTURES)
+                    .filter(s => s.structureType === STRUCTURE_CONTAINER)
+
+                // repair container under if below min hits threshold and creep able
+                if (
+                    containers.length === 1
+                    && containers[0].hits < 50000 // 1000 ticks of decay min
+                    && creep.carry[RESOURCE_ENERGY] > 0
+                ) {
+                    activities.repairTargetStructure(creep, containers[0])
+                    return
+                }
+
                 activities.harvestEnergyFromSource(creep, source)
             }
         },
@@ -423,6 +438,13 @@ module.exports = {
                 activities.placeRoadIfNeeded(creep)
             }
         },
+        CYCLIC_GO_CLOSE_TO_TARGET: {
+            name: "CYCLIC_GO_CLOSE_TO_TARGET",
+            taskFunc: (creep) => {
+                const currentTaskTicket = getCurrentTaskTicket(creep)
+                currentTaskTicket.taskName = "GO_CLOSE_TO_TARGET"
+            }
+        },
         GO_CLOSE_TO_TARGET: {
             name: "GO_CLOSE_TO_TARGET",
             taskFunc: (creep) => {
@@ -432,7 +454,7 @@ module.exports = {
                 const targetPos = new RoomPosition(targetPosParams.x, targetPosParams.y, targetPosParams.roomName)
                 activities.goToTarget(creep, targetPos)
                 if (criterias.creepIsInRangeOfTarget(creep, targetPos, range)) {
-                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
+                    conclusions.performNextTask(creep)
                 }
             }
         },
@@ -490,14 +512,14 @@ module.exports = {
                 }
             }
         },
-        GUARD_ROOM:{
+        GUARD_ROOM: {
             name: "GUARD_ROOM",
             taskFunc: (creep) => {
                 const taskTicket = getCurrentTaskTicket(creep)
                 const roomName = taskTicket.taskParams.roomName
                 const room = Game.rooms[roomName]
 
-                if (!room){
+                if (!room) {
                     const rallyFlag = generalUtils.getRoomRallyFlag(roomName)
                     activities.goToTarget(rallyFlag)
                     return
@@ -505,7 +527,7 @@ module.exports = {
 
                 const hostiles = generalUtils.findHostiles(room)
 
-                if (hostiles.length > 0){
+                if (hostiles.length > 0) {
                     activities.attackTarget(creep, hostiles[0])
                 }
             }
