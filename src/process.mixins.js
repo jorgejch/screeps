@@ -4,10 +4,10 @@ const generalUtils = require("util.general")
 module.exports = {
     ActivityDirectorProcess: Base => class extends Base {
         /* Required */
+        // responsibility for spawning is always the owner room's
         set ownerRoomName(name) {
             this.data.ownerRoomName = name
         }
-
         set targetRoomName(name){
             this.data.targetRoomName = name
         }
@@ -42,6 +42,10 @@ module.exports = {
         }
 
         _setRoleLastLevel(level, role) {
+            if (!this.data.lastLevel) {
+                this.data.lastLevel = {}
+            }
+
             this.data.lastLevel[role] = level
         }
 
