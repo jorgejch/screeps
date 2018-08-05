@@ -39,7 +39,6 @@ module.exports = {
                     if (criterias.creepIsFull(creep)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
-                    activities.placeRoadIfNeeded(creep)
                 } else {
                     const flag = Game.flags[`${roomName}_RALLY`]
                     activities.goToTarget(creep, flag)
@@ -64,7 +63,6 @@ module.exports = {
                     if (criterias.creepIsFull(creep)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
-                    activities.placeRoadIfNeeded(creep)
                 }
             }
         },
@@ -118,7 +116,6 @@ module.exports = {
                 if (criterias.creepResourceIsNotEmpty(creep, RESOURCE_ENERGY)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
-                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM: {
@@ -144,7 +141,6 @@ module.exports = {
                 if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
-                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_ALL_FROM_FULLEST_CONTAINER_IN_ROOM: {
@@ -174,7 +170,6 @@ module.exports = {
                     activities.withdrawResourceFromTarget(creep, container, storedResource, amount)
                 }
                 conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM: {
@@ -201,7 +196,6 @@ module.exports = {
                 if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
-                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_LEECH_FROM_ROOM_STORAGE: {
@@ -229,7 +223,6 @@ module.exports = {
                     if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
-                    activities.placeRoadIfNeeded(creep)
                 }
             }
         },
@@ -287,7 +280,6 @@ module.exports = {
                     }
                     else {
                         activities.transferResourceTypeToTarget(creep, target, RESOURCE_ENERGY)
-                        activities.placeRoadIfNeeded(creep)
                     }
                 }
         },
@@ -308,7 +300,6 @@ module.exports = {
                     if (criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
-                    activities.placeRoadIfNeeded(creep)
                 }
         },
         CYCLIC_BUILD_ROOM: {
@@ -409,7 +400,6 @@ module.exports = {
                         if (criterias.targetIsFull(creep, tower, RESOURCE_ENERGY) || criterias.creepIsEmpty(creep)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                         }
-                        activities.placeRoadIfNeeded(creep)
                     }
                 }
         },
@@ -435,7 +425,6 @@ module.exports = {
                         conclusions.performNextTask(creep)
                     }
                 }
-                activities.placeRoadIfNeeded(creep)
             }
         },
         CYCLIC_GO_CLOSE_TO_TARGET: {
