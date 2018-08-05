@@ -59,18 +59,16 @@ module.exports = {
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
     ],
-    STATIONARY_WORKER_2: [                                                                          // Total: 550
-        MOVE, WORK, WORK, WORK, WORK, WORK
+    STATIONARY_WORKER_2: [                                                                          // Total: 500
+        MOVE, CARRY, WORK, WORK, WORK, WORK
     ],
-    STATIONARY_WORKER_3: [                                                                          // Total: 700
-        MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK,
+    STATIONARY_WORKER_3: [                                                                          // Total: 750
+        MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK, WORK, WORK,
     ],
-    STATIONARY_WORKER_4: [                                                                          // Total: 1300
+    STATIONARY_WORKER_4: [                                                                          // Total: 1250
+        CARRY,                                                                                          // 50
         MOVE, MOVE, MOVE, MOVE,                                                                         // 200
-        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                // 1100
-    ],
-    FARREACH_STATIONARY_WORKER_3: [                                                                 // Total: 1000
-        MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK
+        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                // 1000
     ],
     CLAIMER_3: [                                                                                    // Total: 650
         MOVE, CLAIM
