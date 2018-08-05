@@ -44,10 +44,10 @@ module.exports = class OSKernel {
         this.availableProcessClasses.FeedManager = rooms.FeedManager
         this.availableProcessClasses.RoomReservationManager = energy.RoomReservationManager
         this.availableProcessClasses.GuardManager = rooms.GuardManager
+        this.availableProcessClasses.RepairManager = rooms.RepairManager
     }
 
     _loadProcessTableFromMemory() {
-        // console.log(`DEBUG Loading processes from memory`)
         this.rawProcessTable.forEach(rawProcess => {
             let processClass
             try{
@@ -66,7 +66,6 @@ module.exports = class OSKernel {
     }
 
     _saveProcessTableToMemory() {
-        // console.log(`DEBUG Saving processes from memory`)
         this.rawProcessTable.length = 0  // reset
         Object.keys(this.processTable).forEach(pid => {
                 const process = this.processTable[pid]
@@ -94,7 +93,6 @@ module.exports = class OSKernel {
     }
 
     init() {
-        // console.log(`DEBUG Initializing kernel`)
         this._loadProcessTableFromMemory()
         // able to add jobs after setting process table on scheduler
         this.scheduler.setProcessTable(this.processTable)
@@ -106,14 +104,13 @@ module.exports = class OSKernel {
     }
 
     run() {
-        console.log(`DEBUG at beginning of kernel run`)
         // order processes to run
         this.scheduler.init()
 
         let proc
         while (proc = this.scheduler.nextProcessToRun()) {
             try {
-                console.log(`DEBUG Running process ${proc.label}.`)
+                // console.log(`DEBUG Running process ${proc.label}.`)
                 proc.run()
             }
             catch (ex){
@@ -123,6 +120,5 @@ module.exports = class OSKernel {
 
         this._saveProcessTableToMemory()
 
-        console.log(`DEBUG at end of kernel run`)
     }
 }
