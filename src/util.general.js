@@ -18,9 +18,8 @@ module.exports = {
         return Game.flags[`${roomName}_RALLY`]
     },
     findHostiles: (room) => {
-        return room.find(FIND_HOSTILE_CREEPS).filter(creep => {
-            return creep.body.indexOf("attack") >= 0 || creep.body.indexOf("ranged_attack") >= 0;
-        })
+        // TODO: write a better function that searches for attack and ranged attack body parts
+        return room.find(FIND_HOSTILE_CREEPS)
     },
     capitalize: (word) => {
         return word.charAt(0).toUpperCase() + word.slice(1);
