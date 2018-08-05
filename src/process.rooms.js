@@ -475,10 +475,6 @@ module.exports = {
                                 else if (struct.structureType === STRUCTURE_RAMPART) {
                                     return struct.hits < config.MAX_RAMPART_HITS_LIMIT
                                 }
-                                // stop repairing roads so that they exist based on demand
-                                else if (struct.structureType === STRUCTURE_ROAD) {
-                                    return false
-                                }
                                 else {
                                     return true
                                 }
