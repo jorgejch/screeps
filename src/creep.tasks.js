@@ -48,7 +48,6 @@ module.exports = {
         CYCLIC_HARVEST_SOURCE: {
             name: "CYCLIC_HARVEST_SOURCE",
             /**
-             *
              * @param creep Creep performing the task
              */
             taskFunc: (creep) => {
@@ -57,7 +56,8 @@ module.exports = {
                 const source = Game.getObjectById(sourceId)
 
                 if (!source) {
-                    throw `Invalid source id ${sourceId}.`
+                    throw `Creep ${creep.name} does not have visibility into target harvest `
+                    + `room or invalid source id ${sourceId}.`
                 } else {
                     activities.harvestEnergyFromSource(creep, source)
                     if (criterias.creepIsFull(creep)) {
@@ -487,20 +487,16 @@ module.exports = {
                                 && creep.carryCapacity - _.sum(creep.carry) >= 3 * estimatedCostToResource
                         }
                     )
-                    // we go for the bigger first but distance weights in.
-                    .sort((a, b) => (b.amount - 10 * creep.pos.getRangeTo(b)
-                        - (a.amount - 10 * creep.pos.getRangeTo(a))))[0]
+                    // want very big and near first
+                    .sort((a, b) => (b.amount / creep.pos.getRangeTo(b)
+                        - (a.amount / creep.pos.getRangeTo(a))))[0]
 
-                if (!droppedResource || criterias.creepIsFull(creep)) {
-
+                if (droppedResource.length === 0 || criterias.creepIsFull(creep)) {
                     // done, next.
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
+                    return;
                 }
-                else {
-                    if (activities.pickupDroppedResource(creep, droppedResource)) {
-                        conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
-                    }
-                }
+                activities.pickupDroppedResource(creep, droppedResource)
             }
         },
         GUARD_ROOM: {
