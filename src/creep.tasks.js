@@ -471,8 +471,7 @@ module.exports = {
                 const taskTicket = getCurrentTaskTicket(creep)
                 const room = generalUtils.getRoom(taskTicket.taskParams.roomName)
 
-                const droppedResource = room.find(FIND_DROPPED_RESOURCES)
-                // only collect worthwhile resources
+                const droppedResourcesOfInterest = room.find(FIND_DROPPED_RESOURCES)
                     .filter(dr => {
                             /* this https://screeps.com/forum/topic/2211/document-pathfinding/4  hints roads are
                              * included in the default cost matrix */
@@ -489,14 +488,14 @@ module.exports = {
                     )
                     // want very big and near first
                     .sort((a, b) => (b.amount / creep.pos.getRangeTo(b)
-                        - (a.amount / creep.pos.getRangeTo(a))))[0]
+                        - (a.amount / creep.pos.getRangeTo(a))))
 
-                if (droppedResource.length === 0 || criterias.creepIsFull(creep)) {
+                if (droppedResourcesOfInterest.length === 0 || criterias.creepIsFull(creep)) {
                     // done, next.
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
                     return;
                 }
-                activities.pickupDroppedResource(creep, droppedResource)
+                activities.pickupDroppedResource(creep, droppedResourcesOfInterest[0])
             }
         },
         GUARD_ROOM: {
