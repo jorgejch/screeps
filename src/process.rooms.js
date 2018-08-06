@@ -35,6 +35,7 @@ module.exports = {
 
                 const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
+                const totalProgressReq = _.sum(targetRoomConstructionSites, cs => cs.progressTotal)
                 let bodyType, currentLevel, numOfCreeps
 
                 if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
@@ -46,25 +47,30 @@ module.exports = {
                     currentLevel = 2
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_2"
-                    numOfCreeps = 1 + Math.min(Math.trunc(targetRoomConstructionSites.length / 5), 3)
+                    /*
+                        CS progress cost examples:
+                        road = 300 or 1500
+                        extension = 3000
+                     */
+                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*1 extension*/ 3000), 3)
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
                     currentLevel = 3
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_3"
-                    numOfCreeps = 1 + Math.min(Math.trunc(targetRoomConstructionSites.length / 5), 2)
+                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*2 extensions*/ 6000), 2)
                 }
                 else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
                     currentLevel = 4
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_4"
-                    numOfCreeps = 1 + Math.min(Math.trunc(targetRoomConstructionSites.length / 7), 2)
+                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*5 extentensions*/ 15000), 2)
                 }
                 else {
                     currentLevel = 5
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_5"
-                    numOfCreeps = 1 + Math.min(Math.trunc(targetRoomConstructionSites.length / 10), 2)
+                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*10 extensions*/ 30000), 1)
                 }
 
                 this.resolveRoleProcessesQuantity(
@@ -85,11 +91,7 @@ module.exports = {
                     this.targetRoomName,
                     currentLevel
                 )
-            }
-            else {
-                if (this._getRoleProcessesLabels(role).length > 0) {
-                    this.setAllRoleProcessesToDieAfterCreep(role)
-                }
+                this.setAllRoleProcessesToDieAfterCreep(role)
             }
         }
     },
@@ -136,26 +138,31 @@ module.exports = {
             if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
                 currentLevel = 1
                 bodyType = "BASIC_WORKER_1"
+                numberOfUpgraders = 5
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
                 currentLevel = 2
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_2"
+                numberOfUpgraders = 4
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
                 currentLevel = 3
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_3"
+                numberOfUpgraders = 4
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
                 currentLevel = 4
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_4"
+                numberOfUpgraders = 3
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_6) {
                 currentLevel = 5
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_5"
+                numberOfUpgraders = 3
             }
             else {
                 currentLevel = 6
@@ -329,16 +336,29 @@ module.exports = {
 
         _printStats() {
             const idnt = "    "
-            let message = `\n*** ${this.roomName} Stats ***\n${idnt}spawns and exts energy avail/capacity:`
+            let message = `\n*** ${this.roomName} Stats ***\n`
+
+            message += `${idnt}Spawns and Extensions\n${idnt}${idnt}spawns and exts energy avail/capacity:`
                 + ` ${this.room.energyAvailable}/${this.room.energyCapacityAvailable}\n`
 
+            // add storage content
             if (processUtils.checkStorageExists(this.room)) {
                 const storage = this.room.find(FIND_STRUCTURES).filter(s => s.structureType === STRUCTURE_STORAGE)[0]
-                message = message + `${idnt}storage total consumed/capacity: `
+                message += `${idnt}${idnt}storage total consumed/capacity: `
                     + `${_.sum(storage.store)}/${storage.storeCapacity}\n`
                 Object.keys(storage.store).forEach(resourceKey => {
                     message = message + `${idnt}${idnt}${resourceKey} amount: ${storage.store[resourceKey]}\n`
                 })
+            }
+            // add orderbook content
+            message += `${idnt}Orderbook\n`
+            if (this.orderBook.length > 0){
+            this.orderBook.forEach(order => {
+                message += `${idnt}${idnt}Name: ${order.name} | Type: ${order.type} | Priority: ${order.priority}\n`
+            })
+            }
+            else{
+                message += `${idnt}${idnt}Empty`
             }
             console.log(message)
         }
@@ -352,6 +372,8 @@ module.exports = {
         }
 
         run() {
+            this._printStats() // print stat before spawning so order gets outputted before consumed
+
             // spawn
             const spawns = this.room.find(FIND_MY_SPAWNS)
             spawns.forEach(spawn => {
@@ -416,8 +438,6 @@ module.exports = {
                     process.targetRoomName = this.roomName
                 }
             }
-
-            this._printStats()
         }
     },
     RepairManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
@@ -518,14 +538,9 @@ module.exports = {
                     this.targetRoomName,
                     currentLevel
                 )
-            }
-            else {
-                if (this._getRoleProcessesLabels(role).length > 0) {
-                    this.setAllRoleProcessesToDieAfterCreep(role)
-                }
+                this.setAllRoleProcessesToDieAfterCreep(role)
             }
         }
-
     },
     TowerManager: class extends BaseProcess {
         set towerId(id) {
