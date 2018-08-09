@@ -4,13 +4,16 @@ const generalUtils = require("util.general")
 module.exports = {
     ActivityDirectorProcess: Base => class extends Base {
         /* Required */
+
         // responsibility for spawning is always the owner room's
         set ownerRoomName(name) {
             this.data.ownerRoomName = name
         }
-        set targetRoomName(name){
+
+        set targetRoomName(name) {
             this.data.targetRoomName = name
         }
+
         /* End Required */
 
         get ownerRoomName() {
@@ -21,7 +24,7 @@ module.exports = {
             return Game.rooms[this.ownerRoomName]
         }
 
-        get targetRoomName(){
+        get targetRoomName() {
             return this.data.targetRoomName
         }
 
@@ -49,6 +52,24 @@ module.exports = {
             this.data.lastLevel[role] = level
         }
 
+        _getTickRoleLastOrderPlaced(role) {
+            if (!this.data.tickLastOrderPlaced) {
+                this.data.tickLastOrderPlaced = {}
+            }
+
+            if (!this.data.tickLastOrderPlaced[role]) {
+                this.data.tickLastOrderPlaced[role] = 0
+            }
+            return this.data.tickLastOrderPlaced
+        }
+
+        _setTickRoleLastOrderPlaced(tick, role) {
+            if (!this.data.tickLastOrderPlaced) {
+                this.data.tickLastOrderPlaced = {}
+            }
+            return this.data.tickLastOrderPlaced[role] = tick
+        }
+
         _getRoleProcessesLabels(role) {
             if (!this.data.roleProcessesLabels) {
                 this.data.roleProcessesLabels = {}
@@ -61,7 +82,7 @@ module.exports = {
             return this.data.roleProcessesLabels[role]
         }
 
-        _setRoleProcessesLabels(role, labels){
+        _setRoleProcessesLabels(role, labels) {
             if (!this.data.roleProcessesLabels) {
                 this.data.roleProcessesLabels = {}
             }
@@ -93,13 +114,18 @@ module.exports = {
             this.data.roleCounters[role] += 1
         }
 
-        cleanRoleDeadProcesses(role){
+        cleanRoleDeadProcesses(role) {
             // filter out dead processes
             const roleProcesses = this._getRoleProcessesLabels(role)
             this._setRoleProcessesLabels(role, roleProcesses.filter(label => Kernel.getProcessByLabel(label)))
         }
 
-        setAllRoleProcessesToDieAfterCreep(role){
+        die() {
+            // TODO: make childs die
+            super.die()
+        }
+
+        setAllRoleProcessesToDieAfterCreep(role) {
             this._getRoleProcessesLabels(role).forEach(
                 procLabel => Kernel.getProcessByLabel(procLabel).dieAfterCreep = true
             )
@@ -119,9 +145,20 @@ module.exports = {
                                      priority,
                                      initialTaskTicketQueue,
                                      targetdesc,
-                                     currentLevel) {
+                                     currentLevel,
+                                     spacing = null) {
+            if (this._getRoleProcessesLabels(role).length < reqNumber) {
+                if (spacing) {
+                    const lastTickOrderPlaced = this._getTickRoleLastOrderPlaced(role)
+                    const nextOrderAllowedTick = lastTickOrderPlaced + spacing + 1
 
-            while (this._getRoleProcessesLabels(role).length < reqNumber) {
+                    if (Game.time < nextOrderAllowedTick) {
+                        console.log(`Process ${this.label} needs to wait ${nextOrderAllowedTick - Game.time} ticks till`
+                            + ` it can place another order for ${role}. Spacing is set to ${spacing}.`)
+                        return
+                    }
+                }
+
                 const label = `${role}_creep_manager_${this._getRoleCount(role)}_of_${targetdesc}`
                     + `_from_${this.ownerRoomName}`
                 try {
@@ -139,10 +176,14 @@ module.exports = {
                     this._incrementRoleCount(role)
                     this._getRoleProcessesLabels(role).push(process.label)
                     this._setRoleLastLevel(currentLevel, role)
+                    this._setTickRoleLastOrderPlaced(Game.time, role)
                 }
                 catch (e) {
-                    console.log(`Failed to lunch harvester process due to: ${e.stack}`)
+                    console.log(`Failed to lunch ${role} process due to: ${e.stack}.`)
                 }
+            }
+            else if (this._getRoleProcessesLabels(role).length > reqNumber) {
+               this.setAllRoleProcessesToDieAfterCreep(role)
             }
         }
     }

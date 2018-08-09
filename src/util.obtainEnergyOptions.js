@@ -1,5 +1,6 @@
 module.exports = {
     HARVEST: "harvest",
-    FROM_CONTAINER: "container",
-    FROM_STORAGE: "storage"
+    CONTAINER: "container",
+    STORAGE: "storage",
+    LINK: "link"
 }

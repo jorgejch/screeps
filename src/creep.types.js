@@ -22,6 +22,14 @@ module.exports = {
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,             // 600
         WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                // 1100
     ],
+    BASIC_WORKER_7: [                                                                               // Total: 3350
+        MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,                                              // 850
+        MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,
+        CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,                                    // 800
+        CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,
+        WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,                                              // 1700
+        WORK,WORK,WORK,WORK,WORK,WORK,WORK,
+    ],
     FREIGHTER_2: [                                                                                  // Total: 550
         MOVE, MOVE, MOVE, MOVE,                                                                         // 200
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,                                                // 350
@@ -47,15 +55,15 @@ module.exports = {
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
     ],
-    STATIONARY_WORKER_2: [                                                                          // Total: 500
-        MOVE, CARRY, WORK, WORK, WORK, WORK
+    STATIONARY_WORKER_2: [                                                                          // Total: 550
+        MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK
     ],
-    STATIONARY_WORKER_3: [                                                                          // Total: 750
-        MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK, WORK, WORK,
+    STATIONARY_WORKER_3: [                                                                          // Total: 800
+        MOVE, MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK, WORK, WORK,
     ],
-    STATIONARY_WORKER_4: [                                                                          // Total: 1250
+    STATIONARY_WORKER_4: [                                                                          // Total: 1300
+        MOVE, MOVE, MOVE, MOVE, MOVE,                                                                   // 250
         CARRY,                                                                                          // 50
-        MOVE, MOVE, MOVE, MOVE,                                                                         // 200
         WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                // 1000
     ],
     CLAIMER_3: [                                                                                    // Total: 650

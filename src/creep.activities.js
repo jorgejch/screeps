@@ -36,6 +36,8 @@ module.exports = {
                 console.log(`Creep ${creep.name} unable to withdraw ${resourceType} ` +
                     `from ${target.structureType} id ${target.id} due to err # ${res}`)
         }
+
+        return res
     },
     transferResourceTypeToTarget: function (creep, target, resourceType, amount = null) {
         let res

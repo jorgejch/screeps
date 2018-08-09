@@ -17,8 +17,8 @@ module.exports = {
                 .filter(cs => cs.pos.roomName === this.targetRoomName)
 
             if (targetRoomConstructionSites.length > 0) {
-                const ownerRoomSourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
-                const targetRoomSourceOption = processUtils.determineEnergyObtentionMethod(this.targetRoom)
+                const ownerRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.ownerRoom)
+                const targetRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.targetRoom)
                 let sourceOption, sourceRoomName
 
                 // rather than harvest on the target leech from owner
@@ -33,7 +33,7 @@ module.exports = {
                     sourceRoomName = this.targetRoomName
                 }
 
-                const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, sourceRoomName)
+                const sourceEnergyTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 const totalProgressReq = _.sum(targetRoomConstructionSites, cs => cs.progressTotal)
                 let bodyType, currentLevel, numOfCreeps
@@ -126,11 +126,11 @@ module.exports = {
             }
 
             let bodyType, currentLevel
-            let numberOfUpgraders = 2  // by default there should be this much upgraders
+            let numberOfUpgraders = 0
 
             const roomsEnergyCapacityAvailable = this.controllerRoom.energyCapacityAvailable
-            const energySourcingOption = processUtils.determineEnergyObtentionMethod(this.controllerRoom)
-            const energySourcingTaskTicket = processUtils.getEnergySourcingTaskTicket(
+            const energySourcingOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.controllerRoom)
+            const energySourcingTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(
                 energySourcingOption,
                 this.controllerRoom.name
             )
@@ -164,18 +164,24 @@ module.exports = {
                 bodyType = "BASIC_WORKER_5"
                 numberOfUpgraders = 3
             }
-            else {
+            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_7) {
                 currentLevel = 6
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_6"
+                numberOfUpgraders = 2
             }
-
+            else {
+                currentLevel = 7
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_7"
+                numberOfUpgraders = 3
+            }
 
             this.resolveRoleProcessesQuantity(
                 role,
                 numberOfUpgraders,
                 bodyType,
-                5,
+                3,
                 [
                     energySourcingTaskTicket,
                     new tasks.TaskTicket(
@@ -192,17 +198,18 @@ module.exports = {
             const role = "feeder"
             this.cleanRoleDeadProcesses(role)
 
-            if (processUtils.checkContainerExists(this.ownerRoom)) {
-                const sourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
-                const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(
+            if (processUtils.checkRoomHasContainers(this.ownerRoom)) {
+                const sourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.ownerRoom)
+                const sourceEnergyTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(
                     sourceOption,
                     this.ownerRoomName
                 )
 
-                const roomECA = this.targetRoom.energyCapacityAvailable
-                let bodyType, currentLevel
+                const energyCapacityAvailable = this.targetRoom.energyCapacityAvailable
+                let bodyType, currentLevel, numOfFeeders
 
-                if (roomECA < energyCapacityLevels.LEVEL_3) {
+                if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3
+                    || !processUtils.getRoomStorage(this.ownerRoom) /* so update to storage source opt happens */) {
                     currentLevel = 1
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_2"
@@ -212,18 +219,20 @@ module.exports = {
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_3"
                 }
-                // else {
-                //     currentLevel = 3
-                //     this.resolveLevelForRole(role, currentLevel)
-                //     bodyType = "FREIGHTER_4"
-                // }
 
+                numOfFeeders = config.DEFAULT_NUM_OF_FEEDERS
+
+                // above storage threshold towers up walls/ramparts, and feeders are in more demand
+                // TODO: make feeder manager calculate how many feeders it needs based on demand
+                if (processUtils.checkStorageStoreAboveThreshold(this.targetRoom)){
+                    numOfFeeders++
+                }
 
                 this.resolveRoleProcessesQuantity(
                     role,
-                    config.MIN_NUM_OF_FEEDERS,
+                    numOfFeeders,
                     bodyType,
-                    0,
+                    1,
                     [
                         sourceEnergyTaskTicket,
                         new tasks.TaskTicket(
@@ -237,7 +246,8 @@ module.exports = {
                         ),
                     ],
                     this.targetRoomName,
-                    currentLevel
+                    currentLevel,
+                    100  // space orders to prevent feeders dying together
                 )
             }
         }
@@ -258,7 +268,7 @@ module.exports = {
                     scoutRole,
                     1,
                     scoutBodyType,
-                    0,
+                    2,
                     [new tasks.TaskTicket(
                         tasks.tasks.GO_CLOSE_TO_TARGET.name,
                         {range: 1, targetPosParams: rallyFlag.pos}
@@ -280,7 +290,7 @@ module.exports = {
                     guardRole,
                     1,
                     guardBodyType,
-                    2,
+                    3,
                     [new tasks.TaskTicket(
                         tasks.tasks.GUARD_ROOM.name,
                         {roomName: this.targetRoomName}
@@ -342,7 +352,7 @@ module.exports = {
                 + ` ${this.room.energyAvailable}/${this.room.energyCapacityAvailable}\n`
 
             // add storage content
-            if (processUtils.checkStorageExists(this.room)) {
+            if (processUtils.getRoomStorage(this.room)) {
                 const storage = this.room.find(FIND_STRUCTURES).filter(s => s.structureType === STRUCTURE_STORAGE)[0]
                 message += `${idnt}${idnt}storage total consumed/capacity: `
                     + `${_.sum(storage.store)}/${storage.storeCapacity}\n`
@@ -352,12 +362,12 @@ module.exports = {
             }
             // add orderbook content
             message += `${idnt}Orderbook\n`
-            if (this.orderBook.length > 0){
-            this.orderBook.forEach(order => {
-                message += `${idnt}${idnt}Name: ${order.name} | Type: ${order.type} | Priority: ${order.priority}\n`
-            })
+            if (this.orderBook.length > 0) {
+                this.orderBook.forEach(order => {
+                    message += `${idnt}${idnt}Name: ${order.name} | Type: ${order.type} | Priority: ${order.priority}\n`
+                })
             }
-            else{
+            else {
                 message += `${idnt}${idnt}Empty`
             }
             console.log(message)
@@ -387,7 +397,7 @@ module.exports = {
             })
 
             // init feed manager when needed
-            if (this.room.energyCapacityAvailable > energyCapacityLevels.LEVEL_2) {
+            if (this.room.energyCapacityAvailable >= energyCapacityLevels.LEVEL_2) {
                 const FEED_MANAGER_PROC_LABEL = `feed_manager_of_room_${this.roomName}_from_${this.roomName}`
                 if (!Kernel.getProcessByLabel(FEED_MANAGER_PROC_LABEL)) {
                     console.log(`DEBUG Creating process ${FEED_MANAGER_PROC_LABEL}`)
@@ -452,12 +462,12 @@ module.exports = {
 
             const damagedStructuresAtThreshold = this.targetRoom
                 .find(FIND_STRUCTURES).filter(struct => {
-                    if (struct.hits < struct.hitsMax/3) {
+                    if (struct.hits < struct.hitsMax / 3) {
                         if (struct.structureType === STRUCTURE_WALL) {
-                            return struct.hits < config.MAX_WALL_HITS_LIMIT/3
+                            return struct.hits < config.MAX_WALL_HITS_LIMIT / 3
                         }
                         else if (struct.structureType === STRUCTURE_RAMPART) {
-                            return struct.hits < config.MAX_RAMPART_HITS_LIMIT/3
+                            return struct.hits < config.MAX_RAMPART_HITS_LIMIT / 3
                         }
                         else if (struct.structureType === STRUCTURE_CONTAINER) {
                             // TODO: as a migration right side dividend has to be slowly brought to 1
@@ -470,8 +480,8 @@ module.exports = {
                 })
 
             if (damagedStructuresAtThreshold.length > 0) {
-                const ownerRoomSourceOption = processUtils.determineEnergyObtentionMethod(this.ownerRoom)
-                const targetRoomSourceOption = processUtils.determineEnergyObtentionMethod(this.targetRoom)
+                const ownerRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.ownerRoom)
+                const targetRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.targetRoom)
                 let sourceOption, sourceRoomName
 
                 // rather than harvest on the target leech from owner
@@ -486,7 +496,7 @@ module.exports = {
                     sourceRoomName = this.targetRoomName
                 }
 
-                const sourceEnergyTaskTicket = processUtils.getEnergySourcingTaskTicket(sourceOption, sourceRoomName)
+                const sourceEnergyTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 let bodyType, currentLevel, numOfCreeps
 
@@ -524,7 +534,7 @@ module.exports = {
                     role,
                     numOfCreeps,
                     bodyType,
-                    10,
+                    12,
                     [
                         new tasks.TaskTicket(
                             tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM.name,
@@ -585,9 +595,11 @@ module.exports = {
                             if (struct.hits < struct.hitsMax) {
                                 if (struct.structureType === STRUCTURE_WALL) {
                                     return struct.hits < config.MAX_WALL_HITS_LIMIT
+                                        || processUtils.checkStorageStoreAboveThreshold(this.room)
                                 }
                                 else if (struct.structureType === STRUCTURE_RAMPART) {
                                     return struct.hits < config.MAX_RAMPART_HITS_LIMIT
+                                        || processUtils.checkStorageStoreAboveThreshold(this.room)
                                 }
                                 else {
                                     return true

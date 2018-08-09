@@ -3,29 +3,33 @@ const tasks = require("creep.tasks");
 const config = require("config")
 
 module.exports = {
-    checkContainerExists: function (room) {
+    getRoomStorage(room){
+        return room.find(FIND_STRUCTURES)
+            .filter(struct => struct.structureType === STRUCTURE_STORAGE)[0]
+    },
+    checkStorageStoreAboveThreshold: function(room){
+        const storage = this.getRoomStorage(room)
+        const ratio = _.sum(storage.store) / storage.storeCapacity
+        return ratio > config.DEFAULT_ROOM_STORAGE_THRESHOLD
+
+    },
+    checkRoomHasContainers: function (room) {
         return room.find(FIND_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_CONTAINER)
             .length > 0
     },
-
-    checkStorageExists: function (room) {
-        return room.find(FIND_STRUCTURES)
-            .filter(struct => struct.structureType === STRUCTURE_STORAGE)
-            .length > 0
-    },
-    determineEnergyObtentionMethod: function (room) {
-        if (this.checkStorageExists(room)) {
-            return obtainEnergyOptions.FROM_STORAGE
+    determineDefaultRoomEnergyObtentionMethod: function (room) {
+        if (this.getRoomStorage(room)) {
+            return obtainEnergyOptions.STORAGE
         }
-        else if (this.checkContainerExists(room)) {
-            return obtainEnergyOptions.FROM_CONTAINER
+        else if (this.checkRoomHasContainers(room)) {
+            return obtainEnergyOptions.CONTAINER
         }
         else {
             return obtainEnergyOptions.HARVEST
         }
     },
-    getEnergySourcingTaskTicket: function (sourceOption, roomName) {
+    getDefaultEnergySourcingTaskTicket: function (sourceOption, roomName) {
         let sourceEnergyTaskTicket
         switch (sourceOption) {
             case obtainEnergyOptions.HARVEST:
@@ -33,13 +37,13 @@ module.exports = {
                     tasks.tasks.CYCLIC_HARVEST_CLOSEST_SOURCE_IN_ROOM.name, {roomName: roomName}
                 )
                 break
-            case obtainEnergyOptions.FROM_CONTAINER:
+            case obtainEnergyOptions.CONTAINER:
                 sourceEnergyTaskTicket = new tasks.TaskTicket(
-                    tasks.tasks.CYCLIC_LEECH_FROM_CLOSEST_CONTAINER_IN_ROOM.name,
-                    {roomName: roomName, resourceType: RESOURCE_ENERGY, amount: null}
+                    tasks.tasks.CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM.name,
+                    {roomName: roomName, amount: null}
                 )
                 break
-            case obtainEnergyOptions.FROM_STORAGE:
+            case obtainEnergyOptions.STORAGE:
                 sourceEnergyTaskTicket = new tasks.TaskTicket(
                     tasks.tasks.CYCLIC_LEECH_FROM_ROOM_STORAGE.name,
                     {roomName: roomName, resourceType: RESOURCE_ENERGY, amount: null}

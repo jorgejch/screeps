@@ -36,7 +36,6 @@ module.exports = {
             // TODO: no harvester + no Feeder + incomplete spawns and exts === emergency
             const emergency = this.ownerRoom.find(FIND_MY_CREEPS).length === 0
                 && this.ownerRoom.energyAvailable < this.ownerRoom.energyCapacityAvailable
-
             const roomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
             let harvesterCurrentLevel = 0,
                 freighterCurrentLevel = 0,
@@ -66,14 +65,14 @@ module.exports = {
                         {roomName: this.ownerRoomName}
                     )]
             }
-            else if (!processUtils.checkStorageExists(this.ownerRoom)) {
+            else if (!processUtils.getRoomStorage(this.ownerRoom)) {
                 harvesterCurrentLevel = 2
                 this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
                 // at this level creeps source from the resource pile or container
                 reqNumOfFreighters = 0
                 reqNumOfHarvesters = 1
                 harvesterBodyType = "STATIONARY_WORKER_2"
-                harvesterPriority = 2
+                harvesterPriority = 4
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
                         tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
@@ -88,7 +87,7 @@ module.exports = {
                 this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
                 reqNumOfHarvesters = 1
                 harvesterBodyType = "STATIONARY_WORKER_3"
-                harvesterPriority = 2
+                harvesterPriority = 4
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
                         tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
@@ -101,7 +100,7 @@ module.exports = {
                 if (roomEnergyCapacity < energyCapacityLevels.LEVEL_4 || this.isLocal()){
                     freighterCurrentLevel = 3
                     freighterBodyType = "FREIGHTER_3"
-                    reqNumOfFreighters = this.isLocal() ? 1 : 3
+                    reqNumOfFreighters = this.isLocal() ? 1 : 4
                 }
                 else if(roomEnergyCapacity < energyCapacityLevels.LEVEL_5 ){
                     freighterCurrentLevel = 4
@@ -109,19 +108,14 @@ module.exports = {
                     reqNumOfFreighters = 3
 
                 }
-                else if(roomEnergyCapacity < energyCapacityLevels.LEVEL_6 ){
+                else {
                     freighterCurrentLevel = 5
                     freighterBodyType = "FREIGHTER_5"
                     reqNumOfFreighters = 2
                 }
-                else {
-                    freighterCurrentLevel = 6
-                    freighterBodyType = "FREIGHTER_6"
-                    reqNumOfFreighters = 1
-                }
 
                 this.resolveLevelForRole(freighterRole, freighterCurrentLevel)
-                freighterPriority = 3
+                freighterPriority = 10
                 freighterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
                         tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM.name, {roomName: this.targetRoomName}
@@ -187,7 +181,7 @@ module.exports = {
                 role,
                 1,
                 bodyType,
-                100,
+                25,
                 [
                     new tasks.TaskTicket(
                         tasks.tasks.GO_CLOSE_TO_TARGET.name,

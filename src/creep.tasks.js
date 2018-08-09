@@ -86,7 +86,7 @@ module.exports = {
                 // repair container under if below min hits threshold and creep able
                 if (
                     containers.length === 1
-                    && containers[0].hits < 50000 // 1000 ticks of decay min
+                    && containers[0].hits < 100000 // 2000 ticks of decay
                     && creep.carry[RESOURCE_ENERGY] > 0
                 ) {
                     activities.repairTargetStructure(creep, containers[0])
@@ -105,15 +105,14 @@ module.exports = {
                 const container = source.pos.findInRange(FIND_STRUCTURES, 1)
                     .filter(struct => struct.structureType === STRUCTURE_CONTAINER)[0]
 
-                if (!container || criterias.creepIsFull(creep)) {
-                    console.log(`Creep ${creep.name} is full or no container `
+                if (!container || container.store[RESOURCE_ENERGY] === 0 || criterias.creepIsFull(creep)) {
+                    console.log(`Creep ${creep.name} is full or no container containing energy `
                         + `close to source id ${sourceId}. Going to next task.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     return
                 }
 
-                activities.withdrawResourceFromTarget(creep, container)
-                if (criterias.creepResourceIsNotEmpty(creep, RESOURCE_ENERGY)) {
+                if (activities.withdrawResourceFromTarget(creep, container) === OK) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
@@ -125,11 +124,12 @@ module.exports = {
                 const resourceType = currentTaskTicket.taskParams.resourceType
                 const amount = currentTaskTicket.taskParams.amount
                 const roomName = currentTaskTicket.taskParams.roomName
-                const container = creep.pos.findClosestByPath(generalUtils.getRoom(roomName)
-                    .find(FIND_STRUCTURES, {
-                        filter: s => s.structureType === STRUCTURE_CONTAINER
+                const container = creep.pos.findClosestByPath(
+                    Game.rooms[roomName]
+                        .find(FIND_STRUCTURES)
+                        .filter(s => s.structureType === STRUCTURE_CONTAINER
                             && s.store[resourceType] > 100
-                    })
+                        )
                 )
 
                 if (!container || criterias.creepIsFull(creep)) {
@@ -137,39 +137,10 @@ module.exports = {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     return
                 }
-                activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
-                if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
+
+                if (activities.withdrawResourceFromTarget(creep, container, resourceType, amount) === OK) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
-            }
-        },
-        CYCLIC_LEECH_ALL_FROM_FULLEST_CONTAINER_IN_ROOM: {
-            name: "CYCLIC_LEECH_ALL_FROM_FULLEST_CONTAINER_IN_ROOM",
-            taskFunc: (creep) => {
-                const currentTaskTicket = getCurrentTaskTicket(creep)
-                const amount = currentTaskTicket.taskParams.amount
-                const roomName = currentTaskTicket.taskParams.roomName
-                const container = generalUtils.getRoom(roomName)
-                    .find(FIND_STRUCTURES, {
-                            filter: s => s.structureType === STRUCTURE_CONTAINER
-                        }
-                    ).sort((a, b) => {
-                        return _.sum(b.store) - _.sum(a.store)
-                    })[0]
-
-                if (!container || criterias.creepIsFull(creep)) {
-                    console.log(`Creep ${creep.name} is full or no container. Going to next task.`)
-                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                    return
-                }
-
-                for (const storedResource in container.store) {
-                    if (_.sum(creep.carry) === creep.carryCapacity) {
-                        break
-                    }
-                    activities.withdrawResourceFromTarget(creep, container, storedResource, amount)
-                }
-                conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
             }
         },
         CYCLIC_LEECH_ENERGY_FROM_FULLEST_CONTAINER_IN_ROOM: {
@@ -179,11 +150,10 @@ module.exports = {
                 const resourceType = RESOURCE_ENERGY
                 const amount = currentTaskTicket.taskParams.amount
                 const roomName = currentTaskTicket.taskParams.roomName
-                const container = generalUtils.getRoom(roomName)
-                    .find(FIND_STRUCTURES, {
-                            filter: s => s.structureType === STRUCTURE_CONTAINER
-                        }
-                    ).sort((a, b) => {
+                const container = Game.rooms[roomName]
+                    .find(FIND_STRUCTURES)
+                    .filter(s => s.structureType === STRUCTURE_CONTAINER)
+                    .sort((a, b) => {
                         return _.sum(b.store) - _.sum(a.store)
                     })[0]
 
@@ -192,8 +162,8 @@ module.exports = {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     return
                 }
-                activities.withdrawResourceFromTarget(creep, container, resourceType, amount)
-                if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
+
+                if (activities.withdrawResourceFromTarget(creep, container, resourceType, amount) === OK) {
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
             }
@@ -206,21 +176,20 @@ module.exports = {
                 const amount = currentTaskTicket.taskParams.amount
                 const roomName = currentTaskTicket.taskParams.roomName
                 const storage = generalUtils.getRoom(roomName)
-                    .find(
-                        FIND_STRUCTURES,
-                        {
-                            filter: s => s.structureType === STRUCTURE_STORAGE
-                                && s.store[resourceType] > 0
-                        }
-                    )[0]
+                    .find(FIND_STRUCTURES)
+                    .filter(s => s.structureType === STRUCTURE_STORAGE && s.store[resourceType] > 0)[0]
 
-                if (!storage || criterias.creepIsFull(creep)) {
-                    console.log(`Creep ${creep.name} is full or no storage in room ${roomName}. Going to next task.`)
+                if (!storage
+                    || storage.store[resourceType] === 0
+                    || criterias.creepIsFull(creep)
+                    || criterias.creepResourceIsNotEmpty(creep, resourceType) /* should spend all before getting more */ )
+                {
+                    console.log(`Creep ${creep.name} is full or no storage with resource `
+                        + `in room ${roomName}. Going to next task.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                 }
                 else {
-                    activities.withdrawResourceFromTarget(creep, storage, resourceType, amount)
-                    if (criterias.creepResourceIsNotEmpty(creep, resourceType)) {
+                    if (activities.withdrawResourceFromTarget(creep, storage, resourceType, amount) === OK) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
                 }
@@ -365,9 +334,7 @@ module.exports = {
 
                     // rally if no target
                     if (!target) {
-                        const flag = Game.flags[`${room.name}_RALLY`]
-                            ? Game.flags[`${room.name}_RALLY`]
-                            : room.controller
+                        const flag = generalUtils.getRoomRallyFlag(room.name)
                         activities.goToTarget(creep, flag)
                     }
                     else {
@@ -486,9 +453,7 @@ module.exports = {
                                 && creep.carryCapacity - _.sum(creep.carry) >= 3 * estimatedCostToResource
                         }
                     )
-                    // want very big and near first
-                    .sort((a, b) => (b.amount / creep.pos.getRangeTo(b)
-                        - (a.amount / creep.pos.getRangeTo(a))))
+                    .sort((a, b) => (creep.pos.getRangeTo(a) - creep.pos.getRangeTo(b)))
 
                 if (droppedResourcesOfInterest.length === 0 || criterias.creepIsFull(creep)) {
                     // done, next.
