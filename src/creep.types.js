@@ -66,6 +66,11 @@ module.exports = {
         CARRY,                                                                                          // 50
         WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK                                // 1000
     ],
+    STATIONARY_WORKER_5: [                                                                          // Total: 1800
+        MOVE, MOVE, MOVE, MOVE, MOVE,                                                                   // 250
+        CARRY,                                                                                          // 50
+        WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,WORK, WORK, WORK         // 1500
+    ],
     CLAIMER_3: [                                                                                    // Total: 650
         MOVE, CLAIM
     ],

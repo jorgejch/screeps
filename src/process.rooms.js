@@ -170,11 +170,23 @@ module.exports = {
                 bodyType = "BASIC_WORKER_6"
                 numberOfUpgraders = 2
             }
-            else {
+            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_8) {
                 currentLevel = 7
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_7"
                 numberOfUpgraders = 3
+            }
+            else if (processUtils.checkRoomHasLinkCloseToController(this.controllerRoom)) {
+                currentLevel = 7
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_7"
+                numberOfUpgraders = 3
+            }
+            else  {
+                currentLevel = 8
+                this.resolveLevelForRole(role, currentLevel)
+                bodyType = "BASIC_WORKER_7"
+                numberOfUpgraders = 1
             }
 
             this.resolveRoleProcessesQuantity(
@@ -224,8 +236,8 @@ module.exports = {
 
                 // above storage threshold towers up walls/ramparts, and feeders are in more demand
                 // TODO: make feeder manager calculate how many feeders it needs based on demand
-                if (processUtils.checkStorageStoreAboveThreshold(this.targetRoom)){
-                    numOfFeeders++
+                if (processUtils.checkStorageStoreAboveThreshold(this.targetRoom)) {
+                    numOfFeeders += 1
                 }
 
                 this.resolveRoleProcessesQuantity(

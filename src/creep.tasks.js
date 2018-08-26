@@ -356,7 +356,8 @@ module.exports = {
                         FIND_STRUCTURES,
                         {
                             filter: s => {
-                                return s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity - 100
+                                return s.structureType === STRUCTURE_TOWER
+                                    && s.energy + 400 /* min demand */ < s.energyCapacity
                             }
                         }
                     ).sort((a, b) => a.energy - b.energy)[0]
@@ -436,7 +437,14 @@ module.exports = {
             name: "CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM",
             taskFunc: (creep) => {
                 const taskTicket = getCurrentTaskTicket(creep)
-                const room = generalUtils.getRoom(taskTicket.taskParams.roomName)
+                const roomName = taskTicket.taskParams.roomName
+                const room = generalUtils.getRoom(roomName)
+
+                if (!room){
+                    console.log(`Creep ${creep.name} has no visibility in ${roomName}. Cycling.`)
+                    conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
+                    return
+                }
 
                 const droppedResourcesOfInterest = room.find(FIND_DROPPED_RESOURCES)
                     .filter(dr => {

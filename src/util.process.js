@@ -3,21 +3,43 @@ const tasks = require("creep.tasks");
 const config = require("config")
 
 module.exports = {
-    getRoomStorage(room){
+    getRoomStorage(room) {
         return room.find(FIND_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_STORAGE)[0]
     },
-    checkStorageStoreAboveThreshold: function(room){
+    getRoomTowers(room) {
+        return room.find(FIND_STRUCTURES)
+            .filter(struct => struct.structureType === STRUCTURE_TOWER)
+    },
+    getRoomLinks(room) {
+        return room.find(FIND_STRUCTURES)
+            .filter(struct => struct.structureType === STRUCTURE_LINK)
+    },
+    checkStorageStoreAboveThreshold: function (room) {
         const storage = this.getRoomStorage(room)
         const ratio = _.sum(storage.store) / storage.storeCapacity
         return ratio > config.DEFAULT_ROOM_STORAGE_THRESHOLD
 
+    },
+    checkRoomHasTowers: function (room) {
+        const towers = this.getRoomTowers(room)
+        return towers.length > 0
     },
     checkRoomHasContainers: function (room) {
         return room.find(FIND_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_CONTAINER)
             .length > 0
     },
+    checkRoomHasLinkCloseToController: function (room) {
+        const links = this.getRoomLinks(room)
+        links.forEach(link => {
+            if (room.controller.pos.inRangeTo(link.pos, 4)) {
+                return true
+            }
+        })
+        return false
+    },
+
     determineDefaultRoomEnergyObtentionMethod: function (room) {
         if (this.getRoomStorage(room)) {
             return obtainEnergyOptions.STORAGE
@@ -62,5 +84,5 @@ module.exports = {
                 Game.rooms[roomName].controller
                 && Game.rooms[roomName].controller.owner.username === config.PLAYER_NAME
             )
-    }
+    },
 }

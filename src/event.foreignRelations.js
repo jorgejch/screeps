@@ -72,5 +72,43 @@ module.exports = {
                 + `due to: ${ex.stack}`)
         }
 
+    },
+    claimRoomUnderFlag: (flag) => {
+        const owneRoomName = flag.pos.roomName
+        const room = Game.rooms[owneRoomName]
+        const controller = room.controller
+
+        if (!processUtils.checkRoomExists(ownerRoomName)) {
+            visual.text(`Room ${ownerRoomName} doesn't exist.`, flag.pos)
+            return
+        }
+
+        if (!controller){
+            visual.text(`Room ${room.name} has no controller.`)
+            return
+        }
+
+        const CONQUISTADOR_PROC_LABEL = `conquistador_manager_of_${targetRoomName}_from_${ownerRoomName}`
+        if (Kernel.getProcessByLabel(CONQUISTADOR_PROC_LABEL)) {
+            visual.text(`Process from ${ownerRoomName} to claim ${targetRoomName} already exists.`, flag.pos)
+            flag.remove()
+            return
+        }
+        console.log(`DEBUG Creating process ${CONQUISTADOR_PROC_LABEL}`)
+        try {
+
+            const process = Kernel.scheduler.launchProcess(
+                Kernel.availableProcessClasses.ConquistadorManager,
+                CONQUISTADOR_PROC_LABEL
+            )
+            visual.text(`Launched process ${process.label}.`, flag.pos)
+            process.ownerRoomName = ownerRoomName
+            process.targetRoomName = targetRoomName
+        }
+        catch (ex) {
+            console.log(`Failed to launch process ${GUARD_MANAGER_PROC_LABEL} `
+                + `due to: ${ex.stack}`)
+        }
+
     }
 }
