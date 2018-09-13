@@ -25,8 +25,6 @@ module.exports = {
                         console.log(`Invalid flag. Name: ${flag.name} Color1: ${flag.color} Color2: ${flag.secondaryColor}`)
                     }
                 })
-
-            this.state = processStates.WAIT
         }
     },
 }

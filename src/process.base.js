@@ -15,8 +15,8 @@ module.exports = class BaseProcess {
     }
 
     die(){
-        delete Memory.processesMemory[this.label]
         this.state = ProcessState.DEAD
+        delete Memory.processesMemory[this.label]
     }
 
     run() {

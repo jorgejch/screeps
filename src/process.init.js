@@ -30,6 +30,9 @@ module.exports = {
                     1
                 )
             }
+
+            // Kernel.getProcessByLabel("construction_manager_of_room_E49S15_from_E47S16").die()
+            // Kernel.getProcessByLabel("builder_creep_manager_4_of_E49S15_from_E47S16").die()
         }
     }
 }

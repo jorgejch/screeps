@@ -6,14 +6,16 @@ const foreignRelations = require("event.foreignRelations")
 const utility = require("event.utility")
 
 module.exports = {
-    "1_1" /*RED_RED*/    : test.sayHelloWorld,
-    "2_1" /*PURPLE_RED*/ : source.harvestSourceUnderFlagOnOwnedRoom,
+    "1_1" /*RED_RED*/       : test.sayHelloWorld,
+    "2_1" /*PURPLE_RED*/    : source.harvestSourceUnderFlagOnOwnedRoom,
     "2_2" /*PURPLE_PURPLE*/ : source.harvestSourceUnderFlagOnRemoteRoom,
-    "4_1" /*CYAN_RED*/   : controller.upgradeControllerUnderFlagFromOwnRoom,
+    "4_1" /*CYAN_RED*/      : controller.upgradeControllerUnderFlagFromOwnRoom,
     "4_2" /*CYAN_PURPLE*/   : controller.reserveControllerUnderFlag,
-    "5_1" /*GREEN_RED*/  : constructionAndRepair.constructRemoteRoomUnderFlag,
+    "5_1" /*GREEN_RED*/     : constructionAndRepair.constructRemoteRoomUnderFlag,
     "5_2" /*GREEN_PURPLE*/  : constructionAndRepair.repairRemoteRoomUnderFlag,
-    "6_1" /*YELLOW_RED*/ : foreignRelations.sendScoutToFlagPosition,
+    "6_1" /*YELLOW_RED*/    : foreignRelations.sendScoutToFlagPosition,
     "6_2" /*YELLOW_PURPLE*/ : foreignRelations.guardRoomUnderFlag,
-    "9_1" /*GREY_RED*/ : utility.deleteRoomRepairManager
+    "6_3" /*YELLOW_BLUE*/   : foreignRelations.claimRoomUnderFlag,
+    "6_4" /*YELLOW_CYAN*/   : foreignRelations.feedRoom,
+    "9_1" /*GREY_RED*/      : utility.deleteRoomRepairManager
 }

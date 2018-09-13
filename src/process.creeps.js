@@ -64,7 +64,9 @@ module.exports = {
         }
 
         executeCurrentTask() {
-            const taskFunc = tasks.tasks[this.getCurrentTaskTicket(this.creep).taskName].taskFunc
+            const name = this.getCurrentTaskTicket(this.creep).taskName
+            // console.log(`DEBUG ${this.creep.name}  is to execute task name: ${name}`)
+            const taskFunc = tasks.tasks[name].taskFunc
             taskFunc(this.creep)
         }
 

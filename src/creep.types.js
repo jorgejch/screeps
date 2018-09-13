@@ -75,11 +75,12 @@ module.exports = {
         MOVE, CLAIM
     ],
     CLAIMER_4: [                                                                                    // Total: 1300
-        MOVE, MOVE, CLAIM, CLAIM
+        MOVE, MOVE,                                                                                     // 100
+        CLAIM, CLAIM                                                                                    // 1200
     ],
     ATTACKER_3: [                                                                                   // Total: 750
-        MOVE, MOVE, MOVE, MOVE,                                                                        // 200
-        TOUGH, TOUGH, TOUGH,                                                                           // 150
-        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK                                                         // 400
+        TOUGH, TOUGH, TOUGH,                                                                            // 150
+        MOVE, MOVE, MOVE, MOVE,                                                                         // 200
+        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK                                                          // 400
     ]
 }

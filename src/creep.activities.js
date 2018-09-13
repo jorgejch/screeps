@@ -152,6 +152,19 @@ module.exports = {
                 console.log(`Unable to reserve room controller on ${controller.room.name} due to err # ${res}`)
         }
     },
+    claimRoomController: function (creep, controller) {
+        const res = creep.claimController(controller)
+
+        switch (res) {
+            case OK:
+                break
+            case ERR_NOT_IN_RANGE:
+                moveCreepTo(creep, controller)
+                break
+            default:
+                console.log(`Unable to reserve room controller on ${controller.room.name} due to err # ${res}`)
+        }
+    },
     pickupDroppedResource: function (creep, resource) {
         const res = creep.pickup(resource)
 

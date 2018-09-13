@@ -1,6 +1,9 @@
 'use strict'
 const BaseProcess = require("process.base")
 const config = require("config")
+const mixins = require("process.mixins")
+const tasks = require("./creep.tasks");
+const generalUtils = require("./util.general");
 
 module.exports = {
     EmpireManager: class extends BaseProcess {
@@ -30,5 +33,56 @@ module.exports = {
             })
         }
     },
-    Conquistador
+    ConquestManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
+
+        run() {
+
+            // send scout if target room is not visible
+            if (!Game.rooms[this.targetRoomName]) {
+                const rallyFlag = generalUtils.getRoomRallyFlag(this.targetRoomName)
+                const scoutBodyType = "SCOUT_1"
+                const scoutRole = "scout"
+
+                this.resolveRoleProcessesQuantity(
+                    scoutRole,
+                    1,
+                    scoutBodyType,
+                    2,
+                    [new tasks.TaskTicket(
+                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
+                        {range: 1, targetPosParams: rallyFlag.pos}
+                    )],
+                    this.targetRoomName,
+                    1
+                )
+                this.setAllRoleProcessesToDieAfterCreep(scoutRole)
+                console.log(`Target room ${this.targetRoomName} is not visible. Sending scout.`)
+                return
+            }
+
+            if (!this.targetRoom.controller) {
+                throw `Room has no controller to claim.`
+            }
+
+            const conquistadorRole = "conquistador"
+            this.cleanRoleDeadProcesses(conquistadorRole)
+
+            this.resolveRoleProcessesQuantity(
+                conquistadorRole,
+                1,
+                "CLAIMER_4",
+                15,
+                [
+                    new tasks.TaskTicket(
+                        tasks.tasks.CLAIM_ROOM_CONTROLLER.name,
+                        {roomName:this.targetRoomName}
+                    )
+                ],
+                this.targetRoomName,
+                1
+            )
+
+            this.setAllRoleProcessesToDieAfterCreep(conquistadorRole)
+        }
+    }
 }

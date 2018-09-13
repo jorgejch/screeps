@@ -45,6 +45,7 @@ module.exports = class OSKernel {
         this.availableProcessClasses.RoomReservationManager = energy.RoomReservationManager
         this.availableProcessClasses.GuardManager = rooms.GuardManager
         this.availableProcessClasses.RepairManager = rooms.RepairManager
+        this.availableProcessClasses.ConquestManager = empire.ConquestManager
     }
 
     _loadProcessTableFromMemory() {

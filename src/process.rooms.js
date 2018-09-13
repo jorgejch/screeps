@@ -21,17 +21,20 @@ module.exports = {
                 const targetRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.targetRoom)
                 let sourceOption, sourceRoomName
 
-                // rather than harvest on the target leech from owner
-                if (
-                    targetRoomSourceOption === obtainEnergyOptions.HARVEST
-                    && ownerRoomSourceOption !== obtainEnergyOptions.HARVEST
-                ) {
-                    sourceOption = ownerRoomSourceOption
-                    sourceRoomName = this.ownerRoomName
-                } else {
-                    sourceOption = targetRoomSourceOption
-                    sourceRoomName = this.targetRoomName
-                }
+                // // rather than harvest on the target leech from owner
+                // if (
+                //     targetRoomSourceOption === obtainEnergyOptions.HARVEST
+                //     && ownerRoomSourceOption !== obtainEnergyOptions.HARVEST
+                // ) {
+                //     sourceOption = ownerRoomSourceOption
+                //     sourceRoomName = this.ownerRoomName
+                // } else {
+                //     sourceOption = targetRoomSourceOption
+                //     sourceRoomName = this.targetRoomName
+                // }
+
+                sourceOption = targetRoomSourceOption
+                sourceRoomName = this.targetRoomName
 
                 const sourceEnergyTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
@@ -114,12 +117,12 @@ module.exports = {
 
 
         run() {
-            const role = "upgrader"
-            this.cleanRoleDeadProcesses(role)
 
             if (!this.controller) {
                 throw `Invalid controller id ${this.controllerId}.`
             }
+            const role = "upgrader"
+            this.cleanRoleDeadProcesses(role)
 
             if (!this.ownerRoomName) {
                 this.ownerRoomName = this.controllerRoom.name
@@ -182,7 +185,7 @@ module.exports = {
                 bodyType = "BASIC_WORKER_7"
                 numberOfUpgraders = 3
             }
-            else  {
+            else {
                 currentLevel = 8
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_7"
@@ -236,7 +239,8 @@ module.exports = {
 
                 // above storage threshold towers up walls/ramparts, and feeders are in more demand
                 // TODO: make feeder manager calculate how many feeders it needs based on demand
-                if (processUtils.checkStorageStoreAboveThreshold(this.targetRoom)) {
+                if (processUtils.getRoomStorage(this.targetRoom)
+                    && processUtils.checkStorageStoreAboveThreshold(this.targetRoom)) {
                     numOfFeeders += 1
                 }
 

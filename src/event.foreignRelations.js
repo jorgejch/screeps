@@ -74,31 +74,26 @@ module.exports = {
 
     },
     claimRoomUnderFlag: (flag) => {
-        const owneRoomName = flag.pos.roomName
-        const room = Game.rooms[owneRoomName]
-        const controller = room.controller
+        const visual = new RoomVisual(flag.pos.roomName)
+        const ownerRoomName = flag.name
+        const targetRoomName = flag.pos.roomName
 
         if (!processUtils.checkRoomExists(ownerRoomName)) {
-            visual.text(`Room ${ownerRoomName} doesn't exist.`, flag.pos)
+            visual.text(`Ownner Room ${ownerRoomName} doesn't exist.`, flag.pos)
             return
         }
 
-        if (!controller){
-            visual.text(`Room ${room.name} has no controller.`)
-            return
-        }
-
-        const CONQUISTADOR_PROC_LABEL = `conquistador_manager_of_${targetRoomName}_from_${ownerRoomName}`
+        const CONQUISTADOR_PROC_LABEL = `conquest_manager_of_${targetRoomName}_from_${ownerRoomName}`
         if (Kernel.getProcessByLabel(CONQUISTADOR_PROC_LABEL)) {
-            visual.text(`Process from ${ownerRoomName} to claim ${targetRoomName} already exists.`, flag.pos)
             flag.remove()
+            visual.text(`Process from ${ownerRoomName} to claim ${targetRoomName} already exists.`, flag.pos)
             return
         }
         console.log(`DEBUG Creating process ${CONQUISTADOR_PROC_LABEL}`)
         try {
 
             const process = Kernel.scheduler.launchProcess(
-                Kernel.availableProcessClasses.ConquistadorManager,
+                Kernel.availableProcessClasses.ConquestManager,
                 CONQUISTADOR_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)
@@ -106,9 +101,42 @@ module.exports = {
             process.targetRoomName = targetRoomName
         }
         catch (ex) {
-            console.log(`Failed to launch process ${GUARD_MANAGER_PROC_LABEL} `
+            console.log(`Failed to launch process ${CONQUISTADOR_PROC_LABEL} `
                 + `due to: ${ex.stack}`)
         }
 
+    },
+    feedRoom: (flag) => {
+        const visual = new RoomVisual(flag.pos.roomName)
+        const ownerRoomName = flag.name
+        const targetRoomName = flag.pos.roomName
+
+        if (!processUtils.checkRoomExists(ownerRoomName)) {
+            visual.text(`Owner Room ${ownerRoomName} doesn't exist.`, flag.pos)
+            return
+        }
+
+
+        const FEEDER_PROC_LABEL = `feed_manager_of_room_${targetRoomName}_from_${ownerRoomName}`
+        if (Kernel.getProcessByLabel(FEEDER_PROC_LABEL)) {
+            flag.remove()
+            visual.text(`Process from ${ownerRoomName} to claim ${targetRoomName} already exists.`, flag.pos)
+            return
+        }
+        console.log(`DEBUG Creating process ${FEEDER_PROC_LABEL}`)
+        try {
+
+            const process = Kernel.scheduler.launchProcess(
+                Kernel.availableProcessClasses.FeedManager,
+                FEEDER_PROC_LABEL
+            )
+            visual.text(`Launched process ${process.label}.`, flag.pos)
+            process.ownerRoomName = ownerRoomName
+            process.targetRoomName = targetRoomName
+        }
+        catch (ex) {
+            console.log(`Failed to launch process ${FEEDER_PROC_LABEL} `
+                + `due to: ${ex.stack}`)
+        }
     }
 }

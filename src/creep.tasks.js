@@ -433,6 +433,22 @@ module.exports = {
                 }
             }
         },
+        CLAIM_ROOM_CONTROLLER: {
+            name: "CLAIM_ROOM_CONTROLLER",
+            taskFunc: (creep) => {
+                const taskTicket = getCurrentTaskTicket(creep)
+                const roomName = taskTicket.taskParams.roomName
+                const room = Game.rooms[roomName]
+
+                if (!room) {
+                    const flag = generalUtils.getRoomRallyFlag(roomName)
+                    activities.goToTarget(creep, flag)
+                }
+                else {
+                    activities.claimRoomController(creep, room.controller)
+                }
+            }
+        },
         CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM: {
             name: "CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM",
             taskFunc: (creep) => {
