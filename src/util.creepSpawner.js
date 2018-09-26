@@ -25,7 +25,8 @@ module.exports = {
         const creepBody = creepTypes[order.type]
         const creepOpt = {
             memory: {
-                taskTicketQueue: order.taskTicketQueue
+                taskTicketQueue: order.taskTicketQueue,
+                type: order.type
             }
         }
         const res = spawn.spawnCreep(creepBody, creepName, creepOpt)

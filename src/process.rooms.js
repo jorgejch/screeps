@@ -141,13 +141,13 @@ module.exports = {
             if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
                 currentLevel = 1
                 bodyType = "BASIC_WORKER_1"
-                numberOfUpgraders = 5
+                numberOfUpgraders = 3
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
                 currentLevel = 2
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_2"
-                numberOfUpgraders = 4
+                numberOfUpgraders = 3
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
                 currentLevel = 3
@@ -159,7 +159,7 @@ module.exports = {
                 currentLevel = 4
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_4"
-                numberOfUpgraders = 3
+                numberOfUpgraders = 4
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_6) {
                 currentLevel = 5
@@ -171,7 +171,7 @@ module.exports = {
                 currentLevel = 6
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_6"
-                numberOfUpgraders = 2
+                numberOfUpgraders = 3
             }
             else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_8) {
                 currentLevel = 7
@@ -611,11 +611,13 @@ module.exports = {
                             if (struct.hits < struct.hitsMax) {
                                 if (struct.structureType === STRUCTURE_WALL) {
                                     return struct.hits < config.MAX_WALL_HITS_LIMIT
-                                        || processUtils.checkStorageStoreAboveThreshold(this.room)
+                                        || (processUtils.getRoomStorage(this.room)
+                                            && processUtils.checkStorageStoreAboveThreshold(this.room))
                                 }
                                 else if (struct.structureType === STRUCTURE_RAMPART) {
                                     return struct.hits < config.MAX_RAMPART_HITS_LIMIT
-                                        || processUtils.checkStorageStoreAboveThreshold(this.room)
+                                        || (processUtils.getRoomStorage(this.room)
+                                            && processUtils.checkStorageStoreAboveThreshold(this.room))
                                 }
                                 else {
                                     return true

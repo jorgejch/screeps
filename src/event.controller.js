@@ -25,6 +25,9 @@ module.exports = {
                 + `due to: ${ex.stack}`)
         }
     },
+    upgradeFlagRoomControllerOnRemoteRoom: function(flag){
+
+    },
     reserveControllerUnderFlag: function (flag) {
         const controllerPos = flag.pos
         const ownerRoomName = flag.name

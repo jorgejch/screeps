@@ -31,8 +31,9 @@ module.exports = {
                 )
             }
 
+            // Kernel.getProcessByLabel("tower_manager_of_5b9b598483aa9a1563ddc40c_on_E49S15").die()
             // Kernel.getProcessByLabel("construction_manager_of_room_E49S15_from_E47S16").die()
-            // Kernel.getProcessByLabel("builder_creep_manager_4_of_E49S15_from_E47S16").die()
+            // Kernel.getProcessByLabel("repair_manager_of_room_E49S15_from_E47S16").die()
         }
     }
 }
