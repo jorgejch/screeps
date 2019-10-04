@@ -36,7 +36,8 @@ module.exports = {
                 sourceOption = targetRoomSourceOption
                 sourceRoomName = this.targetRoomName
 
-                const sourceEnergyTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(sourceOption, sourceRoomName)
+                const sourceEnergyTaskTicket = processUtils
+                    .getDefaultEnergySourcingTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 const totalProgressReq = _.sum(targetRoomConstructionSites, cs => cs.progressTotal)
                 let bodyType, currentLevel, numOfCreeps
@@ -44,9 +45,8 @@ module.exports = {
                 if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
                     bodyType = "BASIC_WORKER_1"
                     currentLevel = 1
-                    numOfCreeps = targetRoomConstructionSites.length > 3 ? 3 : 1
-                }
-                else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
+                    numOfCreeps = targetRoomConstructionSites.length > 3 ? 2 : 1
+                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
                     currentLevel = 2
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_2"
@@ -55,21 +55,18 @@ module.exports = {
                         road = 300 or 1500
                         extension = 3000
                      */
-                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*1 extension*/ 3000), 3)
-                }
-                else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
+                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*1 extension*/ 3000), 2)
+                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
                     currentLevel = 3
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_3"
                     numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*2 extensions*/ 6000), 2)
-                }
-                else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
+                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
                     currentLevel = 4
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_4"
                     numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*5 extentensions*/ 15000), 2)
-                }
-                else {
+                } else {
                     currentLevel = 5
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_5"
@@ -141,51 +138,43 @@ module.exports = {
             if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
                 currentLevel = 1
                 bodyType = "BASIC_WORKER_1"
-                numberOfUpgraders = 3
-            }
-            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
+                numberOfUpgraders = 2
+            } else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
                 currentLevel = 2
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_2"
-                numberOfUpgraders = 3
-            }
-            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
+                numberOfUpgraders = 2
+            } else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
                 currentLevel = 3
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_3"
-                numberOfUpgraders = 4
-            }
-            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
+                numberOfUpgraders = 3
+            } else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
                 currentLevel = 4
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_4"
-                numberOfUpgraders = 4
-            }
-            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_6) {
+                numberOfUpgraders = 3
+            } else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_6) {
                 currentLevel = 5
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_5"
                 numberOfUpgraders = 3
-            }
-            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_7) {
+            } else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_7) {
                 currentLevel = 6
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_6"
                 numberOfUpgraders = 3
-            }
-            else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_8) {
+            } else if (roomsEnergyCapacityAvailable < energyCapacityLevels.LEVEL_8) {
                 currentLevel = 7
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_7"
                 numberOfUpgraders = 3
-            }
-            else if (processUtils.checkRoomHasLinkCloseToController(this.controllerRoom)) {
+            } else if (processUtils.checkRoomHasLinkCloseToController(this.controllerRoom)) {
                 currentLevel = 7
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_7"
                 numberOfUpgraders = 3
-            }
-            else {
+            } else {
                 currentLevel = 8
                 this.resolveLevelForRole(role, currentLevel)
                 bodyType = "BASIC_WORKER_7"
@@ -228,8 +217,7 @@ module.exports = {
                     currentLevel = 1
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_2"
-                }
-                else {
+                } else {
                     currentLevel = 2
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_3"
@@ -382,8 +370,7 @@ module.exports = {
                 this.orderBook.forEach(order => {
                     message += `${idnt}${idnt}Name: ${order.name} | Type: ${order.type} | Priority: ${order.priority}\n`
                 })
-            }
-            else {
+            } else {
                 message += `${idnt}${idnt}Empty`
             }
             console.log(message)
@@ -405,8 +392,7 @@ module.exports = {
             spawns.forEach(spawn => {
                 try {
                     this._processNextCreepOrder(spawn)
-                }
-                catch (e) {
+                } catch (e) {
                     console.log(`Failed to spawn creep on room ${this.roomName}'s `
                         + `${spawn.name} spawn due to: ${e.stack}`)
                 }
@@ -442,27 +428,40 @@ module.exports = {
                         )
                         process.towerId = tower.id
                         this.towersIdsToProcessLabels[process.towerId] = process.label
-                    }
-                    catch (e) {
+                    } catch (e) {
                         console.log(`Failed to launch process ${label} due to: ${e.stack}.`)
                     }
                 })
             }
 
             // init constructor manager when needed
-            if (this.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
-                const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_${this.roomName}_from_${this.roomName}`
-                if (!Kernel.getProcessByLabel(CONSTRUCTION_MANAGER_PROC_LABEL)) {
-                    console.log(`DEBUG Creating process ${CONSTRUCTION_MANAGER_PROC_LABEL}`)
-                    const process = Kernel.scheduler.launchProcess(
-                        Kernel.availableProcessClasses.ConstructionManager,
-                        CONSTRUCTION_MANAGER_PROC_LABEL,
-                        this.pid,
-                        20
-                    )
-                    process.ownerRoomName = this.roomName
-                    process.targetRoomName = this.roomName
-                }
+            const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_${this.roomName}_from_${this.roomName}`
+            if (
+                this.room.find(FIND_CONSTRUCTION_SITES).length > 0 &&
+                !Kernel.getProcessByLabel(CONSTRUCTION_MANAGER_PROC_LABEL)
+            ) {
+                const process = Kernel.scheduler.launchProcess(
+                    Kernel.availableProcessClasses.ConstructionManager,
+                    CONSTRUCTION_MANAGER_PROC_LABEL,
+                    this.pid,
+                    20
+                )
+                process.ownerRoomName = this.roomName
+                process.targetRoomName = this.roomName
+            }
+
+            // init repair manager when needed
+            const REPAIR_MANAGER_PROC_LABEL = `repair_manager_of_${this.roomName}`
+            if (this.towers.length === 0 && !Kernel.getProcessByLabel(REPAIR_MANAGER_PROC_LABEL)) {
+                const process = Kernel.scheduler.launchProcess(
+                    Kernel.availableProcessClasses.RepairManager,
+                    REPAIR_MANAGER_PROC_LABEL,
+                    this.pid,
+                    21
+                )
+                process.ownerRoomName = this.roomName
+                process.targetRoomName = this.roomName
+
             }
         }
     },
@@ -481,15 +480,12 @@ module.exports = {
                     if (struct.hits < struct.hitsMax / 3) {
                         if (struct.structureType === STRUCTURE_WALL) {
                             return struct.hits < config.MAX_WALL_HITS_LIMIT / 3
-                        }
-                        else if (struct.structureType === STRUCTURE_RAMPART) {
+                        } else if (struct.structureType === STRUCTURE_RAMPART) {
                             return struct.hits < config.MAX_RAMPART_HITS_LIMIT / 3
-                        }
-                        else if (struct.structureType === STRUCTURE_CONTAINER) {
+                        } else if (struct.structureType === STRUCTURE_CONTAINER) {
                             // TODO: as a migration right side dividend has to be slowly brought to 1
                             return struct.hits < struct.hitsMax / 10
-                        }
-                        else {
+                        } else {
                             return true
                         }
                     }
@@ -519,27 +515,23 @@ module.exports = {
                 if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
                     bodyType = "BASIC_WORKER_1"
                     currentLevel = 1
-                    numOfCreeps = 1 + Math.min(Math.trunc(damagedStructuresAtThreshold.length / 5), 3)
-                }
-                else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
+                    numOfCreeps = 1 + Math.min(Math.trunc(damagedStructuresAtThreshold.length / 5), 2)
+                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
                     currentLevel = 2
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_2"
                     numOfCreeps = 1 + Math.min(Math.trunc(damagedStructuresAtThreshold.length / 5), 2)
-                }
-                else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
+                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
                     currentLevel = 3
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_3"
                     numOfCreeps = 1 + Math.min(Math.trunc(damagedStructuresAtThreshold.length / 5), 1)
-                }
-                else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
+                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
                     currentLevel = 4
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_4"
                     numOfCreeps = 1
-                }
-                else {
+                } else {
                     currentLevel = 5
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_5"
@@ -613,13 +605,11 @@ module.exports = {
                                     return struct.hits < config.MAX_WALL_HITS_LIMIT
                                         || (processUtils.getRoomStorage(this.room)
                                             && processUtils.checkStorageStoreAboveThreshold(this.room))
-                                }
-                                else if (struct.structureType === STRUCTURE_RAMPART) {
+                                } else if (struct.structureType === STRUCTURE_RAMPART) {
                                     return struct.hits < config.MAX_RAMPART_HITS_LIMIT
                                         || (processUtils.getRoomStorage(this.room)
                                             && processUtils.checkStorageStoreAboveThreshold(this.room))
-                                }
-                                else {
+                                } else {
                                     return true
                                 }
                             }
