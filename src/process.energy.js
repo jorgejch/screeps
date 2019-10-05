@@ -1,7 +1,7 @@
-const BaseProcess = require("process.base")
+const BaseProcess = require("src/process.baseProcess")
 const tasks = require("creep.tasks")
 const energyCapacityLevels = require("util.energyCapacityLevels")
-const mixins = require("process.mixins")
+const mixins = require("src/process.activityDirectorProcess")
 const processUtils = require("util.process")
 
 module.exports = {

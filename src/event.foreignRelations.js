@@ -127,7 +127,7 @@ module.exports = {
         try {
 
             const process = Kernel.scheduler.launchProcess(
-                Kernel.availableProcessClasses.FeedManager,
+                Kernel.availableProcessClasses.LoadEnergyManager,
                 FEEDER_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)

@@ -1,4 +1,4 @@
-const BaseProcess = require("process.base")
+const BaseProcess = require("src/process.baseProcess")
 const processStates = require("os.processState")
 const eventFlagMap = require("os.eventFuncMap")
 module.exports = {

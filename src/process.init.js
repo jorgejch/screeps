@@ -1,5 +1,5 @@
 'use strict'
-const BaseProcess = require("process.base")
+const BaseProcess = require("src/process.baseProcess")
 const empire = require("process.empire")
 const energy = require("process.energy")
 const events = require("process.events")

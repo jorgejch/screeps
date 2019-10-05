@@ -1,7 +1,7 @@
 'use strict'
-const BaseProcess = require("process.base")
-const config = require("config")
-const mixins = require("process.mixins")
+const BaseProcess = require("./process.baseProcess")
+const config = require("./config")
+const mixins = require("./process.activityDirectorProcess")
 const tasks = require("./creep.tasks");
 const generalUtils = require("./util.general");
 

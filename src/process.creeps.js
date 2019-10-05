@@ -1,5 +1,5 @@
 'use strict'
-const BaseProcess = require("process.base")
+const BaseProcess = require("src/process.baseProcess")
 const tasks = require("creep.tasks")
 const creepSpawner = require("util.creepSpawner")
 

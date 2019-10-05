@@ -10,7 +10,7 @@ module.exports = {
     "2_1" /*PURPLE_RED*/    : source.harvestSourceUnderFlagOnOwnedRoom,
     "2_2" /*PURPLE_PURPLE*/ : source.harvestSourceUnderFlagOnRemoteRoom,
     "4_1" /*CYAN_RED*/      : controller.upgradeControllerUnderFlagFromOwnRoom,
-    "4_3" /*CYAN_BLUE*/      : controller.upgradeFlagRoomControllerOnRemoteRoom,
+    "4_3" /*CYAN_BLUE*/     : controller.upgradeFlagRoomControllerOnRemoteRoom,
     "4_2" /*CYAN_PURPLE*/   : controller.reserveControllerUnderFlag,
     "5_1" /*GREEN_RED*/     : constructionAndRepair.constructRemoteRoomUnderFlag,
     "5_2" /*GREEN_PURPLE*/  : constructionAndRepair.repairRemoteRoomUnderFlag,

@@ -1,15 +1,18 @@
 'use strict'
 
-const OSScheduler = require("os.scheduler")
-const ProcessState = require("os.processState")
-const init =  require("process.init")
+const OSScheduler = require("./os.scheduler")
+const ProcessState = require("./os.processState")
+const init =  require("./process.init")
 
 // process modules
-const energy = require("process.energy")
-const empire = require("process.empire")
-const rooms = require("process.rooms")
-const events = require("process.events")
-const creeps = require("process.creeps");
+const energy = require("./process.energy")
+const empire = require("./process.empire")
+const room = require("./process.room")
+const events = require("./process.events")
+const creeps = require("./process.creeps");
+const construction = require("./process.activity.construct")
+const upgrade = require("./process.activity.upgrade")
+const load = require("./process.activity.load")
 
 
 module.exports = class OSKernel {
@@ -37,14 +40,14 @@ module.exports = class OSKernel {
         this.availableProcessClasses.SourceHarvestManager = energy.SourceHarvestManager
         this.availableProcessClasses.Init = init.Init
         this.availableProcessClasses.CreepManager = creeps.CreepManager
-        this.availableProcessClasses.OwnedRoomManager = rooms.OwnedRoomManager
-        this.availableProcessClasses.ControllerUpgradeManager = rooms.ControllerUpgradeManager
-        this.availableProcessClasses.ConstructionManager = rooms.ConstructionManager
-        this.availableProcessClasses.TowerManager = rooms.TowerManager
-        this.availableProcessClasses.FeedManager = rooms.FeedManager
+        this.availableProcessClasses.OwnedRoomManager = room.OwnedRoomManager
+        this.availableProcessClasses.ControllerUpgradeManager = upgrade.ControllerUpgradeManager
+        this.availableProcessClasses.ConstructionManager = construction.ConstructionManager
+        this.availableProcessClasses.TowerManager = room.TowerManager
+        this.availableProcessClasses.LoadEnergyManager = load.LoadEnergyManager
         this.availableProcessClasses.RoomReservationManager = energy.RoomReservationManager
-        this.availableProcessClasses.GuardManager = rooms.GuardManager
-        this.availableProcessClasses.RepairManager = rooms.RepairManager
+        this.availableProcessClasses.GuardManager = room.GuardManager
+        this.availableProcessClasses.RepairManager = room.RepairManager
         this.availableProcessClasses.ConquestManager = empire.ConquestManager
     }
 
