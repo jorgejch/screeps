@@ -2,18 +2,17 @@
 
 const OSScheduler = require("./os.scheduler")
 const ProcessState = require("./os.processState")
-const init =  require("./process.init")
 
 // process modules
-const energy = require("./process.energy")
 const empire = require("./process.empire")
 const room = require("./process.room")
-const events = require("./process.events")
-const creeps = require("./process.creeps");
-const construction = require("./process.activity.construct")
-const upgrade = require("./process.activity.upgrade")
-const load = require("./process.activity.load")
-
+const creeps = require("./process.creep");
+const construct = require("./process.director.construction")
+const harvest = require("./process.director.harvest")
+const maintenance = require("./process.director.maintenance")
+const load = require("./process.director.supply")
+const guard = require("./process.director.defence")
+const conquest = require("./process.director.conquest")
 
 module.exports = class OSKernel {
     constructor() {
@@ -35,26 +34,25 @@ module.exports = class OSKernel {
 
         // for now all used process classes must be registered
         this.availableProcessClasses = {}
-        this.availableProcessClasses.EmpireManager = empire.EmpireManager
-        this.availableProcessClasses.FlagEventListener = events.FlagEventListener
-        this.availableProcessClasses.SourceHarvestManager = energy.SourceHarvestManager
-        this.availableProcessClasses.Init = init.Init
+        this.availableProcessClasses.FlagEventListener = empire.FlagEventListener
+        this.availableProcessClasses.EmpireRuler = empire.EmpireRuler
         this.availableProcessClasses.CreepManager = creeps.CreepManager
-        this.availableProcessClasses.OwnedRoomManager = room.OwnedRoomManager
-        this.availableProcessClasses.ControllerUpgradeManager = upgrade.ControllerUpgradeManager
-        this.availableProcessClasses.ConstructionManager = construction.ConstructionManager
-        this.availableProcessClasses.TowerManager = room.TowerManager
-        this.availableProcessClasses.LoadEnergyManager = load.LoadEnergyManager
-        this.availableProcessClasses.RoomReservationManager = energy.RoomReservationManager
-        this.availableProcessClasses.GuardManager = room.GuardManager
-        this.availableProcessClasses.RepairManager = room.RepairManager
-        this.availableProcessClasses.ConquestManager = empire.ConquestManager
+        this.availableProcessClasses.OwnedRoomGovernor = room.OwnedRoomGovernor
+        this.availableProcessClasses.TowerOperator = room.TowerOperator
+        this.availableProcessClasses.ConquestDirector = conquest.ConquestDirector
+        this.availableProcessClasses.HarvestDirector = harvest.HarvestDirector
+        this.availableProcessClasses.ReserveRoomDirector = conquest.ReserveRoomDirector
+        this.availableProcessClasses.ControllerUpgradeDirector = maintenance.ControllerUpgradeDirector
+        this.availableProcessClasses.RepairDirector = maintenance.RepairDirector
+        this.availableProcessClasses.ConstructionDirector = construct.ConstructionDirector
+        this.availableProcessClasses.EnergySupplyDirector = load.EnergySupplyDirector
+        this.availableProcessClasses.GuardDirector = guard.GuardDirector
     }
 
     _loadProcessTableFromMemory() {
         this.rawProcessTable.forEach(rawProcess => {
             let processClass
-            try{
+            try {
                 processClass = this.availableProcessClasses[rawProcess[2]]
                 const pid = rawProcess[0]
                 const parentPid = rawProcess[1]
@@ -62,8 +60,7 @@ module.exports = class OSKernel {
                 const priority = rawProcess[4]
                 const state = rawProcess[5]
                 this.processTable[pid] = new processClass(pid, parentPid, label, priority, state)
-            }
-            catch (e) {
+            } catch (e) {
                 console.log(`Failed to load process ${JSON.stringify(rawProcess)} due to ${e.stack}.`)
             }
         })
@@ -80,13 +77,7 @@ module.exports = class OSKernel {
                     const label = process.label
                     const priority = process.priority
                     const state = process.state
-                    this.rawProcessTable.push([pid, parentPid , processClassName , label, priority, state])
-                    // console.log(`DEBUG Saved process with pid ${pid} to memory: \n`
-                    //     + ` ${JSON.stringify({
-                    //         parentPid: parentPid,
-                    //         processLabel: label,
-                    //         processClassName: processClassName
-                    //     })} to process table`)
+                    this.rawProcessTable.push([pid, parentPid, processClassName, label, priority, state])
                 }
             }
         )
@@ -101,9 +92,18 @@ module.exports = class OSKernel {
         // able to add jobs after setting process table on scheduler
         this.scheduler.setProcessTable(this.processTable)
 
-        // init should be the first process to run
-        if (Object.keys(this.processTable).length === 0){
-            this.scheduler.launchProcess(init.Init, "init", null, 0)
+        // the empire_ruler process should be the first process to run
+        if (Object.keys(this.processTable).length === 0) {
+            const EMPIRE_MANAGER_PROCESS_LABEL = "empire_ruler"
+            if (!this.getProcessByLabel(EMPIRE_MANAGER_PROCESS_LABEL)) {
+                console.log(`Creating process ${EMPIRE_MANAGER_PROCESS_LABEL}`)
+                this.scheduler.launchProcess(
+                    this.availableProcessClasses.EmpireRuler,
+                    EMPIRE_MANAGER_PROCESS_LABEL,
+                    null,
+                    1
+                )
+            }
         }
     }
 
@@ -114,15 +114,12 @@ module.exports = class OSKernel {
         let proc
         while (proc = this.scheduler.nextProcessToRun()) {
             try {
-                // console.log(`DEBUG Running process ${proc.label}.`)
                 proc.run()
-            }
-            catch (ex){
+            } catch (ex) {
                 console.log(`Failed to run process ${proc.label} due to: ${ex.stack}`)
             }
         }
 
         this._saveProcessTableToMemory()
-
     }
 }

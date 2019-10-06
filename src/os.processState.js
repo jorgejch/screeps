@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
     SLEEP: "sleep",
     DEAD: "dead",

@@ -1,11 +1,12 @@
-const processUtils = require("./util.process");
+'use strict'
+
 module.exports = {
     upgradeControllerUnderFlagFromOwnRoom: function (flag) {
         const controller = flag.pos.lookFor(LOOK_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_CONTROLLER)[0]
         const visual = new RoomVisual(flag.room.name)
 
-        const CONTROLLER_UPGRADE_MANAGER_PROC_LABEL = `upgrade_manager_of_${controller.room.name}`
+        const CONTROLLER_UPGRADE_MANAGER_PROC_LABEL = `upgrade_controller_director_of_${controller.room.name}`
         if (Kernel.getProcessByLabel(CONTROLLER_UPGRADE_MANAGER_PROC_LABEL)) {
             visual.text(`Process to upgrade controller ${controller.id} already exists.`, flag.pos)
             return
@@ -14,7 +15,7 @@ module.exports = {
         try {
 
             const process = Kernel.scheduler.launchProcess(
-                Kernel.availableProcessClasses.ControllerUpgradeManager,
+                Kernel.availableProcessClasses.ControllerUpgradeDirector,
                 CONTROLLER_UPGRADE_MANAGER_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)
@@ -33,7 +34,7 @@ module.exports = {
         const ownerRoomName = flag.name
         const visual = new RoomVisual(flag.room.name)
 
-        const CONTROLLER_RESERVE_MANAGER_PROC_LABEL = `controller_reservation_manager_of_${controllerPos.roomName}`
+        const CONTROLLER_RESERVE_MANAGER_PROC_LABEL = `reserve_room_director_of_${controllerPos.roomName}`
         if (Kernel.getProcessByLabel(CONTROLLER_RESERVE_MANAGER_PROC_LABEL)) {
             visual.text(
                 `Process to reserve controller at position ${JSON.stringify(controllerPos)} already exists.`,
@@ -45,7 +46,7 @@ module.exports = {
         try {
 
             const process = Kernel.scheduler.launchProcess(
-                Kernel.availableProcessClasses.RoomReservationManager,
+                Kernel.availableProcessClasses.ReserveRoomDirector,
                 CONTROLLER_RESERVE_MANAGER_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)

@@ -1,3 +1,4 @@
+'use strict'
 module.exports = {
     PLAYER_NAME: "JorgeJCH",
     MAX_WALL_HITS_LIMIT: 200000,

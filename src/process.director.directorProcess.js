@@ -1,7 +1,9 @@
-const generalUtils = require("util.general")
-const BaseProcess = require("src/process.baseProcess")
+'use strict'
 
-module.exports = class ActivityDirectorProcess extends BaseProcess {
+const generalUtils = require("./util.general")
+const BaseProcess = require("./process.baseProcess")
+
+module.exports = class DirectorProcess extends BaseProcess {
     /* Required */
     // the responsibility for spawning is always on the owner room's
     set ownerRoomName(name) {

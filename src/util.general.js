@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
     clearDeadScreepsFromMemory: function () {
         let i;

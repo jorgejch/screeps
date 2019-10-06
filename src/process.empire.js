@@ -1,15 +1,26 @@
 'use strict'
+
 const BaseProcess = require("./process.baseProcess")
 const config = require("./config")
-const mixins = require("./process.activityDirectorProcess")
-const tasks = require("./creep.tasks");
-const generalUtils = require("./util.general");
+const eventFlagMap = require("./os.eventFuncMap")
 
 module.exports = {
-    EmpireManager: class extends BaseProcess {
+    EmpireRuler: class extends BaseProcess {
         run() {
             if (!this.data.ownRooms) {
                 this.data.ownRooms = {}
+            }
+
+            /* init if needed */
+
+            const FLAG_EVENT_LISTENER_PROCESS_LABEL = "flag_event_listener"
+            if (!Kernel.getProcessByLabel(FLAG_EVENT_LISTENER_PROCESS_LABEL)) {
+                Kernel.scheduler.launchProcess(
+                    Kernel.availableProcessClasses.FlagEventListener,
+                    FLAG_EVENT_LISTENER_PROCESS_LABEL,
+                    this.pid,
+                    5
+                )
             }
 
             Object.keys(Game.rooms).forEach(roomName => {
@@ -22,7 +33,7 @@ module.exports = {
                 ) {
                     const label = `${roomName}_manager`
                     const process = Kernel.scheduler.launchProcess(
-                        Kernel.availableProcessClasses.OwnedRoomManager,
+                        Kernel.availableProcessClasses.OwnedRoomGovernor,
                         label,
                         this.pid,
                         10
@@ -33,56 +44,27 @@ module.exports = {
             })
         }
     },
-    ConquestManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
+    FlagEventListener: class extends BaseProcess {
+        _getEventFuncForFlag(flag) {
+            return eventFlagMap[`${flag.color}_${flag.secondaryColor}`]
+        }
 
         run() {
-
-            // send scout if target room is not visible
-            if (!Game.rooms[this.targetRoomName]) {
-                const rallyFlag = generalUtils.getRoomRallyFlag(this.targetRoomName)
-                const scoutBodyType = "SCOUT_1"
-                const scoutRole = "scout"
-
-                this.resolveRoleProcessesQuantity(
-                    scoutRole,
-                    1,
-                    scoutBodyType,
-                    2,
-                    [new tasks.TaskTicket(
-                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
-                        {range: 1, targetPosParams: rallyFlag.pos}
-                    )],
-                    this.targetRoomName,
-                    1
-                )
-                this.setAllRoleProcessesToDieAfterCreep(scoutRole)
-                console.log(`Target room ${this.targetRoomName} is not visible. Sending scout.`)
-                return
-            }
-
-            if (!this.targetRoom.controller) {
-                throw `Room has no controller to claim.`
-            }
-
-            const conquistadorRole = "conquistador"
-            this.cleanRoleDeadProcesses(conquistadorRole)
-
-            this.resolveRoleProcessesQuantity(
-                conquistadorRole,
-                1,
-                "CLAIMER_4",
-                15,
-                [
-                    new tasks.TaskTicket(
-                        tasks.tasks.CLAIM_ROOM_CONTROLLER.name,
-                        {roomName:this.targetRoomName}
-                    )
-                ],
-                this.targetRoomName,
-                1
-            )
-
-            this.setAllRoleProcessesToDieAfterCreep(conquistadorRole)
+            Object.values(Game.flags)
+                .filter(flag => flag.color !== COLOR_WHITE)
+                .forEach(flag => {
+                    const eventFunction = this._getEventFuncForFlag(flag)
+                    if (eventFunction) {
+                        try {
+                            eventFunction(flag)
+                            flag.remove()
+                        } catch (e) {
+                            console.log(`Failed to execute event function ${eventFunction.name} due to: ${e.stack}`)
+                        }
+                    } else {
+                        console.log(`Invalid flag. Name: ${flag.name} Color1: ${flag.color} Color2: ${flag.secondaryColor}`)
+                    }
+                })
         }
-    }
+    },
 }

@@ -1,10 +1,12 @@
-const ActivityDirectorProcess = require("process.activityDirectorProcess")
-const energyCapacityLevels = require("util.energyCapacityLevels")
-const tasks = require("creep.tasks")
-const processUtils = require('util.process')
+'use strict'
+
+const DirectorProcess = require("./process.director.directorProcess")
+const energyCapacityLevels = require("./util.energyCapacityLevels")
+const tasks = require("./creep.tasks")
+const processUtils = require('./util.process')
 
 module.exports = {
-    ConstructionManager: class extends ActivityDirectorProcess {
+    ConstructionDirector: class extends DirectorProcess {
         run() {
             const role = "builder"
             this.cleanRoleDeadProcesses(role)

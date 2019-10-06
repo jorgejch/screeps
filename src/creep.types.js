@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
     SCOUT_1: [MOVE],                                                                                // Total: 50
     BASIC_WORKER_1: [MOVE, MOVE, CARRY, CARRY, WORK],                                               // Total: 300

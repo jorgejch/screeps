@@ -1,7 +1,8 @@
+'use strict'
+
 function moveCreepTo(creep, destination) {
     creep.moveTo(destination, {visualizePathStyle: {}})
 }
-
 
 module.exports = {
     harvestEnergyFromSource: function (creep, source, inPlace = false) {

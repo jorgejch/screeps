@@ -1,13 +1,15 @@
-const ActivityDirectorProcess = require("./process.activityDirectorProcess")
+'use strict'
+
+const DirectorProcess = require("./process.director.directorProcess")
 const energyCapacityLevels = require("./util.energyCapacityLevels")
 const tasks = require("./creep.tasks")
 const processUtils = require('./util.process')
 const config = require("./config")
 
 module.exports = {
-    LoadEnergyManager: class extends ActivityDirectorProcess {
+    EnergySupplyDirector: class extends DirectorProcess {
         run() {
-            const role = "feeder"
+            const role = "energy_supplier"
             this.cleanRoleDeadProcesses(role)
 
             if (processUtils.checkRoomHasContainers(this.ownerRoom)) {
@@ -59,7 +61,7 @@ module.exports = {
                     ],
                     this.targetRoomName,
                     currentLevel,
-                    100  // space orders to prevent feeders dying together
+                    1  // space orders to prevent feeders dying together
                 )
             }
         }

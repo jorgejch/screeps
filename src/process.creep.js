@@ -1,7 +1,8 @@
 'use strict'
-const BaseProcess = require("src/process.baseProcess")
-const tasks = require("creep.tasks")
-const creepSpawner = require("util.creepSpawner")
+
+const BaseProcess = require("./process.baseProcess")
+const tasks = require("./creep.tasks")
+const creepSpawner = require("./util.creepSpawner")
 
 module.exports = {
     CreepManager: class extends BaseProcess {

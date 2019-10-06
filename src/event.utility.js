@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
     deleteRoomRepairManager: (flag) => {
         const targetRoomName = flag.pos.roomName

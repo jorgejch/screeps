@@ -1,3 +1,5 @@
+'use strict'
+
 const tasks = require("./creep.tasks");
 const processUtils = require("./util.process");
 module.exports = {
@@ -11,7 +13,7 @@ module.exports = {
             return
         }
 
-        const SCOUT_MANAGER_PROC_LABEL = `scout_of_${targetRoomName}_from_${ownerRoomName}`
+        const SCOUT_MANAGER_PROC_LABEL = `scout_manager_of_${targetRoomName}_from_${ownerRoomName}`
         if (Kernel.getProcessByLabel(SCOUT_MANAGER_PROC_LABEL)) {
             visual.text(`Process from ${ownerRoomName} to scout ${targetRoomName} already exists.`, flag.pos)
             flag.remove()
@@ -60,7 +62,7 @@ module.exports = {
         try {
 
             const process = Kernel.scheduler.launchProcess(
-                Kernel.availableProcessClasses.GuardManager,
+                Kernel.availableProcessClasses.GuardDirector,
                 GUARD_MANAGER_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)
@@ -93,7 +95,7 @@ module.exports = {
         try {
 
             const process = Kernel.scheduler.launchProcess(
-                Kernel.availableProcessClasses.ConquestManager,
+                Kernel.availableProcessClasses.ConquestDirector,
                 CONQUISTADOR_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)
@@ -127,7 +129,7 @@ module.exports = {
         try {
 
             const process = Kernel.scheduler.launchProcess(
-                Kernel.availableProcessClasses.LoadEnergyManager,
+                Kernel.availableProcessClasses.EnergySupplyDirector,
                 FEEDER_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)

@@ -1,9 +1,11 @@
-const test = require("event.test")
-const source = require("event.source")
-const controller = require("event.controller")
-const constructionAndRepair = require("event.constructionAndRepair")
-const foreignRelations = require("event.foreignRelations")
-const utility = require("event.utility")
+'use strict'
+
+const test = require("./event.test")
+const source = require("./event.source")
+const controller = require("./event.controller")
+const constructionAndRepair = require("./event.constructionAndRepair")
+const foreignRelations = require("./event.foreignRelations")
+const utility = require("./event.utility")
 
 module.exports = {
     "1_1" /*RED_RED*/       : test.sayHelloWorld,

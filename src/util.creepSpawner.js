@@ -1,3 +1,5 @@
+'use strict'
+
 const creepTypes = require("creep.types")
 
 module.exports = {

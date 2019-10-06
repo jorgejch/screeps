@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
     creepIsEmpty: function (creep) {
         return _.sum(creep.carry) === 0;

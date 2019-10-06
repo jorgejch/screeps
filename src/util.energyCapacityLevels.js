@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
     LEVEL_1 : 300,
     LEVEL_2 : 550,

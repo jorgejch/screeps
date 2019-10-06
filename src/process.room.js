@@ -1,63 +1,13 @@
-const ActivityDirectorProcess = require("./process.activityDirectorProcess")
+'use strict'
+
+const BaseProcess = require("./process.baseProcess")
 const creepSpawner = require("./util.creepSpawner")
 const energyCapacityLevels = require("./util.energyCapacityLevels")
-const tasks = require("./creep.tasks")
 const processUtils = require('./util.process')
 const config = require("./config")
-const generalUtils = require("./util.general")
 
 module.exports = {
-    GuardManager: class extends ActivityDirectorProcess.ActivityDirectorProcess(BaseProcess) {
-        run() {
-            const guardRole = "guard"
-            const scoutRole = "scout"
-            this.cleanRoleDeadProcesses(guardRole)
-            this.cleanRoleDeadProcesses(scoutRole)
-
-            // send scout if target room is not visible
-            if (!Game.rooms[this.targetRoomName]) {
-                const rallyFlag = generalUtils.getRoomRallyFlag(this.targetRoomName)
-                const scoutBodyType = "SCOUT_1"
-
-                this.resolveRoleProcessesQuantity(
-                    scoutRole,
-                    1,
-                    scoutBodyType,
-                    2,
-                    [new tasks.TaskTicket(
-                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
-                        {range: 1, targetPosParams: rallyFlag.pos}
-                    )],
-                    this.targetRoomName,
-                    1
-                )
-                this.setAllRoleProcessesToDieAfterCreep(scoutRole)
-                console.log(`Target room ${this.targetRoomName} is not visible. Sending scout.`)
-                return
-            }
-
-            const hostiles = generalUtils.findHostiles(this.targetRoom)
-            // send guard if hostile in room
-            if (hostiles.length > 0) {
-                const guardBodyType = "ATTACKER_3"
-
-                this.resolveRoleProcessesQuantity(
-                    guardRole,
-                    1,
-                    guardBodyType,
-                    3,
-                    [new tasks.TaskTicket(
-                        tasks.tasks.GUARD_ROOM.name,
-                        {roomName: this.targetRoomName}
-                    )],
-                    this.targetRoomName,
-                    1
-                )
-                this.setAllRoleProcessesToDieAfterCreep(guardRole)
-            }
-        }
-    },
-    OwnedRoomManager: class extends BaseProcess {
+    OwnedRoomGovernor: class extends BaseProcess {
         set roomName(roomName) {
             this.data.roomName = roomName
         }
@@ -149,14 +99,15 @@ module.exports = {
                 }
             })
 
-            // init feed manager when needed
+            /* init when needed */
+
+            const ENERGY_SUPPLY_DIRECTOR_PROC_LABEL = `energy_supply_director_of_room_${this.roomName}_from_${this.roomName}`
             if (this.room.energyCapacityAvailable >= energyCapacityLevels.LEVEL_2) {
-                const FEED_MANAGER_PROC_LABEL = `feed_manager_of_room_${this.roomName}_from_${this.roomName}`
-                if (!Kernel.getProcessByLabel(FEED_MANAGER_PROC_LABEL)) {
-                    console.log(`DEBUG Creating process ${FEED_MANAGER_PROC_LABEL}`)
+                if (!Kernel.getProcessByLabel(ENERGY_SUPPLY_DIRECTOR_PROC_LABEL)) {
+                    console.log(`DEBUG Creating process ${ENERGY_SUPPLY_DIRECTOR_PROC_LABEL}`)
                     const process = Kernel.scheduler.launchProcess(
-                        Kernel.availableProcessClasses.LoadEnergyManager,
-                        FEED_MANAGER_PROC_LABEL,
+                        Kernel.availableProcessClasses.EnergySupplyDirector,
+                        ENERGY_SUPPLY_DIRECTOR_PROC_LABEL,
                         this.pid,
                         10
                     )
@@ -165,35 +116,33 @@ module.exports = {
                 }
             }
 
-            // init tower managers when needed
+            const TOWER_OPERATOR_PROC_LABEL = `tower_operator_of_${tower.id}_on_${this.roomName}`
             if (this.towers.length > 0) {
                 const unmanagedTowers = this.towers.filter(tower => this.managedTowersLabels.indexOf(tower.id) < 0)
                 unmanagedTowers.forEach(tower => {
-                    const label = `tower_manager_of_${tower.id}_on_${this.roomName}`
                     try {
                         const process = Kernel.scheduler.launchProcess(
-                            Kernel.availableProcessClasses.TowerManager,
-                            label,
+                            Kernel.availableProcessClasses.TowerOperator,
+                            TOWER_OPERATOR_PROC_LABEL,
                             this.pid,
                             15
                         )
                         process.towerId = tower.id
                         this.towersIdsToProcessLabels[process.towerId] = process.label
                     } catch (e) {
-                        console.log(`Failed to launch process ${label} due to: ${e.stack}.`)
+                        console.log(`Failed to launch process ${TOWER_OPERATOR_PROC_LABEL} due to: ${e.stack}.`)
                     }
                 })
             }
 
-            // init constructor manager when needed
-            const CONSTRUCTION_MANAGER_PROC_LABEL = `construction_manager_of_${this.roomName}_from_${this.roomName}`
+            const CONSTRUCTION_DIRECTOR_PROC_LABEL = `construction_director_of_${this.roomName}_from_${this.roomName}`
             if (
                 this.room.find(FIND_CONSTRUCTION_SITES).length > 0 &&
-                !Kernel.getProcessByLabel(CONSTRUCTION_MANAGER_PROC_LABEL)
+                !Kernel.getProcessByLabel(CONSTRUCTION_DIRECTOR_PROC_LABEL)
             ) {
                 const process = Kernel.scheduler.launchProcess(
-                    Kernel.availableProcessClasses.ConstructionManager,
-                    CONSTRUCTION_MANAGER_PROC_LABEL,
+                    Kernel.availableProcessClasses.ConstructionDirector,
+                    CONSTRUCTION_DIRECTOR_PROC_LABEL,
                     this.pid,
                     20
                 )
@@ -201,12 +150,11 @@ module.exports = {
                 process.targetRoomName = this.roomName
             }
 
-            // init repair manager when needed
-            const REPAIR_MANAGER_PROC_LABEL = `repair_manager_of_${this.roomName}`
-            if (this.towers.length === 0 && !Kernel.getProcessByLabel(REPAIR_MANAGER_PROC_LABEL)) {
+            const REPAIR_DIRECTOR_PROC_LABEL = `repair_director_of_${this.roomName}`
+            if (this.towers.length === 0 && !Kernel.getProcessByLabel(REPAIR_DIRECTOR_PROC_LABEL)) {
                 const process = Kernel.scheduler.launchProcess(
-                    Kernel.availableProcessClasses.RepairManager,
-                    REPAIR_MANAGER_PROC_LABEL,
+                    Kernel.availableProcessClasses.RepairDirector,
+                    REPAIR_DIRECTOR_PROC_LABEL,
                     this.pid,
                     21
                 )
@@ -216,7 +164,7 @@ module.exports = {
             }
         }
     },
-    TowerManager: class extends BaseProcess {
+    TowerOperator: class extends BaseProcess {
         set towerId(id) {
             this.data.towerId = id
         }

@@ -1,11 +1,12 @@
-const BaseProcess = require("src/process.baseProcess")
-const tasks = require("creep.tasks")
-const energyCapacityLevels = require("util.energyCapacityLevels")
-const mixins = require("src/process.activityDirectorProcess")
-const processUtils = require("util.process")
+'use strict'
+
+const tasks = require("./creep.tasks")
+const energyCapacityLevels = require("./util.energyCapacityLevels")
+const DirectorProcess = require("./process.director.directorProcess")
+const processUtils = require("./util.process")
 
 module.exports = {
-    SourceHarvestManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
+    HarvestDirector: class extends DirectorProcess {
         set sourceId(sourceId) {
             this.data.sourceId = sourceId
         }
@@ -48,12 +49,12 @@ module.exports = {
                 freighterPriority,
                 freighterInitialTaskTicketQueue
 
-            if (emergency || roomEnergyCapacity < energyCapacityLevels.LEVEL_2) {
+            if (emergency || !processUtils.checkRoomHasContainers(this.ownerRoom)) {
                 harvesterCurrentLevel = 1  // to track when level goes up
                 // basic harvesters feed
                 reqNumOfFreighters = 0
                 // there should be 3 basic workers harvesting at this level
-                reqNumOfHarvesters = 3
+                reqNumOfHarvesters = 2
                 harvesterBodyType = "BASIC_WORKER_1"
                 harvesterPriority = 0
                 harvesterInitialTaskTicketQueue = [
@@ -72,7 +73,7 @@ module.exports = {
                 reqNumOfFreighters = 0
                 reqNumOfHarvesters = 1
                 harvesterBodyType = "STATIONARY_WORKER_2"
-                harvesterPriority = 4
+                harvesterPriority = 1
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
                         tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
@@ -87,7 +88,7 @@ module.exports = {
                 this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
                 reqNumOfHarvesters = 1
                 harvesterBodyType = "STATIONARY_WORKER_3"
-                harvesterPriority = 4
+                harvesterPriority = 2
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
                         tasks.tasks.GO_TO_HARVESTING_POSITION.name, {sourceId: this.sourceId}
@@ -105,8 +106,7 @@ module.exports = {
                 else if(roomEnergyCapacity < energyCapacityLevels.LEVEL_5 ){
                     freighterCurrentLevel = 4
                     freighterBodyType = "FREIGHTER_4"
-                    reqNumOfFreighters = 3
-
+                    reqNumOfFreighters = this.isLocal() ? 1 : 3
                 }
                 else {
                     freighterCurrentLevel = 5
@@ -150,51 +150,4 @@ module.exports = {
             )
         }
     },
-    RoomReservationManager: class extends mixins.ActivityDirectorProcess(BaseProcess) {
-        set controllerPositionProps(pos) {
-            this.data.controllerPositionProps = pos
-        }
-
-        get controllerPosition() {
-            const posProps = this.data.controllerPositionProps
-            return new RoomPosition(posProps.x, posProps.y, posProps.roomName)
-        }
-
-        run() {
-            const role = "reserver"
-            const ownerRoomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
-            let currentLevel, bodyType
-
-            this.cleanRoleDeadProcesses(role)
-            if (ownerRoomEnergyCapacity < energyCapacityLevels.LEVEL_4) {
-                currentLevel = 1
-                this.resolveLevelForRole(role, currentLevel)
-                bodyType = "CLAIMER_3"
-            }
-            else {
-                currentLevel = 2
-                this.resolveLevelForRole(role, currentLevel)
-                bodyType = "CLAIMER_4"
-            }
-
-            this.resolveRoleProcessesQuantity(
-                role,
-                1,
-                bodyType,
-                25,
-                [
-                    new tasks.TaskTicket(
-                        tasks.tasks.GO_CLOSE_TO_TARGET.name,
-                        {range: 1, targetPosParams: this.controllerPosition}
-                    ),
-                    new tasks.TaskTicket(
-                        tasks.tasks.RESERVE_ROOM_CONTROLLER.name,
-                        {roomName: this.controllerPosition.roomName}
-                    )
-                ],
-                this.controllerPosition.roomName,
-                currentLevel
-            )
-        }
-    }
 }

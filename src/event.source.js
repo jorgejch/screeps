@@ -1,4 +1,7 @@
+'use strict'
+
 const processUtils = require("./util.process");
+
 module.exports = {
     harvestSourceUnderFlagOnOwnedRoom: function (flag) {
         const source = flag.pos.lookFor(LOOK_SOURCES)[0]
@@ -9,7 +12,7 @@ module.exports = {
             return
         }
         const process = Kernel.scheduler.launchProcess(
-            Kernel.availableProcessClasses.SourceHarvestManager,
+            Kernel.availableProcessClasses.HarvestDirector,
             label
         )
         visual.text(`Launched process ${process.label}.`, flag.pos)
@@ -32,7 +35,7 @@ module.exports = {
             return
         }
         const process = Kernel.scheduler.launchProcess(
-            Kernel.availableProcessClasses.SourceHarvestManager,
+            Kernel.availableProcessClasses.HarvestDirector,
             label
         )
         visual.text(`Launched process ${process.label}.`, flag.pos)

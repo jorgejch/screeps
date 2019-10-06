@@ -1,3 +1,5 @@
+'use strict'
+
 const obtainEnergyOptions = require("util.obtainEnergyOptions")
 const tasks = require("creep.tasks");
 const config = require("config")

@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
     performNextTask: function(creep) {
         const queue = creep.memory.taskTicketQueue

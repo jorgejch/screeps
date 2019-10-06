@@ -1,7 +1,9 @@
+'use strict'
+
 const generalUtils = require('util.general')
 const conclusions = require('creep.conclusions')
 const criterias = require('creep.criterias')
-const activities = require('creep.activities')
+const activities = require('creep.action')
 
 function getCurrentTaskTicket(creep) {
     return creep.memory.currentTaskTicket

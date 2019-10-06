@@ -1,3 +1,5 @@
+'use strict'
+
 const ProcessState = require("os.processState")
 
 module.exports = class BaseProcess {
