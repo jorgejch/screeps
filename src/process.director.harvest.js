@@ -35,7 +35,8 @@ module.exports = {
             }
 
             // TODO: no harvester + no Feeder + incomplete spawns and exts === emergency
-            const emergency = this.ownerRoom.find(FIND_MY_CREEPS).length === 0
+            const emergency = this.isLocal()
+                && this.ownerRoom.find(FIND_MY_CREEPS).length === 0
                 && this.ownerRoom.energyAvailable < this.ownerRoom.energyCapacityAvailable
             const roomEnergyCapacity = this.ownerRoom.energyCapacityAvailable
             let harvesterCurrentLevel = 0,
@@ -49,14 +50,15 @@ module.exports = {
                 freighterPriority,
                 freighterInitialTaskTicketQueue
 
-            if (emergency || !processUtils.checkRoomHasContainers(this.ownerRoom)) {
-                harvesterCurrentLevel = 1  // to track when level goes up
+            if ( emergency || !processUtils.checkRoomHasContainers(this.targetRoom)) {
+                // to track when level goes up
+                harvesterCurrentLevel = 1
                 // basic harvesters feed
                 reqNumOfFreighters = 0
                 // there should be 3 basic workers harvesting at this level
                 reqNumOfHarvesters = 2
                 harvesterBodyType = "BASIC_WORKER_1"
-                harvesterPriority = 0
+                harvesterPriority = this.isLocal() ? 0 : 1
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
                         tasks.tasks.CYCLIC_HARVEST_SOURCE.name, {sourceId: this.sourceId}
@@ -101,17 +103,12 @@ module.exports = {
                 if (roomEnergyCapacity < energyCapacityLevels.LEVEL_4 || this.isLocal()){
                     freighterCurrentLevel = 3
                     freighterBodyType = "FREIGHTER_3"
-                    reqNumOfFreighters = this.isLocal() ? 1 : 4
+                    reqNumOfFreighters = this.isLocal() ? 2 : 4
                 }
-                else if(roomEnergyCapacity < energyCapacityLevels.LEVEL_5 ){
+                else{
                     freighterCurrentLevel = 4
                     freighterBodyType = "FREIGHTER_4"
                     reqNumOfFreighters = this.isLocal() ? 1 : 3
-                }
-                else {
-                    freighterCurrentLevel = 5
-                    freighterBodyType = "FREIGHTER_5"
-                    reqNumOfFreighters = 2
                 }
 
                 this.resolveLevelForRole(freighterRole, freighterCurrentLevel)
@@ -136,7 +133,8 @@ module.exports = {
                 harvesterPriority,
                 harvesterInitialTaskTicketQueue,
                 this.sourceId,
-                harvesterCurrentLevel
+                harvesterCurrentLevel,
+                100
             )
 
             this.resolveRoleProcessesQuantity(

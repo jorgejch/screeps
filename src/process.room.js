@@ -116,11 +116,11 @@ module.exports = {
                 }
             }
 
-            const TOWER_OPERATOR_PROC_LABEL = `tower_operator_of_${tower.id}_on_${this.roomName}`
             if (this.towers.length > 0) {
                 const unmanagedTowers = this.towers.filter(tower => this.managedTowersLabels.indexOf(tower.id) < 0)
                 unmanagedTowers.forEach(tower => {
                     try {
+                        const TOWER_OPERATOR_PROC_LABEL = `tower_operator_of_${tower.id}_on_${this.roomName}`
                         const process = Kernel.scheduler.launchProcess(
                             Kernel.availableProcessClasses.TowerOperator,
                             TOWER_OPERATOR_PROC_LABEL,

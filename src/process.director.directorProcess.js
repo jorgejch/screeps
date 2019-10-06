@@ -143,7 +143,7 @@ module.exports = class DirectorProcess extends BaseProcess {
                                  bodyType,
                                  priority,
                                  initialTaskTicketQueue,
-                                 targetdesc,
+                                 targetDesc,
                                  currentLevel,
                                  spacing = null) {
         if (this._getRoleProcessesLabels(role).length < reqNumber) {
@@ -158,7 +158,7 @@ module.exports = class DirectorProcess extends BaseProcess {
                 }
             }
 
-            const label = `${role}_creep_manager_${this._getRoleCount(role)}_of_${targetdesc}`
+            const label = `${role}_creep_manager_${this._getRoleCount(role)}_of_${targetDesc}`
                 + `_from_${this.ownerRoomName}`
             try {
                 const process = Kernel.scheduler.launchProcess(
@@ -166,7 +166,7 @@ module.exports = class DirectorProcess extends BaseProcess {
                     label,
                     this.pid
                 )
-                process.creepName = `${generalUtils.capitalize(role)}${this._getRoleCount(role)}Of${targetdesc}`
+                process.creepName = `${generalUtils.capitalize(role)}${this._getRoleCount(role)}Of${targetDesc}`
                     + `From${this.ownerRoomName}`
                 process.creepType = bodyType
                 process.ownerRoomName = this.ownerRoomName

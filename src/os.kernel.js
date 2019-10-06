@@ -4,15 +4,15 @@ const OSScheduler = require("./os.scheduler")
 const ProcessState = require("./os.processState")
 
 // process modules
-const empire = require("./process.empire")
 const room = require("./process.room")
+const empire = require("./process.empire")
 const creeps = require("./process.creep");
-const construct = require("./process.director.construction")
-const harvest = require("./process.director.harvest")
-const maintenance = require("./process.director.maintenance")
 const load = require("./process.director.supply")
-const guard = require("./process.director.defence")
+const defense = require("./process.director.defense")
+const harvest = require("./process.director.harvest")
 const conquest = require("./process.director.conquest")
+const construct = require("./process.director.construction")
+const maintenance = require("./process.director.maintenance")
 
 module.exports = class OSKernel {
     constructor() {
@@ -46,7 +46,7 @@ module.exports = class OSKernel {
         this.availableProcessClasses.RepairDirector = maintenance.RepairDirector
         this.availableProcessClasses.ConstructionDirector = construct.ConstructionDirector
         this.availableProcessClasses.EnergySupplyDirector = load.EnergySupplyDirector
-        this.availableProcessClasses.GuardDirector = guard.GuardDirector
+        this.availableProcessClasses.GuardDirector = defense.GuardDirector
     }
 
     _loadProcessTableFromMemory() {

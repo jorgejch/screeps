@@ -13,17 +13,19 @@ module.exports = {
             this.cleanRoleDeadProcesses(role)
 
             if (processUtils.checkRoomHasContainers(this.ownerRoom)) {
-                const sourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.ownerRoom)
-                const sourceEnergyTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(
-                    sourceOption,
+                const sourceEnergyTaskTicket = processUtils.getEnergyObtentionTaskTicket(
+                    processUtils.determineRoomEnergyObtentionMethod(this.ownerRoom),
                     this.ownerRoomName
                 )
 
                 const energyCapacityAvailable = this.targetRoom.energyCapacityAvailable
                 let bodyType, currentLevel, numOfFeeders
 
-                if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3
-                    || !processUtils.getRoomStorage(this.ownerRoom) /* so update to storage source opt happens */) {
+                if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
+                    // At this level harvesters supply extensions/spawn. No need for a supplier.
+                    return
+                }
+                else if (!processUtils.getRoomStorage(this.ownerRoom)) {
                     currentLevel = 1
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "FREIGHTER_2"
@@ -61,7 +63,7 @@ module.exports = {
                     ],
                     this.targetRoomName,
                     currentLevel,
-                    1  // space orders to prevent feeders dying together
+                    100  // space orders to prevent suppliers from dying together
                 )
             }
         }

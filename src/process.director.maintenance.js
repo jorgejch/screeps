@@ -35,8 +35,8 @@ module.exports = {
                 })
 
             if (damagedStructuresAtThreshold.length > 0) {
-                const ownerRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.ownerRoom)
-                const targetRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.targetRoom)
+                const ownerRoomSourceOption = processUtils.determineRoomEnergyObtentionMethod(this.ownerRoom)
+                const targetRoomSourceOption = processUtils.determineRoomEnergyObtentionMethod(this.targetRoom)
                 let sourceOption, sourceRoomName
 
                 // rather than harvest on the target leech from owner
@@ -51,7 +51,7 @@ module.exports = {
                     sourceRoomName = this.targetRoomName
                 }
 
-                const sourceEnergyTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(sourceOption, sourceRoomName)
+                const sourceEnergyTaskTicket = processUtils.getEnergyObtentionTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 let bodyType, currentLevel, numOfCreeps
 
@@ -85,7 +85,7 @@ module.exports = {
                     role,
                     numOfCreeps,
                     bodyType,
-                    12,
+                    30,
                     [
                         new tasks.TaskTicket(
                             tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM.name,
@@ -137,8 +137,8 @@ module.exports = {
             let numberOfUpgraders = 0
 
             const roomsEnergyCapacityAvailable = this.controllerRoom.energyCapacityAvailable
-            const energySourcingOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.controllerRoom)
-            const energySourcingTaskTicket = processUtils.getDefaultEnergySourcingTaskTicket(
+            const energySourcingOption = processUtils.determineRoomEnergyObtentionMethod(this.controllerRoom)
+            const energySourcingTaskTicket = processUtils.getEnergyObtentionTaskTicket(
                 energySourcingOption,
                 this.controllerRoom.name
             )
@@ -193,7 +193,7 @@ module.exports = {
                 role,
                 numberOfUpgraders,
                 bodyType,
-                3,
+                10,
                 [
                     energySourcingTaskTicket,
                     new tasks.TaskTicket(

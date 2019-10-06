@@ -52,25 +52,26 @@ module.exports = {
             return
         }
 
-        const GUARD_MANAGER_PROC_LABEL = `guard_manager_of_${targetRoomName}_from_${ownerRoomName}`
-        if (Kernel.getProcessByLabel(GUARD_MANAGER_PROC_LABEL)) {
+        const GUARD_DIRECTOR_PROC_LABEL = `guard_director_of_${targetRoomName}_from_${ownerRoomName}`
+        if (Kernel.getProcessByLabel(GUARD_DIRECTOR_PROC_LABEL)) {
             visual.text(`Process from ${ownerRoomName} to guard ${targetRoomName} already exists.`, flag.pos)
             flag.remove()
             return
         }
-        console.log(`DEBUG Creating process ${GUARD_MANAGER_PROC_LABEL}`)
         try {
 
             const process = Kernel.scheduler.launchProcess(
                 Kernel.availableProcessClasses.GuardDirector,
-                GUARD_MANAGER_PROC_LABEL
+                GUARD_DIRECTOR_PROC_LABEL
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)
             process.ownerRoomName = ownerRoomName
             process.targetRoomName = targetRoomName
+            process.targetPos = flag.pos
+            flag.remove()
         }
         catch (ex) {
-            console.log(`Failed to launch process ${GUARD_MANAGER_PROC_LABEL} `
+            console.log(`Failed to launch process ${GUARD_DIRECTOR_PROC_LABEL} `
                 + `due to: ${ex.stack}`)
         }
 
@@ -85,7 +86,7 @@ module.exports = {
             return
         }
 
-        const CONQUISTADOR_PROC_LABEL = `conquest_manager_of_${targetRoomName}_from_${ownerRoomName}`
+        const CONQUISTADOR_PROC_LABEL = `conquest_director_of_${targetRoomName}_from_${ownerRoomName}`
         if (Kernel.getProcessByLabel(CONQUISTADOR_PROC_LABEL)) {
             flag.remove()
             visual.text(`Process from ${ownerRoomName} to claim ${targetRoomName} already exists.`, flag.pos)
@@ -108,7 +109,7 @@ module.exports = {
         }
 
     },
-    feedRoom: (flag) => {
+    supplyEnergyToRoom: (flag) => {
         const visual = new RoomVisual(flag.pos.roomName)
         const ownerRoomName = flag.name
         const targetRoomName = flag.pos.roomName
@@ -119,7 +120,7 @@ module.exports = {
         }
 
 
-        const FEEDER_PROC_LABEL = `feed_manager_of_room_${targetRoomName}_from_${ownerRoomName}`
+        const FEEDER_PROC_LABEL = `energy_supply_director_of_room_${targetRoomName}_from_${ownerRoomName}`
         if (Kernel.getProcessByLabel(FEEDER_PROC_LABEL)) {
             flag.remove()
             visual.text(`Process from ${ownerRoomName} to claim ${targetRoomName} already exists.`, flag.pos)

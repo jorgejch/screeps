@@ -1,8 +1,8 @@
 'use strict'
 
-const obtainEnergyOptions = require("util.obtainEnergyOptions")
-const tasks = require("creep.tasks");
-const config = require("config")
+const obtainEnergyOptions = require("./util.obtainEnergyOptions")
+const tasks = require("./creep.tasks");
+const config = require("./config")
 
 module.exports = {
     getRoomStorage(room) {
@@ -42,7 +42,7 @@ module.exports = {
         return false
     },
 
-    determineDefaultRoomEnergyObtentionMethod: function (room) {
+    determineRoomEnergyObtentionMethod: function (room) {
         if (this.getRoomStorage(room)) {
             return obtainEnergyOptions.STORAGE
         }
@@ -53,7 +53,7 @@ module.exports = {
             return obtainEnergyOptions.HARVEST
         }
     },
-    getDefaultEnergySourcingTaskTicket: function (sourceOption, roomName) {
+    getEnergyObtentionTaskTicket: function (sourceOption, roomName) {
         let sourceEnergyTaskTicket
         switch (sourceOption) {
             case obtainEnergyOptions.HARVEST:

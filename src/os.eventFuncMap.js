@@ -19,6 +19,6 @@ module.exports = {
     "6_1" /*YELLOW_RED*/    : foreignRelations.sendScoutToFlagPosition,
     "6_2" /*YELLOW_PURPLE*/ : foreignRelations.guardRoomUnderFlag,
     "6_3" /*YELLOW_BLUE*/   : foreignRelations.claimRoomUnderFlag,
-    "6_4" /*YELLOW_CYAN*/   : foreignRelations.feedRoom,
+    "6_4" /*YELLOW_CYAN*/   : foreignRelations.supplyEnergyToRoom,
     "9_1" /*GREY_RED*/      : utility.deleteRoomRepairManager
 }

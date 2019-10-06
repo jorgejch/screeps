@@ -184,13 +184,11 @@ module.exports = {
                 if (!storage
                     || storage.store[resourceType] === 0
                     || criterias.creepIsFull(creep)
-                    || criterias.creepResourceIsNotEmpty(creep, resourceType) /* should spend all before getting more */ )
-                {
+                    || criterias.creepResourceIsNotEmpty(creep, resourceType) /* should spend all before getting more */) {
                     console.log(`Creep ${creep.name} is full or no storage with resource `
                         + `in room ${roomName}. Going to next task.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                }
-                else {
+                } else {
                     if (activities.withdrawResourceFromTarget(creep, storage, resourceType, amount) === OK) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     }
@@ -213,8 +211,7 @@ module.exports = {
                 if (!storage || criterias.creepIsEmpty(creep)) {
                     console.log(`Creep ${creep.name} is empty or no storage. Going to next task.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                }
-                else {
+                } else {
                     Object.keys(creep.carry).forEach(resourceType => {
                         activities.transferResourceTypeToTarget(creep, storage, resourceType, null)
                     })
@@ -238,18 +235,19 @@ module.exports = {
                     const target = creep.pos.findClosestByPath(room.find(
                         FIND_STRUCTURES, {
                             filter: function (struct) {
-                                return (struct.structureType === STRUCTURE_EXTENSION
-                                    || struct.structureType === STRUCTURE_SPAWN)
-                                    && struct.energy < struct.energyCapacity
+                                return (
+                                    struct.structureType === STRUCTURE_EXTENSION
+                                    || struct.structureType === STRUCTURE_SPAWN
+                                ) && struct.energy < struct.energyCapacity
                             }
                         })
                     )
 
-                    // no target is job done
-                    if (!target || criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
+                    if (!target && criterias.creepIsFull(creep)) {
+                        activities.goToTarget(creep, generalUtils.getRoomRallyFlag(room.name))
+                    } else if (criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                    }
-                    else {
+                    } else {
                         activities.transferResourceTypeToTarget(creep, target, RESOURCE_ENERGY)
                     }
                 }
@@ -301,8 +299,7 @@ module.exports = {
                     if (!target) {
                         const flag = Game.flags[`${room.name}_RALLY`] ? Game.flags[`${room.name}_RALLY`] : room.controller
                         activities.goToTarget(creep, flag)
-                    }
-                    else {
+                    } else {
                         activities.buildConstructionSite(creep, target)
                         if (criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
@@ -338,8 +335,7 @@ module.exports = {
                     if (!target) {
                         const flag = generalUtils.getRoomRallyFlag(room.name)
                         activities.goToTarget(creep, flag)
-                    }
-                    else {
+                    } else {
                         activities.repairTargetStructure(creep, target)
                         if (criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
@@ -366,8 +362,7 @@ module.exports = {
 
                     if (!tower || criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
-                    }
-                    else {
+                    } else {
                         activities.transferResourceTypeToTarget(creep, tower, RESOURCE_ENERGY, amount)
                         if (criterias.targetIsFull(creep, tower, RESOURCE_ENERGY) || criterias.creepIsEmpty(creep)) {
                             conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
@@ -390,8 +385,7 @@ module.exports = {
                     if (criterias.creepIsOnTarget(creep, container)) {
                         conclusions.performNextTask(creep)
                     }
-                }
-                else {
+                } else {
                     activities.goToTarget(creep, source)
                     if (criterias.creepIsAtTarget(creep, source, 1)) {
                         conclusions.performNextTask(creep)
@@ -429,8 +423,7 @@ module.exports = {
                 if (!room) {
                     const flag = generalUtils.getRoomRallyFlag(roomName)
                     activities.goToTarget(creep, flag)
-                }
-                else {
+                } else {
                     activities.reserveRoomController(creep, room.controller)
                 }
             }
@@ -445,8 +438,7 @@ module.exports = {
                 if (!room) {
                     const flag = generalUtils.getRoomRallyFlag(roomName)
                     activities.goToTarget(creep, flag)
-                }
-                else {
+                } else {
                     activities.claimRoomController(creep, room.controller)
                 }
             }
@@ -458,7 +450,7 @@ module.exports = {
                 const roomName = taskTicket.taskParams.roomName
                 const room = generalUtils.getRoom(roomName)
 
-                if (!room){
+                if (!room) {
                     console.log(`Creep ${creep.name} has no visibility in ${roomName}. Cycling.`)
                     conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, taskTicket)
                     return

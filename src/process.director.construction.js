@@ -14,27 +14,15 @@ module.exports = {
                 .filter(cs => cs.pos.roomName === this.targetRoomName)
 
             if (targetRoomConstructionSites.length > 0) {
-                const ownerRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.ownerRoom)
-                const targetRoomSourceOption = processUtils.determineDefaultRoomEnergyObtentionMethod(this.targetRoom)
+                const ownerRoomSourceOption = processUtils.determineRoomEnergyObtentionMethod(this.ownerRoom)
+                const targetRoomSourceOption = processUtils.determineRoomEnergyObtentionMethod(this.targetRoom)
                 let sourceOption, sourceRoomName
-
-                // // rather than harvest on the target leech from owner
-                // if (
-                //     targetRoomSourceOption === obtainEnergyOptions.HARVEST
-                //     && ownerRoomSourceOption !== obtainEnergyOptions.HARVEST
-                // ) {
-                //     sourceOption = ownerRoomSourceOption
-                //     sourceRoomName = this.ownerRoomName
-                // } else {
-                //     sourceOption = targetRoomSourceOption
-                //     sourceRoomName = this.targetRoomName
-                // }
 
                 sourceOption = targetRoomSourceOption
                 sourceRoomName = this.targetRoomName
 
                 const sourceEnergyTaskTicket = processUtils
-                    .getDefaultEnergySourcingTaskTicket(sourceOption, sourceRoomName)
+                    .getEnergyObtentionTaskTicket(sourceOption, sourceRoomName)
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 const totalProgressReq = _.sum(targetRoomConstructionSites, cs => cs.progressTotal)
                 let bodyType, currentLevel, numOfCreeps
@@ -74,7 +62,7 @@ module.exports = {
                     role,
                     numOfCreeps,
                     bodyType,
-                    15,
+                    20,
                     [
                         new tasks.TaskTicket(
                             tasks.tasks.CYCLIC_PICKUP_DROPPED_RESOURCE_ON_ROOM.name,

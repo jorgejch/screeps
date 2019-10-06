@@ -31,7 +31,7 @@ module.exports = {
                     && room.controller.owner.username === config.PLAYER_NAME
                     && !this.data.ownRooms[roomName]
                 ) {
-                    const label = `${roomName}_manager`
+                    const label = `${roomName}_governor`
                     const process = Kernel.scheduler.launchProcess(
                         Kernel.availableProcessClasses.OwnedRoomGovernor,
                         label,

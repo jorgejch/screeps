@@ -112,7 +112,7 @@ module.exports = {
             }
             else {
                 this.creepBorn = false
-                const ownerManagerLabel = `${this.ownerRoomName}_manager`
+                const ownerManagerLabel = `${this.ownerRoomName}_governor`
                 const ownerManager = Kernel.getProcessByLabel(ownerManagerLabel)
 
                 if (!ownerManager) {
