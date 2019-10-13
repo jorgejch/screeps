@@ -12,10 +12,6 @@ module.exports = {
     getRoom: function (roomName) {
         return Game.rooms[roomName]
     },
-    getRandomArrayElement: function (array) {
-        const size = array.length
-        return array[Math.floor(Math.random() * size)]
-    },
     getRoomRallyFlag: function (roomName) {
         return Game.flags[`${roomName}_RALLY`]
     },

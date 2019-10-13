@@ -42,6 +42,38 @@ module.exports = {
                 + `due to: ${ex.stack}`)
         }
     },
+    scoutRoomUnderFlag: (flag) => {
+        const visual = new RoomVisual(flag.pos.roomName)
+        const targetRoomName = flag.pos.roomName
+        const ownerRoomName = flag.name
+
+        if (!processUtils.checkRoomExists(ownerRoomName)) {
+            visual.text(`Room ${ownerRoomName} doesn't exist.`, flag.pos)
+            return
+        }
+
+        const SCOUT_DIRECTOR_PROC_LABEL = `scout_director_of_${targetRoomName}_from_${ownerRoomName}`
+        if (Kernel.getProcessByLabel(SCOUT_DIRECTOR_PROC_LABEL)) {
+            visual.text(`Process from ${ownerRoomName} to guard ${targetRoomName} already exists.`, flag.pos)
+            flag.remove()
+            return
+        }
+
+        try {
+            const process = Kernel.scheduler.launchProcess(
+                Kernel.availableProcessClasses.ScoutDirector,
+                SCOUT_DIRECTOR_PROC_LABEL
+            )
+            visual.text(`Launched process ${process.label}.`, flag.pos)
+            process.ownerRoomName = ownerRoomName
+            process.targetRoomName = targetRoomName
+            process.targetPos = flag.pos
+            flag.remove()
+        } catch (ex) {
+            console.log(`Failed to launch process ${SCOUT_DIRECTOR_PROC_LABEL} `
+                + `due to: ${ex.stack}`)
+        }
+    },
     guardRoomUnderFlag: (flag) => {
         const visual = new RoomVisual(flag.pos.roomName)
         const targetRoomName = flag.pos.roomName
@@ -59,7 +91,6 @@ module.exports = {
             return
         }
         try {
-
             const process = Kernel.scheduler.launchProcess(
                 Kernel.availableProcessClasses.GuardDirector,
                 GUARD_DIRECTOR_PROC_LABEL

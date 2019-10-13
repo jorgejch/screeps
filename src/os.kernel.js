@@ -47,6 +47,7 @@ module.exports = class OSKernel {
         this.availableProcessClasses.ConstructionDirector = construct.ConstructionDirector
         this.availableProcessClasses.EnergySupplyDirector = load.EnergySupplyDirector
         this.availableProcessClasses.GuardDirector = defense.GuardDirector
+        this.availableProcessClasses.ScoutDirector = defense.ScoutDirector
     }
 
     _loadProcessTableFromMemory() {

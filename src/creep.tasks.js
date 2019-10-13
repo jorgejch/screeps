@@ -243,9 +243,11 @@ module.exports = {
                         })
                     )
 
-                    if (!target && criterias.creepIsFull(creep)) {
+                    // no target is job done
+                    if (!target && criterias.creepIsFull(creep)){
                         activities.goToTarget(creep, generalUtils.getRoomRallyFlag(room.name))
-                    } else if (criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
+                    }
+                    else if (!target || criterias.creepResourceIsEmpty(creep, RESOURCE_ENERGY)) {
                         conclusions.addCurrentTaskToTopOfQueueAndPerformNextTask(creep, currentTaskTicket)
                     } else {
                         activities.transferResourceTypeToTarget(creep, target, RESOURCE_ENERGY)

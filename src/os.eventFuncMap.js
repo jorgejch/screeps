@@ -13,6 +13,7 @@ module.exports = {
     "2_2" /*PURPLE_PURPLE*/ : source.harvestSourceUnderFlagOnRemoteRoom,
     "4_1" /*CYAN_RED*/      : controller.upgradeControllerUnderFlagFromOwnRoom,
     "4_3" /*CYAN_BLUE*/     : controller.upgradeFlagRoomControllerOnRemoteRoom,
+    "4_4" /*CYAN_CYAN*/     : controller.upgradeRoomControllerFromRemoteRoom,
     "4_2" /*CYAN_PURPLE*/   : controller.reserveControllerUnderFlag,
     "5_1" /*GREEN_RED*/     : constructionAndRepair.constructRemoteRoomUnderFlag,
     "5_2" /*GREEN_PURPLE*/  : constructionAndRepair.repairRemoteRoomUnderFlag,
@@ -20,5 +21,6 @@ module.exports = {
     "6_2" /*YELLOW_PURPLE*/ : foreignRelations.guardRoomUnderFlag,
     "6_3" /*YELLOW_BLUE*/   : foreignRelations.claimRoomUnderFlag,
     "6_4" /*YELLOW_CYAN*/   : foreignRelations.supplyEnergyToRoom,
+    "6_5" /*YELLOW_GREEN*/  : foreignRelations.scoutRoomUnderFlag,
     "9_1" /*GREY_RED*/      : utility.deleteRoomRepairManager
 }

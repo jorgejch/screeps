@@ -101,8 +101,10 @@ module.exports = {
 
             /* init when needed */
 
-            const ENERGY_SUPPLY_DIRECTOR_PROC_LABEL = `energy_supply_director_of_room_${this.roomName}_from_${this.roomName}`
-            if (this.room.energyCapacityAvailable >= energyCapacityLevels.LEVEL_2) {
+            const ENERGY_SUPPLY_DIRECTOR_PROC_LABEL =
+                `energy_supply_director_of_room_${this.roomName}_from_${this.roomName}`
+
+            if (this.room.energyCapacityAvailable >= energyCapacityLevels.LEVEL_2 && this.room.controller.level >= 2) {
                 if (!Kernel.getProcessByLabel(ENERGY_SUPPLY_DIRECTOR_PROC_LABEL)) {
                     console.log(`DEBUG Creating process ${ENERGY_SUPPLY_DIRECTOR_PROC_LABEL}`)
                     const process = Kernel.scheduler.launchProcess(

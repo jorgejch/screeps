@@ -21,18 +21,18 @@ module.exports = {
                 const energyCapacityAvailable = this.targetRoom.energyCapacityAvailable
                 let bodyType, currentLevel, numOfFeeders
 
-                if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
+                if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2 || this.ownerRoom.controller.level < 2) {
                     // At this level harvesters supply extensions/spawn. No need for a supplier.
                     return
                 }
                 else if (!processUtils.getRoomStorage(this.ownerRoom)) {
-                    currentLevel = 1
-                    this.resolveLevelForRole(role, currentLevel)
-                    bodyType = "FREIGHTER_2"
-                } else {
                     currentLevel = 2
                     this.resolveLevelForRole(role, currentLevel)
-                    bodyType = "FREIGHTER_3"
+                    bodyType = `FREIGHTER_${currentLevel}`
+                } else {
+                    currentLevel = 3
+                    this.resolveLevelForRole(role, currentLevel)
+                    bodyType = `FREIGHTER_${currentLevel}`
                 }
 
                 numOfFeeders = config.DEFAULT_NUM_OF_FEEDERS

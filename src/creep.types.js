@@ -57,8 +57,8 @@ module.exports = {
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
         CARRY, CARRY, CARRY, CARRY, CARRY, CARRY
     ],
-    STATIONARY_WORKER_2: [                                                                          // Total: 550
-        MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK
+    STATIONARY_WORKER_2: [                                                                          // Total: 500
+        MOVE, CARRY, WORK, WORK, WORK, WORK
     ],
     STATIONARY_WORKER_3: [                                                                          // Total: 800
         MOVE, MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK, WORK, WORK,

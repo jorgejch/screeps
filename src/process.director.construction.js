@@ -4,6 +4,7 @@ const DirectorProcess = require("./process.director.directorProcess")
 const energyCapacityLevels = require("./util.energyCapacityLevels")
 const tasks = require("./creep.tasks")
 const processUtils = require('./util.process')
+const obtainEnergyOptions = require("./util.obtainEnergyOptions")
 
 module.exports = {
     ConstructionDirector: class extends DirectorProcess {
@@ -14,24 +15,24 @@ module.exports = {
                 .filter(cs => cs.pos.roomName === this.targetRoomName)
 
             if (targetRoomConstructionSites.length > 0) {
-                const ownerRoomSourceOption = processUtils.determineRoomEnergyObtentionMethod(this.ownerRoom)
-                const targetRoomSourceOption = processUtils.determineRoomEnergyObtentionMethod(this.targetRoom)
-                let sourceOption, sourceRoomName
-
-                sourceOption = targetRoomSourceOption
-                sourceRoomName = this.targetRoomName
-
-                const sourceEnergyTaskTicket = processUtils
-                    .getEnergyObtentionTaskTicket(sourceOption, sourceRoomName)
+                const sourceRoomName = this.targetRoomName
                 const energyCapacityAvailable = this.ownerRoom.energyCapacityAvailable
                 const totalProgressReq = _.sum(targetRoomConstructionSites, cs => cs.progressTotal)
-                let bodyType, currentLevel, numOfCreeps
+                const defaultSourceOption = processUtils.determineRoomEnergyObtentionMethod(this.ownerRoom)
+                let bodyType, currentLevel, numOfCreeps, sourceEnergyTaskTicket
 
-                if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2) {
+                sourceEnergyTaskTicket =
+                    processUtils.getEnergyObtentionTaskTicket(defaultSourceOption, sourceRoomName)
+
+                if (energyCapacityAvailable < energyCapacityLevels.LEVEL_2 || this.ownerRoom.controller.level === 1) {
+                    sourceEnergyTaskTicket =
+                        processUtils.getEnergyObtentionTaskTicket(obtainEnergyOptions.HARVEST, sourceRoomName)
                     bodyType = "BASIC_WORKER_1"
                     currentLevel = 1
                     numOfCreeps = targetRoomConstructionSites.length > 3 ? 2 : 1
-                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_3) {
+                } else if (
+                    energyCapacityAvailable < energyCapacityLevels.LEVEL_3 || this.ownerRoom.controller.level === 2
+                ) {
                     currentLevel = 2
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_2"
@@ -40,17 +41,21 @@ module.exports = {
                         road = 300 or 1500
                         extension = 3000
                      */
-                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*1 extension*/ 3000), 2)
-                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_4) {
+                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*1 extension*/ 3000), 3)
+                } else if (
+                    energyCapacityAvailable < energyCapacityLevels.LEVEL_4 || this.ownerRoom.controller.level === 3
+                ) {
                     currentLevel = 3
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_3"
                     numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*2 extensions*/ 6000), 2)
-                } else if (energyCapacityAvailable < energyCapacityLevels.LEVEL_5) {
+                } else if (
+                    energyCapacityAvailable < energyCapacityLevels.LEVEL_5 || this.ownerRoom.controller.level === 4
+                ) {
                     currentLevel = 4
                     this.resolveLevelForRole(role, currentLevel)
                     bodyType = "BASIC_WORKER_4"
-                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*5 extentensions*/ 15000), 2)
+                    numOfCreeps = 1 + Math.min(Math.trunc(totalProgressReq / /*5 extensions*/ 15000), 2)
                 } else {
                     currentLevel = 5
                     this.resolveLevelForRole(role, currentLevel)

@@ -50,14 +50,18 @@ module.exports = {
                 freighterPriority,
                 freighterInitialTaskTicketQueue
 
-            if ( emergency || !processUtils.checkRoomHasContainers(this.targetRoom)) {
+            if (
+                emergency
+                || roomEnergyCapacity < energyCapacityLevels.LEVEL_2
+                || this.ownerRoom.controller.level === 1
+            ) {
                 // to track when level goes up
                 harvesterCurrentLevel = 1
                 // basic harvesters feed
                 reqNumOfFreighters = 0
                 // there should be 3 basic workers harvesting at this level
                 reqNumOfHarvesters = 2
-                harvesterBodyType = "BASIC_WORKER_1"
+                harvesterBodyType = `BASIC_WORKER_${harvesterCurrentLevel}`
                 harvesterPriority = this.isLocal() ? 0 : 1
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
@@ -67,14 +71,22 @@ module.exports = {
                         tasks.tasks.CYCLIC_TRANSFER_ENERGY_TO_ROOM_SPAWN_STRUCTS.name,
                         {roomName: this.ownerRoomName}
                     )]
-            }
-            else if (!processUtils.getRoomStorage(this.ownerRoom)) {
-                harvesterCurrentLevel = 2
+            } else if (
+                roomEnergyCapacity >= energyCapacityLevels.LEVEL_2
+                && this.ownerRoom.controller.level >= 2
+                && !processUtils.getRoomStorage(this.ownerRoom)
+            ) {
+                harvesterCurrentLevel =
+                    roomEnergyCapacity >= energyCapacityLevels.LEVEL_3
+                    && this.ownerRoom.controller.level >= 3
+                        ? 3
+                        : 2
+
                 this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
                 // at this level creeps source from the resource pile or container
                 reqNumOfFreighters = 0
                 reqNumOfHarvesters = 1
-                harvesterBodyType = "STATIONARY_WORKER_2"
+                harvesterBodyType = `STATIONARY_WORKER_${harvesterCurrentLevel}`
                 harvesterPriority = 1
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
@@ -84,12 +96,11 @@ module.exports = {
                         tasks.tasks.HARVEST_SOURCE.name, {sourceId: this.sourceId}
                     ),
                 ]
-            }
-            else  {
+            } else {
                 harvesterCurrentLevel = 3
                 this.resolveLevelForRole(harvesterRole, harvesterCurrentLevel)
                 reqNumOfHarvesters = 1
-                harvesterBodyType = "STATIONARY_WORKER_3"
+                harvesterBodyType = `STATIONARY_WORKER_${harvesterCurrentLevel}`
                 harvesterPriority = 2
                 harvesterInitialTaskTicketQueue = [
                     new tasks.TaskTicket(
@@ -100,12 +111,11 @@ module.exports = {
                     ),
                 ]
 
-                if (roomEnergyCapacity < energyCapacityLevels.LEVEL_4 || this.isLocal()){
+                if (roomEnergyCapacity < energyCapacityLevels.LEVEL_4 || this.isLocal()) {
                     freighterCurrentLevel = 3
                     freighterBodyType = "FREIGHTER_3"
                     reqNumOfFreighters = this.isLocal() ? 2 : 4
-                }
-                else{
+                } else {
                     freighterCurrentLevel = 4
                     freighterBodyType = "FREIGHTER_4"
                     reqNumOfFreighters = this.isLocal() ? 1 : 3

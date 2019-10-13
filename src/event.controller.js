@@ -20,13 +20,43 @@ module.exports = {
             )
             visual.text(`Launched process ${process.label}.`, flag.pos)
             process.controllerId = controller.id
-        }
-        catch (ex) {
+        } catch (ex) {
             console.log(`Failed to launch process ${CONTROLLER_UPGRADE_MANAGER_PROC_LABEL} `
                 + `due to: ${ex.stack}`)
         }
     },
-    upgradeFlagRoomControllerOnRemoteRoom: function(flag){
+    upgradeRoomControllerFromRemoteRoom: function (flag) {
+        const controller = Game.rooms[flag.name].find(
+            FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTROLLER}}
+        )[0]
+        const targetRoom = Game.rooms[flag.pos.roomName]
+
+        const visual = new RoomVisual(flag.room.name)
+
+        const CONTROLLER_UPGRADE_MANAGER_PROC_LABEL =
+            `controller_upgrade_director_of_${controller.room.name}_from_${targetRoom.name}`
+        if (Kernel.getProcessByLabel(CONTROLLER_UPGRADE_MANAGER_PROC_LABEL)) {
+            visual.text(
+                `Process to upgrade controller ${controller.id} from ${targetRoom.name} room already exists.`,
+                flag.pos
+            )
+            return
+        }
+        console.log(`DEBUG Creating process ${CONTROLLER_UPGRADE_MANAGER_PROC_LABEL}`)
+        try {
+            const process = Kernel.scheduler.launchProcess(
+                Kernel.availableProcessClasses.ControllerUpgradeDirector,
+                CONTROLLER_UPGRADE_MANAGER_PROC_LABEL
+            )
+            visual.text(`Launched process ${process.label}.`, flag.pos)
+            process.controllerId = Game.rooms[flag.name].controller.id
+            process.targetRoomName = flag.pos.roomName
+        } catch (ex) {
+            console.log(`Failed to launch process ${CONTROLLER_UPGRADE_MANAGER_PROC_LABEL} `
+                + `due to: ${ex.stack}`)
+        }
+    },
+    upgradeFlagRoomControllerOnRemoteRoom: function (flag) {
 
     },
     reserveControllerUnderFlag: function (flag) {
@@ -52,8 +82,7 @@ module.exports = {
             visual.text(`Launched process ${process.label}.`, flag.pos)
             process.controllerPositionProps = controllerPos
             process.ownerRoomName = ownerRoomName
-        }
-        catch (ex) {
+        } catch (ex) {
             console.log(`Failed to launch process ${RESERVE_ROOM_DIRECTOR_PROC_LABEL} `
                 + `due to: ${ex.stack}`)
         }

@@ -9,10 +9,6 @@ module.exports = {
         return room.find(FIND_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_STORAGE)[0]
     },
-    getRoomTowers(room) {
-        return room.find(FIND_STRUCTURES)
-            .filter(struct => struct.structureType === STRUCTURE_TOWER)
-    },
     getRoomLinks(room) {
         return room.find(FIND_STRUCTURES)
             .filter(struct => struct.structureType === STRUCTURE_LINK)
@@ -22,10 +18,6 @@ module.exports = {
         const ratio = _.sum(storage.store) / storage.storeCapacity
         return ratio > config.DEFAULT_ROOM_STORAGE_THRESHOLD
 
-    },
-    checkRoomHasTowers: function (room) {
-        const towers = this.getRoomTowers(room)
-        return towers.length > 0
     },
     checkRoomHasContainers: function (room) {
         return room.find(FIND_STRUCTURES)
@@ -41,7 +33,6 @@ module.exports = {
         })
         return false
     },
-
     determineRoomEnergyObtentionMethod: function (room) {
         if (this.getRoomStorage(room)) {
             return obtainEnergyOptions.STORAGE
